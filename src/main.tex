@@ -3,11 +3,15 @@
 \usepackage[margin=2.54cm]{geometry}
 \usepackage{amsmath,amssymb,mathtools}
 \usepackage{graphicx}
+\graphicspath{{./}{src/}}
+\usepackage{subcaption}
 \usepackage{booktabs}
 \usepackage{float}
 \usepackage{cite}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,calc,fit,positioning,shapes.geometric,shapes.symbols}
 \floatname{algorithm}{算法}
 \makeatletter
 \renewenvironment{thebibliography}[1]
@@ -29,16 +33,21 @@
 \setlength{\parindent}{2em}
 \setlength{\parskip}{0.35em}
 \begin{document}
-\title{UAV辅助移动边缘计算中的长期动态激励与卸载优化}
+\title{无人机辅助移动边缘计算中的长期动态激励与卸载优化}
 \author{李锡泽}
 \date{}
 \maketitle
+\begin{abstract}
+针对无人机（UAV）辅助移动边缘计算网络中用户类型私有、任务动态到达及计算资源竞争情形下可能出现的策略性上报行为，本文考虑长期动态交互环境中的任务卸载与资源分配问题。本文将 UAV 与移动用户之间的连续交互过程刻画为部分可观测随机博弈。移动用户结合本地任务状态及私有信息进行类型上报，UAV 基于相关上报信息作出任务卸载与计算资源分配决策。为兼顾用户的参与激励与系统运行效益，本文构建基于动态枢轴思想的支付规则，并引入反事实长期 Q 值，对用户决策可能对其他系统主体产生的长期影响进行估计。在策略求解方面，本文采用多智能体 Soft Actor-Critic（SAC）方法，分别学习用户的上报策略与 UAV 的策略；同时，通过随机采样反事实子拍卖分支估计反事实价值，以减轻逐用户重复交互所带来的计算负担。仿真结果显示，在所设定的实验条件下，相较于所选基线算法，所提方法在 UAV 训练回报和用户上报偏差等指标上表现出一定改进，并对计算资源配置与长期激励效果的改善具有参考意义。
+
+\noindent\textbf{关键词：}无人机辅助移动边缘计算；动态拍卖；多智能体强化学习
+\end{abstract}
 \section{引言（Introduction）}
-现有移动设备（Mobile Device, MD）受限于物理体积和本地算力，难以满足 5G 场景下不断增长的计算需求。移动边缘计算（Mobile Edge Computing, MEC）通过将计算任务卸载至邻近边缘服务器，为资源受限设备提供了有效支撑。在 UAV 辅助 MEC 网络中，无人机可作为空中移动边缘服务器，为地面基站覆盖不足区域的移动用户提供灵活的卸载服务。然而，无人机需要承担飞行、通信和计算成本，用户也具有追求自身效用最大化的自利性。因此，有必要设计e合理的激励机制，以促进服务提供方与任务请求方持续参与计算卸载。
+现有移动设备受限于物理体积和本地算力，难以满足 5G 场景下不断增长的计算需求。移动边缘计算（Mobile Edge Computing, MEC）通过将计算任务卸载至邻近边缘服务器，为资源受限设备提供了有效支撑。在 UAV 辅助 MEC 网络中，UAV 可作为空中移动边缘服务器，为地面基站覆盖不足区域的移动用户提供灵活的卸载服务。近年来，相关研究已从联合任务卸载与 UAV 部署、UAV 高度设计，以及用户关联和卸载决策协同优化等角度提升 UAV 辅助 MEC 的服务能力\cite{shen2023joint,hui2024optimal,wang2024distributed}。然而，UAV 需要承担飞行、通信和计算成本，用户也具有追求自身效用最大化的自利性。因此，有必要设计合理的激励机制，以促进服务提供方与任务请求方持续参与计算卸载。
 
 鉴于 UAV 与移动用户之间存在明显的层级决策关系，现有研究常采用斯坦博格博弈刻画二者交互：服务提供方作为领导者先行制定价格、资源分配或服务策略，移动用户作为跟随者据此作出卸载决策。例如，Cheng 等通过刻画边缘服务器与移动用户之间的主从关系，实现了边缘定价、资源分配和任务分配的联合优化\cite{cheng2024stackelberg}。但这类方法通常以平台收益或服务提供方效用最大化为主要目标，难以充分兼顾系统社会福利与交易公平性。
 
-相比之下，拍卖机制可将资源分配与支付规则纳入统一框架。Xiao 等结合双边拍卖和组合拍卖，联合刻画多用户、多服务器间的双向竞价与多维资源分配\cite{xiao2023multiround}；Li 等则针对任务价值随时间衰减的动态竞争场景，提出 GMPO 机制，通过短时隙优化、单调赢家确定和临界价格支付提升总体效用并抑制虚假交易\cite{li2025incentive}。相较于侧重供需撮合的双边拍卖，VCG 通过外部性定价，在满足相应条件时可使个体申报与社会福利目标一致。在联邦学习场景中，Wu 等针对连续训练过程中的客户端参与问题，提出长期自适应 VCG 拍卖机制，将客户端选择与长期社会福利优化相结合\cite{wu2024longterm}。然而，在边缘计算卸载的连续决策过程中，当前时隙的申报可能影响后续资源分配；该机制的定价主要依据当期即时福利，对跨期外部性的显式刻画相对有限。
+相比之下，拍卖机制可将资源分配与支付规则纳入统一框架。Xiao 等结合双边拍卖和组合拍卖，联合刻画多用户、多服务器间的双向竞价与多维资源分配\cite{xiao2023multiround}；Li 等则针对任务价值随时间衰减的动态竞争场景，提出一种通过短时隙优化、单调赢家确定和临界价格支付提升总体效用并抑制虚假交易的机制\cite{li2025incentive}。相较于侧重供需撮合的双边拍卖，Vickrey--Clarke--Groves（VCG）机制通过外部性定价，在满足相应条件时可使个体上报与社会福利目标一致。在联邦学习场景中，Wu 等针对连续训练过程中的客户端参与问题，提出长期自适应 VCG 拍卖机制，将客户端选择与长期社会福利优化相结合\cite{wu2024longterm}。然而，在边缘计算卸载的连续决策过程中，当前时隙的上报可能影响后续资源分配；该机制的定价主要依据当期即时福利，对跨期外部性的显式刻画相对有限。
 
 因此，本文研究 UAV 辅助 MEC 网络中的长期动态激励与卸载优化问题，借鉴 Bergemann 和 Välimäki 提出的动态枢轴机制\cite{bergemann2010dynamic}，将多用户竞争空中计算资源的过程建模为以长期社会福利最大化为目标的动态拍卖框架。本文采用 SAC 算法学习 UAV 与移动用户的决策策略，并利用长期 Q 函数估计用户的动态外部性，据此构造支付规则，以实现对用户长期贡献的合理定价和系统长期社会福利最大化。
 
@@ -49,13 +58,13 @@
 \subsection{通信模型}
 考虑用户 $n$ 在时隙 $t$ 向 UAV 上传卸载任务。UAV 与用户 $n$ 之间的上行链路可能为视距（LoS）或非视距（NLoS）链路，其中 LoS 链路的概率表示为：
 \begin{equation}
-Pr_{n,LoS}\left(t\right)=\frac{1}{1+\omega _{1}e^{-\omega _{2}\left(\phi _{n}(t)-\omega _{1}\right)}}
+Pr_{n,LoS}\left(t\right)=\frac{1}{1+\mu _{1}e^{-\mu _{2}\left(\phi _{n}(t)-\mu _{1}\right)}}
 \end{equation}
-其中，$\omega _{1}$ 和 $\omega _{2}$ 为环境常数，$\phi _{n}\left(t\right)$ 表示 UAV 与用户 $n$ 之间的仰角，其定义为：
+其中，$\mu _{1}$ 和 $\mu _{2}$ 为环境常数，$\phi _{n}\left(t\right)$ 表示 UAV 与用户 $n$ 之间的仰角，其定义为：
 \begin{equation}
 \phi _{n}(t)=\arcsin\left(\frac{z_{0,n}(t)}{\left(l_{0}\left(t\right)-l_{n}\left(t\right)\right)}\right)
 \end{equation}
-式中，$z_{0,n}(t)$ 为 UAV 与用户 $n$ 之间的高度差，$l_{0}\left(t\right)$ 和 $l_{n}\left(t\right)$ 分别表示 UAV 和用户 $n$ 的位置。相应地，NLoS 链路的概率由 LoS 概率的补集给出：
+式中，$z_{0,n}(t)$ 为 UAV 与用户 $n$ 之间的高度差，$l_{0}\left(t\right)$ 和 $l_{n}\left(t\right)$ 分别表示 UAV 和用户 $n$ 的位置。相应地，NLoS 链路的概率由 LoS 概率的补集给出\cite{alhourani2014modeling}：
 \begin{equation}
 Pr_{n,NLoS}\left(t\right)=1-Pr_{n,LoS}\left(t\right)
 \end{equation}
@@ -80,15 +89,15 @@ g_{0,n}\left(t\right)=\left(h_{0,n}\left(t\right)\right)^{2}\chi _{0,n}\left(t\r
 \tau _{n}^{trans}\left(t\right)=\frac{D_{n}\left(t\right)}{\rho _{n}\left(t\right)}
 \end{equation}
 \subsection{计算卸载模型}
-用户 $n$ 在时隙 $t$ 产生的数据量为 $D_{n}\left(t\right)$ 的计算任务。设单位比特任务需要 $\xi$ 个 CPU 周期，则该任务的计算量为 $L_{n}\left(t\right)=D_{n}\left(t\right)\xi$。任务可在本地执行，也可卸载至 UAV 处理。
+用户 $n$ 在时隙 $t$ 产生的数据量为 $D_{n}\left(t\right)$ 的计算任务。设单位比特任务需要 $\xi$ 个 CPU 周期，则该任务的计算量为 $L_{n}\left(t\right)=D_{n}\left(t\right)\xi$。任务可在本地执行，也可卸载至 UAV 处理\cite{you2017energy}。
 
-设 UAV 的总计算能力为 $F^{UAV}$，并采用按任务量比例分配的计算资源分配策略。定义卸载决策变量 $x_{n}\left(t\right)\in \{0,1\}$，其中 $x_{n}\left(t\right)=1$ 表示任务卸载至 UAV，$x_{n}\left(t\right)=0$ 表示任务在本地执行。则 UAV 分配给用户 $n$ 的计算频率为
+设 UAV 的总计算能力为 $F_{\mathrm{uav}}$，并采用按任务量比例分配的计算资源分配策略。定义卸载决策变量 $x_{n}\left(t\right)\in \{0,1\}$，其中 $x_{n}\left(t\right)=1$ 表示任务卸载至 UAV，$x_{n}\left(t\right)=0$ 表示任务在本地执行。则 UAV 分配给用户 $n$ 的计算频率为
 \begin{equation}
-f_{n}^{uav}\left(t\right)=x_{n}\left(t\right)\frac{D_{n}\left(t\right)\xi }{\sum_{k=1}^{N} x_{k}\left(t\right)D_{k}\left(t\right)\xi }F^{UAV}.
+f_{n}^{\mathrm{uav}}\left(t\right)=x_{n}\left(t\right)\frac{D_{n}\left(t\right)\xi }{\sum_{k=1}^{N} x_{k}\left(t\right)D_{k}\left(t\right)\xi }F_{\mathrm{uav}}.
 \end{equation}
 对于被卸载的任务，UAV 侧的计算时延为
 \begin{equation}
-\tau _{n}^{off}\left(t\right)=\frac{D_{n}\left(t\right)\xi }{f_{n}^{uav}\left(t\right)}.
+\tau _{n}^{off}\left(t\right)=\frac{D_{n}\left(t\right)\xi }{f_{n}^{\mathrm{uav}}\left(t\right)}.
 \end{equation}
 因此，用户 $n$ 的任务完成时延由卸载路径或本地计算路径决定，表示为
 \begin{equation}
@@ -99,20 +108,20 @@ f_{n}^{uav}\left(t\right)=x_{n}\left(t\right)\frac{D_{n}\left(t\right)\xi }{\sum
 \tau _{n}^{local}\left(t\right)=\frac{D_{n}\left(t\right)\xi }{f_{n}^{local}}
 \end{equation}
 式中，$f_{n}^{local}$ 为用户 $n$ 的本地 CPU 计算频率。
-\subsection{UAV能耗模型}
+\subsection{UAV 能耗模型}
 在时隙 $t$ 内，UAV 的能耗由飞行部署、悬停服务和任务计算三部分构成。设 $P^{fly}$ 和 $P^{hov}$ 分别表示 UAV 的飞行功率和悬停功率。
 
-在时隙开始时，UAV 根据轨迹规划结果从上一位置 $l_{0}(t-1)$ 移动至目标位置 $l_{0}(t)$。假设 UAV 以恒定速度 $V_{uav}$ 飞行，则移动能耗为
+在时隙开始时，UAV 根据轨迹规划结果从上一位置 $l_{0}(t-1)$ 移动至目标位置 $l_{0}(t)$。假设 UAV 以恒定速度 $V_{\mathrm{uav}}$ 飞行，则移动能耗为
 \begin{equation}
-E_{move}(t)=P^{fly}\cdot \frac{\left(l_{0}(t)-l_{0}(t-1)\right)}{V_{uav}}
+E_{move}(t)=P^{fly}\cdot \frac{\left(l_{0}(t)-l_{0}(t-1)\right)}{V_{\mathrm{uav}}}
 \end{equation}
 UAV 抵达目标位置后，为被接收任务提供通信与计算服务，其悬停能耗建模为
 \begin{equation}
 E_{hov}(t)=\sum_{n=1}^{N} x_{n}(t)P^{hov}[\tau _{n}^{trans}(t)+\tau _{n}^{off}(t)]
 \end{equation}
-此外，根据 CMOS 动态功耗模型，UAV 的计算能耗与分配的计算频率有关。设芯片的有效电容系数为 $\kappa_{\mathrm{uav}}$，则 UAV 在时隙 $t$ 处理卸载任务的计算能耗为
+此外，根据 CMOS 动态功耗模型，UAV 的计算能耗与分配的计算频率有关\cite{mao2016dynamic}。设芯片的有效电容系数为 $\kappa_{\mathrm{uav}}$，则 UAV 在时隙 $t$ 处理卸载任务的计算能耗为
 \begin{equation}
-E_{comp}(t)=\sum_{n=1}^{N} x_{n}(t)\kappa_{\mathrm{uav}} \xi D_{n}(t)(f_{n}^{uav}(t))^{2}
+E_{comp}(t)=\sum_{n=1}^{N} x_{n}(t)\kappa_{\mathrm{uav}} \xi D_{n}(t)(f_{n}^{\mathrm{uav}}(t))^{2}
 \end{equation}
 因此，UAV 在时隙 $t$ 的总能耗为
 \begin{equation}
@@ -121,26 +130,26 @@ E_{0}(t)=E_{move}(t)+E_{hov}(t)+E_{comp}(t)
 上述模型共同决定用户任务时延与 UAV 能耗，并将在下一节用于构造参与者效用和系统社会福利。
 \section{问题建模（Problem Formulation）}
 \subsection{动态拍卖机制}
-为刻画 UAV 辅助 MEC 中任务接收与轨迹控制的时序耦合，本文将系统建模为动态 VCG（Vickrey-Clarke-Groves）拍卖问题。由于 UAV 的位置随时隙演化，当前决策会影响后续服务条件与资源分配，因此需要在动态过程中联合确定资源分配与支付规则。
+为刻画 UAV 辅助 MEC 中任务接收与轨迹控制的时序耦合，本文将系统建模为动态 VCG 拍卖问题\cite{clarke1971multipart}。由于 UAV 的位置随时隙演化，当前决策会影响后续服务条件与资源分配，因此需要在动态过程中联合确定资源分配与支付规则。
 
-其中，UAV 作为拍卖者（Auctioneer），负责分配计算资源并确定目标服务位置；移动用户作为投标人（Bidders），通过申报信息竞争 UAV 计算资源。用户 $n$ 在时隙 $t$ 的私有类型为真实时延敏感度 $\theta _{n}(t)\in [0,1]$，向 UAV 提交的申报值记为 $\hat{\theta }_{n}(t)$。由于用户以自身效用最大化为目标，其申报值可能偏离真实类型。
+其中，UAV 作为拍卖者，负责分配计算资源并确定目标服务位置；移动用户作为投标人，通过上报信息竞争 UAV 计算资源。用户 $n$ 在时隙 $t$ 的私有类型为真实时延敏感度 $\theta _{n}(t)\in [0,1]$，向 UAV 提交的上报值记为 $\hat{\theta }_{n}(t)$。由于用户以自身效用最大化为目标，其上报值可能偏离真实类型。
 
-在时隙 $t$ 开始时，系统的公共物理状态由 UAV 与各用户在上一时隙的位置，即 $l_{0}(t-1)$ 和 $l_{n}(t-1)$，以及本时隙到达的任务量 $D_{n}(t)$ 共同构成。用户首先提交申报信息；随后，UAV 根据当前状态和全部申报，联合确定任务接收决策 $x_{n}(t)$ 与目标服务位置 $l_{0}(t)$。
+在时隙 $t$ 开始时，系统的公共物理状态由 UAV 与各用户在上一时隙的位置，即 $l_{0}(t-1)$ 和 $l_{n}(t-1)$，以及本时隙到达的任务量 $D_{n}(t)$ 共同构成。用户首先提交上报信息；随后，UAV 根据当前状态和全部上报，联合确定任务接收决策 $x_{n}(t)$ 与目标服务位置 $l_{0}(t)$。
 
 动作执行后，系统获得用户 $n$ 在时隙 $t$ 的任务完成时延 $\tau _{n}\left(t\right)$。据此，用户 $n$ 的单步效用定义为准线性形式：
 \begin{equation}
 U_{n}(t)=-\theta _{n}(t)\tau _{n}\left(t\right)-p_{n}(t)
 \end{equation}
-其中，$p_{n}(t)$ 为该用户占用计算资源所缴纳的支付费用。进一步地，定义 UAV 在时隙 (t) 的效用为
+其中，$p_{n}(t)$ 为该用户占用计算资源所缴纳的支付费用。进一步地，定义 UAV 在时隙 $t$ 的效用为
 \begin{equation}
 U_{0}\left(t\right)=\sum_{n=1}^{N} p_{n}\left(t\right)-\beta E_{0}\left(t\right)
 \end{equation}
-其中，$E_{0}\left(t\right)$表示 UAV 在该时隙的总能耗，$\beta $为能耗成本系数，用于刻画能量消耗对系统效益的影响。因此，时隙 (t) 的即时社会福利可定义为所有参与方效用之和，即
+其中，$E_{0}\left(t\right)$ 表示 UAV 在该时隙的总能耗，$\beta$ 为能耗成本系数，用于刻画能量消耗对系统效益的影响。因此，时隙 $t$ 的即时社会福利可定义为所有参与方效用之和，即
 \begin{equation}
 W(t)=U_{0}(t)+\sum_{n=1}^{N} U_{n}(t)=-\sum_{n=1}^{N} \theta _{n}\left(t\right)\tau _{n}\left(t\right)-\beta E_{0}(t)
 \end{equation}
 \subsection{长期优化问题}
-在动态 UAV 辅助边缘计算场景中，拍卖机制的设计目标不仅在于提升系统社会福利，还需保证用户具备真实性报告的激励以及持续参与机制的意愿。
+在动态 UAV 辅助边缘计算场景中，拍卖机制的设计目标不仅在于提升系统社会福利，还需保证用户具有如实上报和持续参与的意愿。
 UAV 侧优化问题：
 从系统角度出发，UAV 作为拍卖者，需要在各时隙联合决策任务接收和轨迹位置，以实现长期社会福利最大化。其优化问题可表述为
 \begin{equation}
@@ -151,17 +160,17 @@ UAV 侧优化问题：
 \end{aligned}
 \end{equation}
 用户侧优化问题：
-与 UAV 追求整体社会福利最大化不同，用户更关注自身收益最大化。对于移动用户 $n$，其策略变量为申报类型 $\hat{\theta }_{n}\left(t\right)$，目标是在机制规则给定的条件下最大化自身的长期折扣效用，即
+与 UAV 追求整体社会福利最大化不同，用户更关注自身收益最大化。对于移动用户 $n$，其策略变量为上报类型 $\hat{\theta }_{n}\left(t\right)$，目标是在机制规则给定的条件下最大化自身的长期折扣效用，即
 \begin{equation}
 \begin{aligned}
 \max_{\{\hat{\theta}_n(t)\}} \quad & \mathbb{E}\left[\sum_{t=0}^{T}\gamma^t U_n(t)\right] \\
 \text{s.t.} \quad & \hat{\theta}_n(t)\in[0,1], && \forall t.
 \end{aligned}
 \end{equation}
-综上，本文所研究的问题可归结为：设计联合任务卸载、支付规则与 UAV 轨迹控制的动态机制，在兼顾用户申报激励与参与意愿的同时，优化系统长期社会福利。
+综上，本文所研究的问题可归结为：设计联合任务卸载、支付规则与 UAV 轨迹控制的动态机制，在兼顾用户上报激励与参与意愿的同时，优化系统长期社会福利。
 \section{算法设计（Algorithm Design）}
-\subsection{多智能体 POSG 建模}
-为求解前述长期社会福利优化问题，本文将 UAV 辅助 MEC 系统建模为部分可观测随机博弈（Partially Observable Stochastic Game, POSG）。在该框架下，UAV 根据用户申报学习任务接收与轨迹控制策略，各移动用户则基于局部信息学习申报策略。该博弈记为 $G=\langle I,S,\{Z_i\}_{i\in I},\{A_i\}_{i\in I},P,\{r_i\}_{i\in I},\gamma\rangle$，其中，$I$、$S$、$Z_i$ 和 $A_i$ 分别表示智能体集合、全局状态空间、智能体 $i$ 的局部观测空间和动作空间；$P\bigl(s(t+1)\mid s(t),a(t)\bigr)$ 为状态转移概率，$r_i$ 为即时奖励函数，$\gamma$ 为折扣因子。智能体集合为 $I=\{0\}\cup N$，其中 $0$ 表示 UAV 智能体。为描述环境状态，时隙 $t$ 的全局状态定义为
+\subsection{多智能体部分可观测随机博弈建模}
+为求解前述长期社会福利优化问题，本文将 UAV 辅助 MEC 系统建模为部分可观测随机博弈（Partially Observable Stochastic Game, POSG）。在该框架下，UAV 根据用户上报学习任务接收与轨迹控制策略，各移动用户则基于局部信息学习上报策略。该博弈记为 $G=\langle I,S,\{Z_i\}_{i\in I},\{A_i\}_{i\in I},P,\{r_i\}_{i\in I},\gamma\rangle$，其中，$I$、$S$、$Z_i$ 和 $A_i$ 分别表示智能体集合、全局状态空间、智能体 $i$ 的局部观测空间和动作空间；$P\bigl(s(t+1)\mid s(t),a(t)\bigr)$ 为状态转移概率，$r_i$ 为即时奖励函数，$\gamma$ 为折扣因子。智能体集合为 $I=\{0\}\cup N$，其中 $0$ 表示 UAV 智能体。为描述环境状态，时隙 $t$ 的全局状态定义为
 \begin{equation}
 s(t)=\left\{l_0(t-1),\{l_n(t-1)\}_{n=1}^{N},\{D_n(t)\}_{n=1}^{N},\{\theta_n(t)\}_{n=1}^{N}\right\}.
 \end{equation}
@@ -183,7 +192,7 @@ r_{0}\left(t\right)=W\left(t\right)
 \begin{equation}
 o_{n}(t)=\left\{l_{n}(t-1),l_{0}(t-1),D_{n}(t),\theta _{n}(t)\right\}.
 \end{equation}
-任务量 $D_n(t)$ 和真实时延敏感度 $\theta_n(t)$ 使用户能够根据信息状态调整申报策略。用户的动作为向 UAV 提交的时延敏感度申报：
+任务量 $D_n(t)$ 和真实时延敏感度 $\theta_n(t)$ 使用户能够根据信息状态调整上报策略。用户的动作为向 UAV 提交的时延敏感度上报：
 \begin{equation}
 a_{n}(t)=\hat{\theta }_{n}(t).
 \end{equation}
@@ -191,9 +200,9 @@ a_{n}(t)=\hat{\theta }_{n}(t).
 \begin{equation}
 r_{n}(t)=U_{n}(t).
 \end{equation}
-在每个时隙开始时，环境给定全局状态 $s(t)$。各移动用户基于 $o_n(t)$ 生成申报动作 $a_n(t)$，UAV 接收全部申报后依据策略 $\pi_0(a_0(t)\mid o_0(t))$ 生成联合控制动作 $a_0(t)$。随后，环境执行任务卸载、传输与计算，得到用户时延 $\tau_n(t)$ 和相应的动态 VCG 支付 $p_n(t)$，并依据上述奖励函数反馈各智能体。最后，环境转移至 $s(t+1)$，训练过程利用该转移更新策略。
+在每个时隙开始时，环境给定全局状态 $s(t)$。各移动用户基于 $o_n(t)$ 生成上报动作 $a_n(t)$，UAV 接收全部上报后依据策略 $\pi_0(a_0(t)\mid o_0(t))$ 生成联合控制动作 $a_0(t)$。随后，环境执行任务卸载、传输与计算，得到用户时延 $\tau_n(t)$ 和相应的动态 VCG 支付 $p_n(t)$，并依据上述奖励函数反馈各智能体。最后，环境转移至 $s(t+1)$，训练过程利用该转移更新策略。
 \subsection{基于 SAC 的策略学习}
-UAV 依赖策略 $\pi _{0}(a_{0}(t)\mid o_{0}(t))$ 将局部观测转化为联合控制动作，而各移动用户 $n$ 则通过策略 $\pi _{n}(a_{n}(t)\mid o_{n}(t))$ 生成相应的竞标动作。给定 UAV 的局部观测 $o_{n}(t)$ 和联合控制动作 $a_{0}(t)$，在系统联合策略 $\left(\pi _{0},\pi _{n},\forall n\in N\right)$ 下，UAV 的状态-动作值函数（Q函数）定义为：
+UAV 依赖策略 $\pi _{0}(a_{0}(t)\mid o_{0}(t))$ 将局部观测转化为联合控制动作，而各移动用户 $n$ 则通过策略 $\pi _{n}(a_{n}(t)\mid o_{n}(t))$ 生成相应的上报动作。给定 UAV 的局部观测 $o_{0}(t)$ 和联合控制动作 $a_{0}(t)$，在系统联合策略 $\left(\pi _{0},\pi _{n},\forall n\in N\right)$ 下，UAV 的状态--动作值函数（Q 函数）定义为：
 \begin{equation}
 Q_{0}\left(o_{0}\left(t\right),a_{0}\left(t\right)\right)=\max_{\pi _{0}}\mathbb{E}\left[\sum_{\nu =t}^{T} \gamma ^{\nu -t}r_{0}\left(\nu \right)\mid o_{0}\left(t\right),a_{0}\left(t\right)\right]
 \end{equation}
@@ -201,7 +210,7 @@ Q_{0}\left(o_{0}\left(t\right),a_{0}\left(t\right)\right)=\max_{\pi _{0}}\mathbb
 \begin{equation}
 \pi _{0}^{*}=\operatorname*{arg\,max}_{\pi _{0}}Q_{0}\left(o_{0}(t),a_{0}(t)\right)
 \end{equation}
-同理，给定移动用户 $n$ 的局部观测 $o_{n}\left(t\right)$ 和动作 $a_{n}\left(t\right)$，用户 $n$ 的Q 函数定义为：
+同理，给定移动用户 $n$ 的局部观测 $o_{n}\left(t\right)$ 和动作 $a_{n}\left(t\right)$，用户 $n$ 的 Q 函数定义为：
 \begin{equation}
 Q_{n}\left(o_{n}\left(t\right),a_{n}\left(t\right)\right)=\max_{\pi _{n}}\mathbb{E}\left[\sum_{\nu =t}^{T} \gamma ^{\nu -t}r_{n}\left(\nu \right)\mid o_{n}\left(t\right),a_{n}\left(t\right)\right]
 \end{equation}
@@ -209,7 +218,7 @@ Q_{n}\left(o_{n}\left(t\right),a_{n}\left(t\right)\right)=\max_{\pi _{n}}\mathbb
 \begin{equation}
 \pi _{n}^{*}=\operatorname*{arg\,max}_{\pi _{n}}Q_{n}\left(o_{n}(t),a_{n}(t)\right)
 \end{equation}
-针对动态环境下联合决策变量连续、系统状态随时间演化且难以获得精确解析解的问题，本文采用 Soft Actor-Critic (SAC) 算法求解长期优化策略。
+针对动态环境下联合决策变量连续、系统状态随时间演化且难以获得精确解析解的问题，本文采用 SAC 算法求解长期优化策略\cite{haarnoja2018soft}。
 与传统强化学习仅最大化期望累积回报不同，SAC 在目标函数中引入策略熵项，以鼓励策略保持适当随机性，避免过早收敛到局部最优。其最大熵目标函数可表示为
 \begin{equation}
 \begin{aligned}
@@ -217,19 +226,19 @@ J\left(\pi _{m}\right)=E_{a_{m}\sim \pi _{m}}\left(\sum_{\nu =t}^{T} \gamma ^{\n
 \end{aligned}
 \end{equation}
 $m\in \left\{0,1,\ldots ,N\right\}$ 代表 UAV 和移动用户智能体。
-在最大熵强化学习框架下，第$ m $个智能体对应的状态价值函数可表示为
+在最大熵强化学习框架下，第 $m$ 个智能体对应的状态价值函数可表示为
 \begin{equation}
 \begin{aligned}
 V_{m}\left(o_{m}\left(t\right)\right)=E_{a_{m}\left(t\right)\sim \pi _{m}}\left(Q_{m}\left(o_{m}\left(t\right),a_{m}\left(t\right);\hat{\omega }_{m}\right)-\alpha  \pi _{m}\left(a_{m}\left(t\right)\mid o_{m}\left(t\right);\psi _{m}\right)\right)
 \end{aligned}
 \end{equation}
-其中，$\hat{\omega }_{m}$ 表示目标 Q 网络参数，$\psi _{m}$表示策略网络参数。由此，第 $m$ 个智能体的时序差分目标可进一步写为
+其中，$\hat{\omega }_{m}$ 表示目标 Q 网络参数，$\psi _{m}$ 表示策略网络参数。由此，第 $m$ 个智能体的时序差分目标可进一步写为
 \begin{equation}
 \begin{aligned}
 y_{m}\left(t\right)=r_{m}\left(t\right)+\gamma V_{m}\left(o_{m}\left(t+1\right)\right)
 \end{aligned}
 \end{equation}
-基于上述 TD target，Q 网络损失函数定义为
+基于上述时序差分目标，Q 网络损失函数定义为
 \begin{equation}
 \begin{aligned}
 L\left(\omega _{m}\right)=E_{\left(o_{m}\left(t\right),a_{m}\left(t\right),r_{m}\left(t\right),o_{m}\left(t+1\right)\right)\sim D_{m}}\left(\frac{1}{2}\left(Q_{m}\left(o_{m}\left(t\right),a_{m}\left(t\right);\omega _{m}\right)-y_{m}\left(t\right)\right)^{2}\right)
@@ -242,7 +251,7 @@ L\left(\psi _{m}\right)=E_{o_{m}\left(t\right)\sim D_{m}, a_{m}\left(t\right)\si
 \end{aligned}
 \end{equation}
 该损失函数表明，策略网络在更新过程中不仅倾向于选择具有较高动作价值的行为，同时在熵项作用下保持适当的随机性，从而在探索与利用之间取得平衡。
-基于上述损失函数，第 $m$ 个智能体的在线 Q 网络参数和目标Q网络可通过梯度下降方式更新为
+基于上述损失函数，第 $m$ 个智能体的在线 Q 网络参数和目标 Q 网络可通过梯度下降方式更新为
 \begin{equation}
 \begin{aligned}
 \omega _{m}\leftarrow \omega _{m}-\eta _{Q}\nabla _{\omega _{m}}L\left(\omega _{m}\right)
@@ -253,15 +262,15 @@ L\left(\psi _{m}\right)=E_{o_{m}\left(t\right)\sim D_{m}, a_{m}\left(t\right)\si
 \hat{\omega }_{m}\leftarrow \rho \omega _{m}+\left(1-\rho \right)\hat{\omega }_{m},
 \end{aligned}
 \end{equation}
-其中，$\eta _{Q}$ 表示 Q 网络的学习率。目标 Q 网络参数 $\hat{\omega }_{m} $采用软更新方式迭代。
-类似地，策略网络参数 $\psi _{m}$通过最小化策略损失函数进行更新，即
+其中，$\eta _{Q}$ 表示 Q 网络的学习率。目标 Q 网络参数 $\hat{\omega }_{m}$ 采用软更新方式迭代。
+类似地，策略网络参数 $\psi _{m}$ 通过最小化策略损失函数进行更新，即
 \begin{equation}
 \begin{aligned}
 \psi _{m}\leftarrow \psi _{m}-\eta _{\pi }\nabla _{\psi _{m}}L\left(\psi _{m}\right)
 \end{aligned}
 \end{equation}
-其中，$\eta _{\pi }$表示策略网络的学习率。
-为了使策略熵在训练过程中能够自动调节，SAC 通常采用温度参数$\alpha _{m}$的自适应更新机制。设目标熵为 $H_{m}$，则对应的损失函数可写为
+其中，$\eta _{\pi }$ 表示策略网络的学习率。
+为了使策略熵在训练过程中能够自动调节，SAC 通常采用温度参数 $\alpha _{m}$ 的自适应更新机制。设目标熵为 $H_{m}$，则对应的损失函数可写为
 \begin{equation}
 \begin{aligned}
 L\left(\alpha _{m}\right)=E_{o_{m}\left(t\right)\sim D_{m}, a_{m}\left(t\right)\sim \pi _{m}}\left(-\alpha _{m} \pi _{m}\left(a_{m}\left(t\right)\mid o_{m}\left(t\right);\psi _{m}\right)-\alpha _{m}H_{m}\right)
@@ -273,17 +282,21 @@ L\left(\alpha _{m}\right)=E_{o_{m}\left(t\right)\sim D_{m}, a_{m}\left(t\right)\
 \alpha _{m}\leftarrow \alpha _{m}-\eta _{\alpha }\nabla _{\alpha _{m}}L\left(\alpha _{m}\right),
 \end{aligned}
 \end{equation}
-其中，$\eta _{\alpha }$表示温度参数的学习率。
-\subsection{基于动态 VCG 的定价规则}
+其中，$\eta _{\alpha }$ 表示温度参数的学习率。
+\subsection{基于动态枢轴机制的支付规则}
 为刻画用户 $n$ 对其余参与者造成的跨期外部性，本文借鉴动态枢轴机制构造支付规则\cite{bergemann2010dynamic}。给定 UAV 动作 $a_{0}(t)$，用户 $k$ 在时隙 $t$ 的当期价值定义为
 \begin{equation}
-v_{k}(a_{0}(t);\theta _{k}(t))=-\theta _{k}(t)\tau _{k}(a_{0}(t),t),\qquad k\in N.
+v_{k}(a_{0}(t);\theta _{k}(t))=-\theta _{k}(t)\tau _{k}(a_{0}(t)),\qquad k\in N.
 \end{equation}
-UAV 的当期价值为 $v_{0}(a_{0}(t))=-\beta E_{0}(t;a_{0}(t))$。记 $\boldsymbol{\theta}_{-n}(t)=\{\theta _{k}(t)\}_{k\in N\setminus \{n\}}$ 为剩余用户的类型向量，则反事实环境中的即时社会福利为
+UAV 的当期价值为 $v_{0}(a_{0}(t))=-\beta E_{0}(a_{0}(t))$。记 $\boldsymbol{\theta}^{-n}(t)=\{\theta _{k}(t)\}_{k\in N\setminus \{n\}}$ 为剩余用户的类型向量，则反事实环境中的即时社会福利为
 \begin{equation}
-W^{-n}(a_{0}(t);\boldsymbol{\theta}_{-n}(t))=v_{0}(a_{0}(t))+\sum_{k\in N\setminus \{n\}}v_{k}(a_{0}(t);\theta _{k}(t)).
+W^{-n}(a_{0}(t);\boldsymbol{\theta}^{-n}(t))=v_{0}(a_{0}(t))+\sum_{k\in N\setminus \{n\}}v_{k}(a_{0}(t);\theta _{k}(t)).
 \end{equation}
-记 $\mathcal{W}^{-n}(t+1\mid a_{0}(t))$ 为从下一时隙起的期望长期社会福利；$a_{0}^{*}(t)$ 和 $a_{0}^{*,-n}(t)$ 分别为完整系统和反事实系统中的最优动作。将 $a_{0}^{*}(t)$ 限制到反事实环境的动作记为 $\bar{a}_{0}^{-n}(t)$。为简洁起见，以下以 $v_{j}(a)$ 表示时隙 $t$ 内参与者 $j$ 在动作 $a$ 下的当期价值。则用户 $n$ 的动态枢轴支付为
+从下一时隙起的期望长期社会福利定义为
+\begin{equation}
+\mathcal{W}^{-n}(t+1\mid a_{0}(t))=\mathbb{E}\left[\sum_{\nu=t+1}^{T}\gamma^{\nu-(t+1)}W^{-n}(a_{0}(\nu);\boldsymbol{\theta}^{-n}(\nu))\mid a_{0}(t)\right].
+\end{equation}
+其中，$a_{0}^{*}(t)$ 和 $a_{0}^{*,-n}(t)$ 分别为完整系统和反事实系统中的最优动作。将 $a_{0}^{*}(t)$ 限制到反事实环境的动作记为 $\bar{a}_{0}^{-n}(t)$。为简洁起见，以下以 $v_{j}(a)$ 表示时隙 $t$ 内参与者 $j$ 在动作 $a$ 下的当期价值。则用户 $n$ 的动态枢轴支付为
 \begin{equation}
 \begin{aligned}
 p_{n}(t)={}&\sum_{j\in I\setminus\{n\}}\left[v_{j}(a_{0}^{*,-n}(t))-v_{j}(\bar{a}_{0}^{-n}(t))\right]\\
@@ -291,74 +304,182 @@ p_{n}(t)={}&\sum_{j\in I\setminus\{n\}}\left[v_{j}(a_{0}^{*,-n}(t))-v_{j}(\bar{a
 \end{aligned}
 \label{eq:dynamic-pivot-payment}
 \end{equation}
-上式第一项度量用户 $n$ 对其余参与者当期价值的影响，第二项刻画该影响对后续系统演化的延续。为避免显式求解延续社会福利，本文在反事实环境中以 $W^{-n}(a_{0}(t);\boldsymbol{\theta}_{-n}(t))$ 作为 UAV 的奖励，即 $r_{0}^{-n}(t)=W^{-n}(a_{0}(t);\boldsymbol{\theta}_{-n}(t))$，并学习相应的长期 Q 函数：
+上式第一项度量用户 $n$ 对其余参与者当期价值的影响，第二项刻画该影响对后续系统演化的延续。为避免显式求解延续社会福利，本文在反事实环境中以 $W^{-n}(a_{0}(t);\boldsymbol{\theta}^{-n}(t))$ 作为 UAV 的奖励，即 $r_{0}^{-n}(t)=W^{-n}(a_{0}(t);\boldsymbol{\theta}^{-n}(t))$，并学习相应的长期 Q 函数：
 \begin{equation}
-Q_{0}^{-n}(o_{0}^{-n}(t),a_{0}(t))=\mathbb{E}\left[\sum_{\nu=t}^{T}\gamma^{\nu-t}W^{-n}(a_{0}(\nu);\boldsymbol{\theta}_{-n}(\nu))\mid o_{0}^{-n}(t),a_{0}(t)\right].
+Q_{0}^{-n}(o_{0}^{-n}(t),a_{0}^{-n}(t))=\mathbb{E}\left[\sum_{\nu=t}^{T}\gamma^{\nu-t}W^{-n}(a_{0}^{-n}(\nu);\boldsymbol{\theta}^{-n}(\nu))\mid o_{0}^{-n}(t),a_{0}^{-n}(t)\right].
 \label{eq:counterfactual-q}
 \end{equation}
 其中，反事实环境中的最优动作满足
 \begin{equation}
-a_{0}^{*,-n}(t)=\operatorname*{arg\,max}_{a_{0}(t)}Q_{0}^{-n}(o_{0}^{-n}(t),a_{0}(t)).
+a_{0}^{*,-n}(t)=\operatorname*{arg\,max}_{a_{0}^{-n}(t)}Q_{0}^{-n}(o_{0}^{-n}(t),a_{0}^{-n}(t)).
 \end{equation}
 因此，上述动态枢轴支付可等价地形式化为两个反事实长期 Q 值之差：
 \begin{equation}
 p_{n}(t)=Q_{0}^{-n}(o_{0}^{-n}(t),a_{0}^{*,-n}(t))-Q_{0}^{-n}(o_{0}^{-n}(t),\bar{a}_{0}^{-n}(t)).
 \label{eq:dynamic-vcg-q-payment}
 \end{equation}
-\subsection{反事实子拍卖采样与 Q 函数更新}
-在每个训练时隙，算法采用 \ensuremath{\epsilon}-贪婪规则采样反事实索引。其采样规则为：
-\ensuremath{\kappa} = 0，概率为 1 - \ensuremath{\epsilon}；否则，\ensuremath{\kappa} \ensuremath{\in} \{1,…,N\} 均匀采样。
-在完整环境分支中，所有用户提交报告，UAV 基于完整报告状态选择联合动作。在反事实分支中，抽取的用户被移除，并构造对应的掩码报告状态；UAV 策略网络据此生成子拍卖动作。完整环境转移分别写入 UAV 和各用户的经验回放池；反事实分支仅将 UAV 转移 $(o_{0}^{-n}(t),a_{0}(t),r_{0}^{-n}(t),o_{0}^{-n}(t+1))$ 写入 UAV 回放池。
+为避免在每个训练时隙为全部 $N$ 个用户分别构造反事实子拍卖并进行多次环境交互，本文采用逐时隙随机抽取一个反事实分支的方式学习反事实 Q 函数。具体而言，算法以 \ensuremath{\epsilon}-贪婪规则采样反事实索引：以 $1-\epsilon$ 的概率取 $\kappa=0$ 并执行完整环境分支；以 $\epsilon$ 的概率从 $\{1,\ldots,N\}$ 中均匀抽取 $\kappa=n$ 并执行用户 $n$ 对应的反事实分支。经过多次训练，各用户对应的反事实环境均能被持续采样，从而以较低的单时隙计算开销覆盖全部反事实子拍卖。
+
+在完整环境分支中，所有用户进行类型上报，UAV 基于完整上报状态选择联合动作。对于采样到的反事实分支 $\kappa=n$，移除用户 $n$ 并构造掩码上报状态 $o_{0}^{-n}(t)$；UAV 策略网络据此生成反事实子拍卖动作 $a_{0}^{-n}(t)$。完整环境的转移分别写入 UAV 和各用户的经验回放池；反事实分支仅将 UAV 转移 $(o_{0}^{-n}(t),a_{0}^{-n}(t),r_{0}^{-n}(t),o_{0}^{-n}(t+1))$ 写入 UAV 回放池，用于学习移除用户 $n$ 后剩余系统的长期社会福利。
 对于任一用户，反事实 Q 函数表示该用户被移除后剩余系统的期望折扣累计社会福利。其最优反事实 Q 值计算为
 \begin{equation}
-Q_{0}^{-n,*}(t)=\max_{a}Q_{0}^{-n}(o_{0}^{-n}(t),a).
+Q_{0}^{-n,*}(t)=\max_{a_{0}^{-n}(t)}Q_{0}^{-n}(o_{0}^{-n}(t),a_{0}^{-n}(t)).
 \end{equation}
 再将完整系统的最优动作限制到反事实环境中，并代入式 \eqref{eq:dynamic-vcg-q-payment} 计算支付。
+
+图 \ref{fig:dynamic-pivot-sac-framework} 展示了所提方法中在线拍卖交互、动态枢轴支付与多智能体 SAC 更新之间的关系。
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+    font=\small,
+    >=Latex,
+    flow/.style={draw, rounded corners=2pt, align=center, minimum height=0.8cm, text width=2.8cm, fill=blue!6},
+    actor/.style={draw, rounded corners=2pt, align=center, minimum height=0.8cm, text width=2.8cm, fill=cyan!9},
+    critic/.style={draw, rounded corners=2pt, align=center, minimum height=0.8cm, text width=2.8cm, fill=green!8},
+    payment/.style={draw, rounded corners=2pt, align=center, minimum height=0.8cm, text width=4.2cm, fill=orange!12},
+    memory/.style={cylinder, shape border rotate=90, aspect=0.25, draw, align=center, minimum height=0.9cm, minimum width=2.0cm, fill=gray!12},
+    online/.style={->, thick},
+    learn/.style={->, thick, dashed}
+]
+% Online dynamic auction interaction
+\node[flow] (state) at (0,4.3) {系统状态\\$s(t)$};
+\node[flow, below=0.42cm of state] (report) {移动用户上报\\$\hat{\theta}_n(t)=\pi_n(o_n(t))$};
+\node[flow, below=0.42cm of report] (uavaction) {UAV 联合决策\\$a_0(t)=\pi_0(o_0(t))$};
+\node[flow, below=0.42cm of uavaction] (environment) {UAV 辅助 MEC 环境\\卸载、传输、计算与飞行};
+
+\draw[online] (state) -- (report);
+\draw[online] (report) -- (uavaction);
+\draw[online] (uavaction) -- (environment);
+\draw[online] (environment.west) to[out=180,in=180,looseness=0.7] node[left, font=\scriptsize] {$s(t+1)$} (state.west);
+
+% Experience memories
+\node[memory] (usermemory) at (-1.55,-3.15) {用户经验池\\$\{\mathcal{B}_n\}_{n\in N}$};
+\node[memory] (uavmemory) at (1.65,-3.15) {UAV 经验池 $\mathcal{B}_0$\\完整与反事实转移};
+\draw[learn] (environment.south west) to[out=-115,in=90] (usermemory.north);
+\draw[learn] (environment.south east) to[out=-65,in=90] (uavmemory.north);
+
+% Multi-agent SAC learning
+\node[actor] (useractor) at (5.7,3.45) {用户 Actor $\pi_n$\\生成类型上报};
+\node[critic, below=0.68cm of useractor] (usercritic) {用户 Critic $Q_n$\\评估上报策略};
+\node[actor, below=1.10cm of usercritic] (uavactor) {UAV Actor $\pi_0$\\生成联合决策};
+\node[critic, below=0.68cm of uavactor] (uavcritic) {UAV Critic $Q_0,\hat Q_0$\\评估完整与反事实价值};
+\node[draw, dashed, rounded corners=3pt, inner sep=0.34cm, fit=(useractor)(usercritic)(uavactor)(uavcritic)] (learnbox) {};
+\node[font=\small\bfseries, fill=white, inner sep=1pt] at (learnbox.north) {多智能体 SAC 学习模块};
+
+\draw[learn] (usercritic.north) -- node[right, font=\scriptsize] {策略梯度} (useractor.south);
+\draw[learn] (uavcritic.north) -- node[right, font=\scriptsize] {策略梯度} (uavactor.south);
+\draw[online] (useractor.west) to[out=180,in=0] (report.east);
+\draw[online] (uavactor.west) to[out=180,in=0] (uavaction.east);
+
+% Dynamic pivot payment
+\node[payment] (cfsample) at (11.1,3.25) {反事实样本构造\\$\kappa=n,\quad o_0^{-n}(t)$};
+\node[payment, below=0.68cm of cfsample] (valuecompare) {长期价值对照\\$Q_0^{-n,*}$ 与 $Q_0^{-n}(\bar a_0^{-n})$};
+\node[payment, below=0.68cm of valuecompare] (paymentnode) {外部性支付\\$\displaystyle p_n=Q_0^{-n,*}-Q_0^{-n}(\bar a_0^{-n})$};
+\node[draw, dashed, rounded corners=3pt, inner sep=0.34cm, fit=(cfsample)(valuecompare)(paymentnode)] (paymentbox) {};
+\node[font=\small\bfseries, fill=white, inner sep=1pt] at (paymentbox.north) {动态枢轴支付模块};
+
+\draw[learn] (uavactor.east) to[out=0,in=180] (cfsample.west);
+\draw[learn] (uavcritic.east) to[out=0,in=180] (valuecompare.west);
+\draw[online] (cfsample) -- (valuecompare);
+\draw[online] (valuecompare) -- (paymentnode);
+
+\node[draw, dashed, rounded corners=3pt, inner sep=0.42cm, fit=(state)(environment)(usermemory)(uavmemory)(learnbox)(paymentbox)] (framework) {};
+\node[font=\small\bfseries, fill=white, inner sep=1pt] at (framework.north) {所提动态枢轴多智能体 SAC 训练框架};
+\end{tikzpicture}%
+}
+\caption{基于动态枢轴机制的多智能体 SAC 框架。实线表示在线决策及模块内执行流程，虚线表示网络更新和反事实价值传递。}
+\label{fig:dynamic-pivot-sac-framework}
+\end{figure}
+
 \begin{algorithm}[H]
-\caption{动态 VCG 多智能体强化学习训练}
+\small
+\caption{动态枢轴多智能体 SAC 训练流程}
 \label{alg:dynamic-vcg-marl}
 \begin{algorithmic}[1]
-\State 初始化所有策略网络、价值网络和目标网络参数。
-\For{$t=1,2,\ldots,T$}
-    \State 按 $\epsilon$-贪婪规则采样反事实索引 $\kappa$。
-    \State $\kappa\gets 0$ 的概率为 $1-\epsilon$；否则，$\kappa\sim\mathrm{Unif}(\{1,\ldots,N\})$。
-    \Statex \textbf{阶段 1：用户申报}
-    \ForAll{$n\in N$}
-        \State $a_n(t)\sim\pi_n(\cdot\mid o_n(t))$。
-        \State $\hat{\theta}_n(t)\gets a_n(t)$。
-    \EndFor
-    \State 构造 UAV 观测 $o_0(t)$。
-    \Statex \textbf{阶段 2：UAV 决策}
-    \If{$\kappa=0$}
-        \State $a_0(t)\sim\pi_0(\cdot\mid o_0(t))$。
-    \Else
-        \State 构造掩码申报状态 $o_0^{-\kappa}(t)$。
-        \State $a_0(t)\sim\pi_0(\cdot\mid o_0^{-\kappa}(t))$。
-    \EndIf
-    \Statex \textbf{阶段 3：动态 VCG 定价}
-    \ForAll{$n\in N$}
-        \State 通过掩码用户 $n$ 构造 $o_0^{-n}(t)$。
-        \State $Q_0^{-n,*}(t)\gets\displaystyle\max_a Q_0^{-n}(o_0^{-n}(t),a)$。
-        \State $a_0^*(t)\gets\displaystyle\operatorname*{arg\,max}_a Q_0(o_0(t),a)$。
-        \State $\bar a_0^{-n}(t)\gets\left.a_0^*(t)\right|_{-n}$。
-        \State $Q_0^{-n}(t,\bar a_0^{-n}(t))\gets Q_0^{-n}(o_0^{-n}(t),\bar a_0^{-n}(t))$。
-        \State $p_n(t)\gets Q_0^{-n,*}(t)-Q_0^{-n}(t,\bar a_0^{-n}(t))$。
-    \EndFor
-    \State 执行联合动作 $a_0(t)$，获得奖励 $\{r_n(t)\}_{n=0}^{N}$ 与下一观测 $\{o_n(t+1)\}_{n=0}^{N}$。
-    \Statex \textbf{阶段 4：经验回放池更新}
-    \If{$\kappa=0$}
-        \State 将 UAV 转移 $(o_0(t),a_0(t),r_0(t),o_0(t+1))$ 存入 $\mathcal{B}_0$。
-        \ForAll{$n\in N$}
-            \State 将用户转移 $(o_n(t),a_n(t),r_n(t),o_n(t+1))$ 存入 $\mathcal{B}_n$。
+\Require 用户策略与双 Q 网络 $\{\pi_n,Q_n,\hat Q_n\}_{n\in N}$，UAV 策略与双 Q 网络 $\pi_0,Q_0,\hat Q_0$，回放池 $\{\mathcal{B}_m\}_{m=0}^{N}$
+\Ensure 更新后的策略参数、Q 网络参数及目标 Q 网络参数
+\For{每个训练回合 $e=1,\ldots,E$}
+    \State 重置环境，获得初始全局状态 $s(0)$、UAV 观测 $o_0(0)$ 和用户观测 $\{o_n(0)\}_{n\in N}$。
+    \For{每个时隙 $t=0,\ldots,T-1$}
+        \State 采样分支索引 $\kappa(t)$：以 $1-\epsilon$ 的概率令 $\kappa(t)=0$；否则从 $N$ 中均匀采样 $\kappa(t)=n$。
+        \State 用户并行生成上报 $a_n(t)=\hat\theta_n(t)\sim\pi_n(\cdot\mid o_n(t))$，$\forall n\in N$。
+        \State 根据 $s(t)$ 与 $\hat{\boldsymbol\theta}(t)=\{\hat\theta_n(t)\}_{n\in N}$ 构造完整 UAV 观测 $o_0(t)$。
+        \If{$\kappa(t)=0$}
+            \State 采样联合动作 $a_0(t)\sim\pi_0(\cdot\mid o_0(t))$；执行环境，获得 $\{\tau_n(t)\}_{n\in N}$、$E_0(t)$ 及下一观测。
+            \ForAll{$n\in N$}
+                \State 由式 \eqref{eq:dynamic-vcg-q-payment} 计算 $p_n(t)$ 与 $r_n(t)$，存储用户转移 $(o_n(t),a_n(t),r_n(t),o_n(t+1))$ 至 $\mathcal{B}_n$。
+            \EndFor
+            \State 令 $r_0(t)=W(t)$，存储完整 UAV 转移 $(o_0(t),a_0(t),r_0(t),o_0(t+1))$ 至 $\mathcal{B}_0$。
+        \Else
+            \State 令 $n=\kappa(t)$，构造 $o_0^{-n}(t)$，采样 $a_0^{-n}(t)$ 并执行反事实环境。
+            \State 令 $r_0^{-n}(t)=W^{-n}(a_0^{-n}(t);\boldsymbol\theta^{-n}(t))$，存储 $(o_0^{-n}(t),a_0^{-n}(t),r_0^{-n}(t),o_0^{-n}(t+1))$ 至 $\mathcal{B}_0$。
+        \EndIf
+        \ForAll{$m\in\{0\}\cup N$ 且 $|\mathcal{B}_m|\geq B$}
+            \State 从 $\mathcal{B}_m$ 采样小批量 $\mathcal{D}_m(t)=\{(o_m(\tau),a_m(\tau),r_m(\tau),o_m(\tau+1))\}$。
+            \State 由 $y_m(\tau)=r_m(\tau)+\gamma V_m(o_m(\tau+1))$ 更新 $\omega_m(t+1)$、$\psi_m(t+1)$、$\alpha_m(t+1)$ 与 $\hat\omega_m(t+1)$。
         \EndFor
-    \Else
-        \State 将 UAV 反事实转移 $(o_0^{-\kappa}(t),a_0(t),r_0^{-\kappa}(t),o_0^{-\kappa}(t+1))$ 存入 $\mathcal{B}_0$。
-    \EndIf
+    \EndFor
 \EndFor
 \end{algorithmic}
 \end{algorithm}
 \section{仿真结果与分析（Simulation Results and Analysis）}
-% TODO: 在此补充仿真设置、基线方法、性能对比结果及参数敏感性分析。
+\subsection{仿真设置}
+本文在统一的离散 UAV 辅助 MEC 环境中训练并测试各比较方法，每个训练回合包含 10 轮拍卖，即 $T=10$。在每个训练回合开始时独立生成用户类型；各拍卖轮中的任务规模独立采样，从而刻画任务到达的随机性与用户间的资源竞争。
+
+系统包含一架 UAV 和三名移动用户，用户数记为 $M=3$。
+
+用户的真实时延敏感系数 $\theta_n$ 从集合 $\{0.2,0.5,0.8\}$ 中独立均匀采样。各拍卖轮中，任务规模 $D_n(t)$ 从集合 $\{100,200,300\}$ KB 中独立均匀采样。每比特所需 CPU 周期数设为 $\xi=1000$，UAV 与本地设备的 CPU 频率分别设为 $F_{\mathrm{uav}}=0.1$ GHz 和 $f_{\mathrm{loc}}=1.5$ GHz。
+
+物理场景设置为 $1\,\mathrm{km}\times1\,\mathrm{km}$ 的服务区域，UAV 飞行高度和速度分别为 $100$ m 与 $30$ m/s。上行通信带宽为 $0.2$ MHz，用户发射功率为 $10$ dBm，噪声功率为 $-80$ dBm。LoS 概率参数取 $\mu_1=11.5$、$\mu_2=0.1$；LoS/NLoS 参考路径损耗分别取 $-3$ dB 和 $-20$ dB，路径损耗指数分别取 $2$ 和 $3.5$。
+
+各智能体均采用离散动作 SAC 进行训练，策略网络与双 Q 网络均采用两层全连接网络，并以修正线性单元（rectified linear unit, ReLU）作为激活函数。折扣因子设为 $\gamma=0.99$，学习率设为 $3\times10^{-4}$，初始温度参数为 $0.2$。UAV 与用户网络的隐藏层宽度分别为 128 和 64。UAV 的目标网络在每次参数更新后以 $\tau=0.005$ 进行软更新，用户目标网络的更新间隔设为 10。各智能体经验回放池容量均设为 $250000$，小批量大小为 128。温度参数通过最大熵目标自适应调节，UAV 与用户的目标熵系数分别设为 $-0.2$ 和 $-0.005$。所有实验采用随机种子 42；图\ref{fig:training-reward}给出了覆盖 $2.5\times10^6$ 个训练回合的回报演化过程。
+
+\subsection{对比方法与评价协议}
+\textbf{VCG 基线：}该方法仍采用多智能体 SAC 学习用户上报策略与 UAV 卸载决策策略。在定价阶段，依据某用户参与所造成的当前时隙社会福利外部性确定其支付，即以该用户参与前后其余用户福利的变化衡量其支付成本。该基线保留联合学习与即时外部性定价过程，用于对比所提机制在支付设计上的改进。
+
+\textbf{无定价基线：}该方法保留用户上报和 UAV 卸载决策过程，用户与 UAV 均通过 SAC 学习相应策略，但不设置任何支付规则。用户效用仅与任务完成时延相关，因而其上报与卸载决策不受经济支付的直接影响。该基线用于刻画不引入定价机制时系统的性能。
+
+\subsection{结果分析}
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{images/training_reward.png}
+\caption{所提方法与两类基线的 UAV 训练回报。}
+\label{fig:training-reward}
+\end{figure}
+图\ref{fig:training-reward}给出了三种方法的 UAV 训练回报演化。所提方法在初始探索阶段后迅速达到稳定区间，且在后续训练中始终保持最高的平均回报。相比之下，VCG 基线虽能利用即时外部性改善资源分配，但其反事实价值评估较为局部，稳定回报仍低于所提方法；无定价基线的回报最低且波动更为显著。这表明，支付机制不仅影响用户的上报动机，也能通过反事实价值定价改善 UAV 对用户类型的识别与卸载决策。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.78\textwidth]{images/utility_heatmap.png}
+\caption{不同真实时延敏感系数和上报敏感系数下的平均用户效用。}
+\label{fig:truth-misreport-utility}
+\end{figure}
+
+图\ref{fig:truth-misreport-utility}刻画了真实类型与上报类型对平均用户效用的共同影响。总体而言，用户效用随真实时延敏感系数提高而增大，表明资源分配能够优先服务于对时延更敏感的任务。对于低敏感用户（$\theta=0.2$），如实上报取得最高效用 $0.060$，而提高上报仅带来效用下降。对于中、高敏感用户，相邻上报水平之间的效用差异较小，最大偏离收益分别仅为 $0.005$ 和 $0.005$。因此，所提机制能够显著抑制虚报动机，并呈现近似激励相容性。
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[b]{0.78\textwidth}
+\centering
+\includegraphics[width=\textwidth]{images/reporting_error_curve.png}
+\caption{平均绝对上报误差的训练演化。}
+\label{fig:reporting-error-curve}
+\end{subfigure}
+
+\vspace{0.5em}
+\begin{subfigure}[b]{0.78\textwidth}
+\centering
+\includegraphics[width=\textwidth]{images/reporting_error.png}
+\caption{各用户及总体平均绝对上报误差。}
+\label{fig:reporting-error-bar}
+\end{subfigure}
+\caption{所提方法与 VCG 基线下的用户上报偏差。}
+\label{fig:reporting-error}
+\end{figure}
+
+图\ref{fig:reporting-error}(a) 给出了平均绝对上报误差随训练过程的变化。经过初始探索后，所提方法的误差稳定在较低区间，且整体低于 VCG 基线，表明反事实价值定价能够持续抑制策略性虚报。图\ref{fig:reporting-error}(b) 进一步给出分用户比较：所提方法在三个用户上的平均绝对误差分别为 $0.165$、$0.113$ 和 $0.100$，均低于 VCG 基线对应的 $0.199$、$0.204$ 和 $0.154$。从总体指标看，所提方法将平均绝对上报误差由 $0.185$ 降至 $0.126$，说明其能够更有效地将用户收益与真实类型对齐。
+\clearpage
 \bibliographystyle{unsrt}
 \bibliography{main}
 \end{document}

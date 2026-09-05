@@ -1,37 +1,66 @@
 \relax 
+\citation{shen2023joint,hui2024optimal,wang2024distributed}
 \citation{cheng2024stackelberg}
 \citation{xiao2023multiround}
 \citation{li2025incentive}
 \citation{wu2024longterm}
-\citation{bergemann2010dynamic}
 \@writefile{toc}{\contentsline {section}{\numberline {1}引言（Introduction）}{1}{}\protected@file@percent }
+\citation{bergemann2010dynamic}
+\citation{alhourani2014modeling}
 \@writefile{toc}{\contentsline {section}{\numberline {2}系统模型（System Model）}{2}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.1}通信模型}{2}{}\protected@file@percent }
+\citation{you2017energy}
+\citation{mao2016dynamic}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.2}计算卸载模型}{3}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}UAV能耗模型}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}UAV 能耗模型}{3}{}\protected@file@percent }
+\citation{clarke1971multipart}
 \@writefile{toc}{\contentsline {section}{\numberline {3}问题建模（Problem Formulation）}{4}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.1}动态拍卖机制}{4}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}长期优化问题}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}长期优化问题}{5}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {4}算法设计（Algorithm Design）}{5}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}多智能体 POSG 建模}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}多智能体部分可观测随机博弈建模}{5}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.1}UAV 智能体}{5}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.2}移动用户智能体}{5}{}\protected@file@percent }
+\citation{haarnoja2018soft}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.2}移动用户智能体}{6}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.2}基于 SAC 的策略学习}{6}{}\protected@file@percent }
 \citation{bergemann2010dynamic}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}基于动态 VCG 的定价规则}{7}{}\protected@file@percent }
-\newlabel{eq:dynamic-pivot-payment}{{45}{8}{}{equation.45}{}}
-\newlabel{eq:counterfactual-q}{{46}{8}{}{equation.46}{}}
-\newlabel{eq:dynamic-vcg-q-payment}{{48}{8}{}{equation.48}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}反事实子拍卖采样与 Q 函数更新}{8}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}基于动态枢轴机制的支付规则}{8}{}\protected@file@percent }
+\newlabel{eq:dynamic-pivot-payment}{{46}{8}{}{equation.46}{}}
+\newlabel{eq:counterfactual-q}{{47}{8}{}{equation.47}{}}
+\newlabel{eq:dynamic-vcg-q-payment}{{49}{8}{}{equation.49}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces 基于动态枢轴机制的多智能体 SAC 框架。实线表示在线决策及模块内执行流程，虚线表示网络更新和反事实价值传递。}}{9}{}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{fig:dynamic-pivot-sac-framework}{{1}{9}{}{figure.1}{}}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces 动态枢轴多智能体 SAC 训练流程}}{10}{}\protected@file@percent }
+\newlabel{alg:dynamic-vcg-marl}{{1}{10}{}{algorithm.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}仿真结果与分析（Simulation Results and Analysis）}{10}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}仿真设置}{10}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}对比方法与评价协议}{11}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}结果分析}{11}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces 所提方法与两类基线的 UAV 训练回报。}}{11}{}\protected@file@percent }
+\newlabel{fig:training-reward}{{2}{11}{}{figure.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces 不同真实时延敏感系数和上报敏感系数下的平均用户效用。}}{12}{}\protected@file@percent }
+\newlabel{fig:truth-misreport-utility}{{3}{12}{}{figure.3}{}}
+\newlabel{fig:reporting-error-curve}{{4a}{13}{}{subfigure.4.1}{}}
+\newlabel{sub@fig:reporting-error-curve}{{a}{13}{}{subfigure.4.1}{}}
+\newlabel{fig:reporting-error-bar}{{4b}{13}{}{subfigure.4.2}{}}
+\newlabel{sub@fig:reporting-error-bar}{{b}{13}{}{subfigure.4.2}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces 所提方法与 VCG 基线下的用户上报偏差。}}{13}{}\protected@file@percent }
+\newlabel{fig:reporting-error}{{4}{13}{}{figure.4}{}}
 \bibstyle{unsrt}
 \bibdata{main}
-\bibcite{cheng2024stackelberg}{1}
-\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces 动态 VCG 多智能体强化学习训练}}{9}{}\protected@file@percent }
-\newlabel{alg:dynamic-vcg-marl}{{1}{9}{}{algorithm.1}{}}
-\bibcite{xiao2023multiround}{2}
-\bibcite{li2025incentive}{3}
-\bibcite{wu2024longterm}{4}
-\bibcite{bergemann2010dynamic}{5}
-\@writefile{toc}{\contentsline {section}{\numberline {5}仿真结果与分析（Simulation Results and Analysis）}{10}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {6}参考文献（References）}{10}{}\protected@file@percent }
-\gdef \@abspage@last{10}
+\bibcite{shen2023joint}{1}
+\bibcite{hui2024optimal}{2}
+\bibcite{wang2024distributed}{3}
+\bibcite{cheng2024stackelberg}{4}
+\bibcite{xiao2023multiround}{5}
+\bibcite{li2025incentive}{6}
+\bibcite{wu2024longterm}{7}
+\bibcite{bergemann2010dynamic}{8}
+\bibcite{alhourani2014modeling}{9}
+\bibcite{you2017energy}{10}
+\bibcite{mao2016dynamic}{11}
+\bibcite{clarke1971multipart}{12}
+\bibcite{haarnoja2018soft}{13}
+\@writefile{toc}{\contentsline {section}{\numberline {6}参考文献（References）}{14}{}\protected@file@percent }
+\gdef \@abspage@last{15}
