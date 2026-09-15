@@ -1,22 +1,18 @@
 # Fdb version 4
-["bibtex C:/Users/ME/PycharmProjects/work3_latex/out/main"] 1788834886.35129 "C:/Users/ME/PycharmProjects/work3_latex/out/main.aux" "C:/Users/ME/PycharmProjects/work3_latex/out/main.bbl" "C:/Users/ME/PycharmProjects/work3_latex/out/main" 1788834893.81878 0
+["bibtex main"] 1788843238.73643 "main.aux" "main.bbl" "main" 1788843332.9216 0
   "./main.bib" 1788177352 4451 c7ec1f27a2b4fec1c9622a937c6515b9 ""
-  "C:/Users/ME/PycharmProjects/work3_latex/out/main.aux" 1788834885 4849 17c70791a4ecc77bd7275fc5b25de0ba "xelatex"
   "c:/texlive/2026/texmf-dist/bibtex/bst/base/unsrt.bst" 1786356490 18030 1376b4b231b50c66211e47e42eda2875 ""
+  "main.aux" 1788843324 4851 70503d85ac17595992b241344fd569e9 "xelatex"
   (generated)
-  "C:/Users/ME/PycharmProjects/work3_latex/out/main.bbl"
-  "C:/Users/ME/PycharmProjects/work3_latex/out/main.blg"
+  "main.bbl"
+  "main.blg"
   (rewritten before read)
-["xdvipdfmx"] 1788834886.75827 "C:/Users/ME/PycharmProjects/work3_latex/out/main.xdv" "C:/Users/ME/PycharmProjects/work3_latex/out/main.pdf" "C:/Users/ME/PycharmProjects/work3_latex/out/main" 1788834893.83791 0
-  "C:/Users/ME/PycharmProjects/work3_latex/out/main.xdv" 1788834885 227080 ac50c2cc45376d6a3e74171e136946b1 "xelatex"
-  "out/main.xdv" 0 -1 0 ""
+["xdvipdfmx"] 1788843325.38169 "main.xdv" "main.pdf" "main" 1788843332.94844 0
+  "main.xdv" 1788843324 233132 1166e3173303cd56263d8fcfd1a590d3 "xelatex"
   (generated)
-  "C:/Users/ME/PycharmProjects/work3_latex/out/main.pdf"
-  "out/main.pdf"
+  "main.pdf"
   (rewritten before read)
-["xelatex"] 1788834883.55246 "main.tex" "C:/Users/ME/PycharmProjects/work3_latex/out/main.xdv" "main" 1788834893.81939 0
-  "C:/Users/ME/PycharmProjects/work3_latex/out/main.aux" 1788834885 4849 17c70791a4ecc77bd7275fc5b25de0ba "xelatex"
-  "C:/Users/ME/PycharmProjects/work3_latex/out/main.bbl" 1788834886 3322 1a2cb469ed1bedf92cfcce1b111c5be1 "bibtex C:/Users/ME/PycharmProjects/work3_latex/out/main"
+["xelatex"] 1788843322.58021 "main.tex" "main.xdv" "main" 1788843332.92233 0
   "c:/Windows/Fonts/msyh.ttc" 1777512000 19704352 1e10e74402e59d54499af795caf0b135 ""
   "c:/texlive/2026/texmf-dist/fonts/map/fontname/texfonts.map" 1786408412 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmbsy5.tfm" 1786356374 1120 1e8878807317373affa7f7bba4cf2f6a ""
@@ -191,9 +187,11 @@
   "images/reporting_error_curve.png" 1788152760 243108 f6df99a69bbe90773ea59ad0e26dbd2e ""
   "images/training_reward.png" 1788146463 1454989 6df46dfcf1841fbc6f670ae56eb26996 ""
   "images/utility_heatmap.png" 1788146088 257728 ac6b5e5774970e762ed82078da0c5d40 ""
-  "main.tex" 1788834690 40273 14a48464cb14c07a34738a158b506ac3 ""
+  "main.aux" 1788843324 4851 70503d85ac17595992b241344fd569e9 "xelatex"
+  "main.bbl" 1788843239 3322 1a2cb469ed1bedf92cfcce1b111c5be1 "bibtex main"
+  "main.tex" 1788843311 41254 4359bca01f0f4c2a61415e84ce660ee6 ""
   (generated)
-  "C:/Users/ME/PycharmProjects/work3_latex/out/main.aux"
-  "C:/Users/ME/PycharmProjects/work3_latex/out/main.log"
-  "C:/Users/ME/PycharmProjects/work3_latex/out/main.xdv"
+  "main.aux"
+  "main.log"
+  "main.xdv"
   (rewritten before read)
