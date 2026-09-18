@@ -19,23 +19,17 @@ Tong Wang and Chuanchuan You.
   {UAV}-assisted mobile edge computing systems.
 \newblock {\em IEEE Access}, 12:63548--63567, 2024.
 
-\bibitem{cheng2024stackelberg}
-S.~Cheng, T.~Ren, and H.~Zhang.
-\newblock A stackelberg-game-based framework for edge pricing and resource
-  allocation in mobile edge computing.
-\newblock {\em IEEE Internet of Things Journal}, 11(11):20514--20530, 2024.
-
 \bibitem{xiao2023multiround}
 J.~Xiao, Q.~Gao, and Z.~Yang.
 \newblock Multi-round auction-based resource allocation for edge computing:
   Maximizing social welfare.
 \newblock {\em Future Generation Computer Systems}, 140:365--375, 2023.
 
-\bibitem{li2025incentive}
-Q.~Li, Z.~Wang, and H.~Du.
-\newblock Incentive mechanism design for value-decreasing tasks in dynamic
-  competitive edge computing networks.
-\newblock {\em Journal of Combinatorial Optimization}, 49(1):3, 2025.
+\bibitem{su2022truthful}
+Yi~Su, Wenhao Fan, Yuan'an Liu, and Fan Wu.
+\newblock A truthful combinatorial auction mechanism towards mobile edge
+  computing in industrial internet of things.
+\newblock {\em IEEE Transactions on Cloud Computing}, 11(2):1678--1691, 2022.
 
 \bibitem{wu2024longterm}
 Leijie Wu, Song Guo, Zicong Hong, Yi~Liu, Wenchao Xu, and Yufeng Zhan.

@@ -1,10 +1,23 @@
-\begin{thebibliography}{1}
+\begin{thebibliography}{10}
 
-\bibitem{cheng2024stackelberg}
-S.~Cheng, T.~Ren, and H.~Zhang.
-\newblock A stackelberg-game-based framework for edge pricing and resource
-  allocation in mobile edge computing.
-\newblock {\em IEEE Internet of Things Journal}, 11(11):20514--20530, 2024.
+\bibitem{shen2023joint}
+Bo~Shen, Qi~Gu, and Gang Yang.
+\newblock Joint task offloading and {UAVs} deployment for {UAV}-assisted mobile
+  edge computing.
+\newblock {\em Computer Networks}, 234:109943, 2023.
+
+\bibitem{hui2024optimal}
+Min Hui, Jian Chen, Long Yang, Lu~Lv, Hai Jiang, and Naofal Al-Dhahir.
+\newblock {UAV}-assisted mobile edge computing: Optimal design of {UAV}
+  altitude and task offloading.
+\newblock {\em IEEE Transactions on Wireless Communications},
+  23(10):13633--13647, 2024.
+
+\bibitem{wang2024distributed}
+Tong Wang and Chuanchuan You.
+\newblock Distributed user association and computation offloading in
+  {UAV}-assisted mobile edge computing systems.
+\newblock {\em IEEE Access}, 12:63548--63567, 2024.
 
 \bibitem{xiao2023multiround}
 J.~Xiao, Q.~Gao, and Z.~Yang.
@@ -12,11 +25,11 @@ J.~Xiao, Q.~Gao, and Z.~Yang.
   Maximizing social welfare.
 \newblock {\em Future Generation Computer Systems}, 140:365--375, 2023.
 
-\bibitem{li2025incentive}
-Q.~Li, Z.~Wang, and H.~Du.
-\newblock Incentive mechanism design for value-decreasing tasks in dynamic
-  competitive edge computing networks.
-\newblock {\em Journal of Combinatorial Optimization}, 49(1):3, 2025.
+\bibitem{su2022truthful}
+Yi~Su, Wenhao Fan, Yuan'an Liu, and Fan Wu.
+\newblock A truthful combinatorial auction mechanism towards mobile edge
+  computing in industrial internet of things.
+\newblock {\em IEEE Transactions on Cloud Computing}, 11(2):1678--1691, 2022.
 
 \bibitem{wu2024longterm}
 Leijie Wu, Song Guo, Zicong Hong, Yi~Liu, Wenchao Xu, and Yufeng Zhan.
@@ -28,5 +41,39 @@ Leijie Wu, Song Guo, Zicong Hong, Yi~Liu, Wenchao Xu, and Yufeng Zhan.
 Dirk Bergemann and Juuso V{\"a}lim{\"a}ki.
 \newblock The dynamic pivot mechanism.
 \newblock {\em Econometrica}, 78(2):771--789, 2010.
+
+\bibitem{alhourani2014modeling}
+Akram Al-Hourani, Sithamparanathan Kandeepan, and Abbas Jamalipour.
+\newblock Modeling air-to-ground path loss for low altitude platforms in urban
+  environments.
+\newblock In {\em 2014 IEEE Global Communications Conference}, pages
+  2898--2904. IEEE, 2014.
+
+\bibitem{you2017energy}
+Changsheng You, Kaibin Huang, Hyukjin Chae, and B.-H. Kim.
+\newblock Energy-efficient resource allocation for mobile-edge computation
+  offloading.
+\newblock {\em IEEE Transactions on Wireless Communications}, 16(3):1397--1411,
+  2017.
+
+\bibitem{mao2016dynamic}
+Yuyi Mao, Jun Zhang, and Khaled~B. Letaief.
+\newblock Dynamic computation offloading for mobile-edge computing with energy
+  harvesting devices.
+\newblock {\em IEEE Journal on Selected Areas in Communications},
+  34(12):3590--3605, 2016.
+
+\bibitem{clarke1971multipart}
+Edward~H. Clarke.
+\newblock Multipart pricing of public goods.
+\newblock {\em Public Choice}, 11(1):17--33, 1971.
+
+\bibitem{haarnoja2018soft}
+Tuomas Haarnoja, Aurick Zhou, Pieter Abbeel, and Sergey Levine.
+\newblock Soft actor-critic: Off-policy maximum entropy deep reinforcement
+  learning with a stochastic actor.
+\newblock In {\em Proceedings of the 35th International Conference on Machine
+  Learning}, volume~80 of {\em Proceedings of Machine Learning Research}, pages
+  1861--1870. PMLR, 2018.
 
 \end{thebibliography}
