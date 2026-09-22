@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999998 (TeX Live 2026) (preloaded format=xelatex 2026.8.11)  15 SEP 2026 13:12
+This is XeTeX, Version 3.141592653-2.6-0.999998 (TeX Live 2026) (preloaded format=xelatex 2026.8.11)  18 SEP 2026 20:06
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1163,7 +1163,7 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 LaTeX Font Info:    Font shape `TU/SimSun(0)/m/sl' in size <10.95> not availabl
 e
 (Font)              Font shape `TU/SimSun(0)/m/it' tried instead on input line 
-63.
+68.
  [2] [3] [4]
 [5] [6] [7] [8] [9] [10] [11]
 File: images/training_reward.png Graphic file (type bmp)
@@ -1175,9 +1175,9 @@ File: images/reporting_error_curve.png Graphic file (type bmp)
 <images/reporting_error_curve.png>
 File: images/reporting_error.png Graphic file (type bmp)
 <images/reporting_error.png>
- [13] [14] (build/main.bbl) [15
+ [13] [14] (build/main.bbl [15
 
-]
+]) [16]
 (build/main.aux)
  ***********
 LaTeX2e <2025-11-01>
@@ -1185,12 +1185,12 @@ L3 programming layer <2022/07/14>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 24134 strings out of 468168
- 566293 string characters out of 5436524
- 984262 words of memory out of 5000000
- 52422 multiletter control sequences out of 15000+600000
+ 24136 strings out of 468168
+ 566320 string characters out of 5436524
+ 984888 words of memory out of 5000000
+ 52424 multiletter control sequences out of 15000+600000
  643105 words of font info for 133 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
- 93i,12n,111p,801b,889s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 93i,12n,111p,677b,889s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on build/main.xdv (15 pages, 248084 bytes).
+Output written on build/main.xdv (16 pages, 245520 bytes).

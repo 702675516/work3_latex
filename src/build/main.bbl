@@ -19,6 +19,18 @@ Tong Wang and Chuanchuan You.
   {UAV}-assisted mobile edge computing systems.
 \newblock {\em IEEE Access}, 12:63548--63567, 2024.
 
+\bibitem{tian2023deep}
+XianZhong Tian, PingTing Miao, and LuoMing Zhang.
+\newblock Deep reinforcement learning for scheduling and offloading in
+  {UAV}-assisted mobile edge networks.
+\newblock {\em Wireless Communications and Mobile Computing}, 2023:1--11, 2023.
+
+\bibitem{ju2024multi}
+Tao Ju, Linjuan Li, Shuai Liu, and Yu~Zhang.
+\newblock A multi-{UAV} assisted task offloading and path optimization for
+  mobile edge computing via multi-agent deep reinforcement learning.
+\newblock {\em Journal of Network and Computer Applications}, 229:103919, 2024.
+
 \bibitem{xiao2023multiround}
 J.~Xiao, Q.~Gao, and Z.~Yang.
 \newblock Multi-round auction-based resource allocation for edge computing:

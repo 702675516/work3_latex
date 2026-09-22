@@ -1,20 +1,20 @@
 # Fdb version 4
-["bibtex build/main"] 1789449123.53844 "build/main.aux" "build/main.bbl" "build/main" 1789449135.06758 0
-  "./main.bib" 1789448976 4839 27428c342cb579054bf6bb38e2f16148 ""
-  "build/main.aux" 1789449126 4782 dac819c0318b685d54dc2eb45e6f17a7 "xelatex"
+["bibtex build/main"] 1789733171.00996 "build/main.aux" "build/main.bbl" "build/main" 1789733183.24056 0
+  "./main.bib" 1789733060 5603 87abf31a44ff3bf2c1ac7379341b2dae ""
+  "build/main.aux" 1789733174 4871 2fab0c07e304d85a69bfecd3b48e3abc "xelatex"
   "c:/texlive/2026/texmf-dist/bibtex/bst/base/unsrt.bst" 1786356490 18030 1376b4b231b50c66211e47e42eda2875 ""
   (generated)
   "build/main.bbl"
   "build/main.blg"
   (rewritten before read)
-["xdvipdfmx"] 1789449127.93224 "build/main.xdv" "build/main.pdf" "build/main" 1789449135.08402 0
-  "build/main.xdv" 1789449126 248084 c7b978a02cd500ae0e6e4b4ac4f4e996 "xelatex"
+["xdvipdfmx"] 1789733175.62182 "build/main.xdv" "build/main.pdf" "build/main" 1789733183.26337 0
+  "build/main.xdv" 1789733174 245520 d14ecc10f32988630be9c9f71725d69b "xelatex"
   (generated)
   "build/main.pdf"
   (rewritten before read)
-["xelatex"] 1789449123.90435 "main.tex" "build/main.xdv" "main" 1789449135.06816 0
-  "build/main.aux" 1789449126 4782 dac819c0318b685d54dc2eb45e6f17a7 "xelatex"
-  "build/main.bbl" 1789449123 3097 f0a12f48bbc788c1ddec29e4c0e47ed8 "bibtex build/main"
+["xelatex"] 1789733171.38184 "main.tex" "build/main.xdv" "main" 1789733183.24136 0
+  "build/main.aux" 1789733174 4871 2fab0c07e304d85a69bfecd3b48e3abc "xelatex"
+  "build/main.bbl" 1789733171 3653 c7645b3de139c73960c333c64466f110 "bibtex build/main"
   "c:/Windows/Fonts/msyh.ttc" 1777512000 19704352 1e10e74402e59d54499af795caf0b135 ""
   "c:/texlive/2026/texmf-dist/fonts/map/fontname/texfonts.map" 1786408412 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmbsy5.tfm" 1786356374 1120 1e8878807317373affa7f7bba4cf2f6a ""
@@ -189,7 +189,7 @@
   "images/reporting_error_curve.png" 1788152760 243108 f6df99a69bbe90773ea59ad0e26dbd2e ""
   "images/training_reward.png" 1788146463 1454989 6df46dfcf1841fbc6f670ae56eb26996 ""
   "images/utility_heatmap.png" 1788146088 257728 ac6b5e5774970e762ed82078da0c5d40 ""
-  "main.tex" 1789448975 44110 ac9e869d7515fa371af27fe3e9a43eff ""
+  "main.tex" 1789733112 42833 7b2a0dc287c34562753d175baa29ffc3 ""
   (generated)
   "build/main.aux"
   "build/main.log"
