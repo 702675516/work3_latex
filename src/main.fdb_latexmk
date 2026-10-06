@@ -1,18 +1,18 @@
 # Fdb version 4
-["bibtex main"] 1788843238.73643 "main.aux" "main.bbl" "main" 1788843332.9216 0
-  "./main.bib" 1788177352 4451 c7ec1f27a2b4fec1c9622a937c6515b9 ""
+["bibtex main"] 1790250635.9803 "main.aux" "main.bbl" "main" 1790250646.05144 0
+  "./main.bib" 1790249642 5964 6ed8faccb2b5610d3cc573f74890691f ""
   "c:/texlive/2026/texmf-dist/bibtex/bst/base/unsrt.bst" 1786356490 18030 1376b4b231b50c66211e47e42eda2875 ""
-  "main.aux" 1788843324 4851 70503d85ac17595992b241344fd569e9 "xelatex"
+  "main.aux" 1790250638 4788 f9164442ec8d728e645d1c340432bd69 "xelatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["xdvipdfmx"] 1788843325.38169 "main.xdv" "main.pdf" "main" 1788843332.94844 0
-  "main.xdv" 1788843324 233132 1166e3173303cd56263d8fcfd1a590d3 "xelatex"
+["xdvipdfmx"] 1790250638.98591 "main.xdv" "main.pdf" "main" 1790250646.06856 0
+  "main.xdv" 1790250638 234716 4f2c725d48acf5eb82afcd7bc08c0971 "xelatex"
   (generated)
   "main.pdf"
   (rewritten before read)
-["xelatex"] 1788843322.58021 "main.tex" "main.xdv" "main" 1788843332.92233 0
+["xelatex"] 1790250636.35898 "main.tex" "main.xdv" "main" 1790250646.05209 0
   "c:/Windows/Fonts/msyh.ttc" 1777512000 19704352 1e10e74402e59d54499af795caf0b135 ""
   "c:/texlive/2026/texmf-dist/fonts/map/fontname/texfonts.map" 1786408412 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmbsy5.tfm" 1786356374 1120 1e8878807317373affa7f7bba4cf2f6a ""
@@ -187,9 +187,9 @@
   "images/reporting_error_curve.png" 1788152760 243108 f6df99a69bbe90773ea59ad0e26dbd2e ""
   "images/training_reward.png" 1788146463 1454989 6df46dfcf1841fbc6f670ae56eb26996 ""
   "images/utility_heatmap.png" 1788146088 257728 ac6b5e5774970e762ed82078da0c5d40 ""
-  "main.aux" 1788843324 4851 70503d85ac17595992b241344fd569e9 "xelatex"
-  "main.bbl" 1788843239 3322 1a2cb469ed1bedf92cfcce1b111c5be1 "bibtex main"
-  "main.tex" 1788843311 41254 4359bca01f0f4c2a61415e84ce660ee6 ""
+  "main.aux" 1790250638 4788 f9164442ec8d728e645d1c340432bd69 "xelatex"
+  "main.bbl" 1790250636 3038 c0147facf4dfc15385ec3b840cd0160b "bibtex main"
+  "main.tex" 1790250615 42021 9b6feb5d190be716608edd0d254d96dd ""
   (generated)
   "main.aux"
   "main.log"

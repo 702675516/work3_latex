@@ -1,0 +1,990 @@
+        6060                                                                                 IEEE TRANSACTIONS ON MOBILE COMPUTING, VOL. 23, NO. 5, MAY 2024
+
+
+
+
+           Long-Term Adaptive VCG Auction Mechanism for
+            Sustainable Federated Learning With Periodical
+                            Client Shifting
+         Leijie Wu , Student Member, IEEE, Song Guo , Fellow, IEEE, Zicong Hong , Graduate Student Member, IEEE,
+                      Yi Liu , Student Member, IEEE, Wenchao Xu , Member, IEEE, and Yufeng Zhan
+
+
+            Abstract—Federated Learning (FL) system needs to incentivize                 payment. Besides, the multi-branch network can adaptively handle
+        clients since they may be reluctant to participate in the resource               periodical client shifting on the timeline.
+        consuming process. Existing incentive mechanisms fail to construct
+        a sustainable environment for the long-term development of FL                       Index Terms—Federated learning, deep reinforcement learning,
+        system: 1) They seldom focus on system economic properties (e.g.,                incentive mechanism, game theory.
+        social welfare, individual rationality, and incentive compatibility)
+        to guarantee client attraction. 2) Current online auction modeling
+        methods divide the whole continual process into multiple indepen-                                           I. INTRODUCTION
+        dent rounds and solve them one-by-one, which breaks the corre-                         EDERATED learning (FL) is widely adopted in many prac-
+        lation between each round. Besides, the inherent characteristics
+        of FL system (model-agnostic and privacy-sensitive) also prevent
+        it from the optimal strategy by precise mathematical analysis. 3)
+                                                                                         F     tical applications to train a global shared model with the
+                                                                                         collaboration of decentralized client devices, under the orches-
+        Current system modelings ignore the practical problem of peri-                   tration of a cloud server [1]. It is designed for client data privacy
+        odical client shifting, which cannot adaptively update its strategy              protection, where the local raw data of each client will never
+        to handle system dynamics. To overcome the above challenges,                     be transferred to or shared with others. The cornerstone of FL’s
+        this paper proposes a long-term adaptive Vickrey–Clarke–Groves
+        (VCG) auction mechanism for FL system, which incorporate a
+                                                                                         success is built on extensive client participation, since obtaining
+        multi-branch deep reinforcement learning (DRL) algorithm. First,                 a model with good generalization capability requires training
+        VCG auction is the only one that can simultaneously guarantee all                on extensive data samples. Besides, due to the data privacy
+        crucial economic properties. Second, we extend the economic prop-                protection of FL, clients who participate in FL must perform
+        erties to long-term forms and apply the experience-driven DRL                    local training to update the model and then push back to the
+        algorithm to directly obtain long-term optimal strategy, without
+        any prior system knowledge. Third, we reconstruct a multi-branch
+                                                                                         server-side, which consumes significant computation and com-
+        DRL network to accommodate periodical client shifting by adap-                   munication resources on the client-side. Considering the current
+        tive decision head switching for different time periods. Finally,                FL application scenario, clients usually use some resource-
+        we theoretically prove he extended economic properties (i.e., IC)                constrained mobile devices, such as smartphones, tablets and
+        and conduct extensive experiments on several real-world datasets.                laptops [2]. Without proper incentive mechanism, they are re-
+        Compared with state-of-the-art approaches, the long-term social
+        welfare of FL system increases by 36% with a 37% reduction in
+                                                                                         luctant to contribute their data and resources to participate in
+                                                                                         such resource-consuming FL iterations.
+                                                                                            Some existing works for FL focus on incentive mechanism to
+           Manuscript received 20 June 2023; revised 28 August 2023; accepted 11
+        September 2023. Date of publication 19 September 2023; date of current version   attract clients to participate in FL training. For example, Zhan et
+        4 April 2024. This work was supported in part by the Key-Area Research and       al. formulate the problem as a stackelberg game and maximize
+        Development Program of Guangdong Province under Grant 2021B0101400003,           the server-side utility by rewarding clients according to their
+        in part by Hong Kong RGC Research Impact Fund under Grants R5060-
+        19 and R5034-18, in part by the Areas of Excellence Scheme under Grant           contribution and resource conditions [3], [4]. Kang et al. assign
+        AoE/E-601/22-R, in part by General Research Fund under Grants 152203/20E,        different reputation credit to clients based on their contribution
+        152244/21E, 152169/22E, and 152228/23E, and in part by Shenzhen Science and      and only permit clients with high reputation to participate [5].
+        Technology Innovation Commission under Grant JCYJ20200109142008673.
+        Our previous work related to this paper was presented at the IEEE 42nd           Yu et al. propose a fairness-aware mechanism to reward clients
+        International Conference on Distributed Computing Systems (ICDCS 2022),          based on their heterogeneous data and resource. However, these
+        [DOI: 10.1109/ICDCS54860.2022.00091]. Recommended for acceptance by S.           mechanism designs neglect the following crucial challenges and
+        Wang. (Corresponding author: Song Guo.)
+           Leijie Wu, Zicong Hong, Yi Liu, and Wenchao Xu are with the Hong              thus fail to achieve the long-term sustainable development of the
+        Kong Polytechnic University, Hong Kong, SAR, China (e-mail: lei-jie.wu@          FL system. A demonstration is shown in Fig. 1 and more details
+        connect.polyu.hk; zicong.hong@connect.polyu.hk; joeylau.liu@connect.             are presented in Section III to analyze them.
+        polyu.hk; wenchao.xu@polyu.edu.hk).
+           Song Guo is with the Department of Computer Science and Engineering, The         1) Social Welfare Maximization. The sufficient research stud-
+        Hong Kong University of Science and Technology, Clear Water Bay, Kowloon,        ies in economics field indicates that only maintaining a sus-
+        Hong Kong (e-mail: songguo@cse.ust.hk).                                          tainable environment can promote the joint development of all
+           Yufeng Zhan is with Beijing Institute of Technology, Beijing 100811, China
+        (e-mail: yufeng.zhan@bit.edu.cn).                                                parties inside the whole system [6], [7], [8]. To construct a
+           Digital Object Identifier 10.1109/TMC.2023.3317063                            sustainable development FL system, one of the most important
+                                 1536-1233 © 2023 IEEE. Personal use is permitted, but republication/redistribution requires IEEE permission.
+                                               See https://www.ieee.org/publications/rights/index.html for more information.
+
+
+Authorized licensed use limited to: NANJING UNIVERSITY OF SCIENCE AND TECHNOLOGY. Downloaded on March 27,2025 at 15:55:15 UTC from IEEE Xplore. Restrictions apply.
+       WU et al.: LONG-TERM ADAPTIVE VCG AUCTION MECHANISM FOR SUSTAINABLE FL WITH PERIODICAL CLIENT SHIFTING                                         6061
+
+
+
+                                                                                  simultaneously satisfy both IC and IR properties while maxi-
+                                                                                  mizing social welfare. However, the inherent privacy protection
+                                                                                  of FL makes it impossible for the server to obtain the private
+                                                                                  information of clients, such as computation cost, communica-
+                                                                                  tion cost, and data-related information. Moreover, considering
+                                                                                  the black-box of deep neural network and the complex model
+                                                                                  aggregation, the change process of FL global model perfor-
+                                                                                  mance is impossible to be accurately modeled. The above dif-
+                                                                                  ficulties invalidate all current auction-based mechanisms, since
+                                                                                  they cannot obtain precise system modeling for mathematical
+       Fig. 1.   Challenges for current incentive mechanism design.               analysis.
+                                                                                     Therefore, to satisfy the requirements of privacy protection,
+                                                                                  black-box model and long-term optimization, we utilize the deep
+       economic properties is to maximize the system social welfare,              reinforcement learning (DRL) to obtain the optimal mechanism
+       while some additional properties, i.e., incentive compatibil-              by a experience-driven and model-free manner. We design a
+       ity (IC) and individual rationality (IR), can further optimize             long-term online VCG auction mechanism, which extend these
+       the sustainability. However, most previous works only focus                vital economics properties into long-term forms, i.e., long-term
+       on server-side utility maximization without considering client             social welfare, long-term IC, and long-term IR. Instead of the
+       utilities. Besides, although a few works also focus on social              previous independent optimization based on single-round de-
+       welfare maximization, but they cannot simultaneously satisfy               composition, the DRL algorithm directly optimize the long-term
+       other economic properties (e.g., IC and IR) [9].                           social welfare, by continually interacting with the environment,
+          2) Long-term Optimization. Since the FL training process is             without any prior knowledge of FL system.
+       comprised by a series of consecutive communication rounds.                    Moreover, for the challenge of periodically client shifting, we
+       The training results from the current round’s decision will have           take the advantages of representation learning, which can learn
+       a long-term influence on all subsequent rounds. The previous               a shared representation of different tasks [17]. For example, in
+       work adopts online mechanism design for their problem mod-                 vision tasks, it can learn a common feature extractor, whereas in
+       eling [10], [11], [12]. They decompose the entire process into             language tasks, it can learn shared embeddings and grammars
+       multiple independent sub-problems in each round and optimizes              of the context.
+       them respectively, which undermines the long-term correlation                 In our scenario, we train a multi-head network for DRL
+       among different rounds. Therefore, an incentive mechanism with             agent to address the periodically client shifting, where each
+       long-term optimization is necessary for FL system.                         head (Decision Generator) is for specific time zone and they
+          3) Periodically Client Shifting. In the current mechanism               share the common environment analyzer (Feature Extractor).
+       design, there is a common but rarely studied problem, that is,             The multi-branch DRL strategy is based on the assumption of
+       the periodically client shifting [13], [14]. It has been observed in       stable periodically client shifting.
+       FL applications where the available client devices periodically               Our contributions are summarized as follows:
+       change over time, due to the impact of clients from different                  r We establish a sustainable FL system by introducing the
+       time zones. All previous works fail to handle this dynamic                       long-term online VCG auction into problem formulation.
+       change, since the optimal mechanism obtained on previous client                  It can simultaneously satisfy vital economics properties
+       set cannot be adaptively adjusted. Therefore, the mechanisms                     of extended long-term forms, while maximizing the long-
+       employed in actual FL system need to accommodate periodically                    term social welfare.
+       client shifting in the whole long-term process.                                r We utilize a model-free and experience-driven reinforce-
+          In this paper, to fulfill the missing economic properties and                 ment approach to overcome the difficulties of privacy
+       establish a sustainable FL system, we introduce the Vickrey–                     protection, black-box model, and long-term optimization.
+       Clarke–Groves (VCG) auction to guide our mechanism de-                           Moreover, we adopt parameter-based knowledge transfer
+       sign [15], [16]. We introduce the auction-based mechanism as                     to speed up the training of different DRL-agents, which
+       our backbone for the following motivations: 1) Social welfare                    reduces the original training cost by half.
+       maximization is a common concept in auction mechanisms,                        r We design a multi-head network to address periodically
+       while other mechanisms (such as Stackelberg Game) mainly                         client shifting. Each head is a decision generator for spe-
+       focus on unilateral utility maximization. 2) Auction mechanisms                  cific client set in each time zone and the shared body is
+       also have many other economic properties, such as incentive                      the environment analyzer for all heads. The head can be
+       compatibility (IC) and individual rationality (IR), which is cru-                adaptively switched according to the client shifting caused
+       cial for theoretically constructing a sustainable FL environment.                by time zone change.
+       3) The relationship between clients and the server is equivalent in            r We provide theoretical analysis to prove our long-term eco-
+       auction mechanism, where clients can make any offer according                    nomic properties (i.e., IC) and conduct experiments on dif-
+       to their own needs and the server also has the freedom to refuse                 ferent datasets, i.e., MNIST, Fashion-MNIST and CIFAR-
+       the offer from any client. This is more suitable and practical                   10. The experiment results illustrate that we achieve 36%
+       for the FL system in the real world. Besides, compared with all                  higher long-term social welfare with 37% less payment,
+       other auction mechanisms, VCG auction is the only one that can                   comparing with status quo benchmarks. Besides, facing
+Authorized licensed use limited to: NANJING UNIVERSITY OF SCIENCE AND TECHNOLOGY. Downloaded on March 27,2025 at 15:55:15 UTC from IEEE Xplore. Restrictions apply.
+        6062                                                                            IEEE TRANSACTIONS ON MOBILE COMPUTING, VOL. 23, NO. 5, MAY 2024
+
+
+
+               periodically client shifting, our multi-head network can             server-side utility [23]. Xu et al. realize that FL rounds are not
+               maintain 30% higher performance than the single network.             independent but have continual influences on the final results,
+                                                                                    and thus design a client selection method with long-term opti-
+                                 II. RELATED WORK                                   mization target [29].
+                                                                                       In comparison with our work, the existing works have three
+        A. Incentive Mechanism for Federated Learning                               major disadvantages as follows. First, most of the existing
+           Since the training process consumes the clients’ energy, data,           works cannot simultaneously satisfy the economic properties
+        and time, clients will be reluctant to participate in the learning          including social welfare, incentive compatibility, and individual
+        process without receiving compensation. Therefore, an incentive             rationality. These economic properties are the key elements for
+        mechanism design is critical for FL to motivate the clients to              long-term FL training and a sustainable FL system. Second, the
+        contribute their resources [18]. In the following, we conclude a            FL training is composed of multiple successive rounds, but most
+        few existing works for FL incentive mechanisms.                             of the existing works decompose the whole FL training process
+           First, some works distribute the money to the clients heuris-            into a series of independent sub-problems, each corresponding
+        tically. For example, Weng et al. reward clients based on their             to a round. Thus, these FL incentive mechanisms can only solve
+        processed data quantities and honest behaviours [19]. Bao et al.            the problem in a myopic manner. Third, the performance of most
+        distribute the profit to the clients according to their reliability         of the existing works depends on precise system modeling for
+        and contribution (decided by the remarks of the other clients               the dynamic FL training process. However, the inherent privacy
+        and trained model buyers) [20].                                             protection and the black box of DNN models in FL make such
+           Second, some works adopt a non-cooperative game in which                 precise modeling impractical.
+        FL servers or users aim to maximize their unilateral utility for FL
+                                                                                    B. Learning-Based Incentive Mechanism
+        incentive mechanism design. For example, some works present
+        a Stackelberg game-based FL incentive mechanism for a Nash                     Motivated by the potential of machine learning to optimize
+        equilibrium (NE) between the FL server and clients [21], [22].              the solutions to complex problems, plenty of recent works lever-
+        To solve the difficulties of modelling raised by the information            age learning-based techniques for optimal incentive mechanism
+        isolation in FL, Zhan et al. propose an experience-driven DRL               design, particularly auction mechanisms. For example, Dutting
+        mechanism for the optimal pricing strategy of servers to achieve            et al. model the automated design of optimal auctions as a con-
+        efficient learning in each round [3], [4]. Moreover, to overcome            strained learning problem of a multi-layer neural network [30],
+        the challenge of myopia optimization existed in the previous                [31]. Rahme et al. refine Dutting et al.’s work based on two
+        works, Liu et al. design an incentive-driven long-term mecha-               recent results from machine learning (i.e., amortization) and
+        nism for FL based on hierarchical DRL [23].                                 theoretical auction design (i.e., stationary Lagrangian) [32].
+           Next, because auction theory is an efficient mathematical tool           Feng et al. study the design of optimal auctions for settings
+        for pricing and allocation [15], some works study auction-based             with private budgets [33] and Golowich et al. study that for
+        incentive schemes in FL. For example, Zeng et al. propose a                 multi-facility setting [34]. Based on the deep learning technique,
+        multi-dimensional procurement auctionbased incentive mecha-                 Luong et al. design an optimal auction for the edge resource
+        nism named Fmore to encourage more high-quality edge nodes                  allocation in mobile blockchain networks [35]. Liu et al. propose
+        with low cost to participate in FL training [24]. Jiao et al.               a learning-based end-to-end auction mechanism for industrial
+        propose a reverse multi-dimensional auction that chooses the                e-commerce advertising. [36]. Besides, some learning-based
+        clients and decides the rewards in a randomized and greedy                  mechanism are based on reinforcement learning (RL) for online
+        manner for wireless FL service market [25]. online auction for              mechanism design. For example, Tang et al. [37] and Cai et
+        efficient FL client selection strategy with energy constraint [26].         al. [38] develop a RL-based mechanism design framework to
+        Deng et al. propose a quality-aware reverse auction-based incen-            design and optimize mechanisms for e-commerce. Zhang et al.
+        tive mechanism to maximize the sum of the estimated learn-                  propose a generalized second-price auction mechanism based
+        ing qualities of clients [27]. Tang et al. design an incentive              on a model-free RL algorithm [39].
+        mechanism to achieve not only social welfare maximization                      In comparison with our work, most of the existing works
+        but also individual rationality and budget balance in cross-silo            adopt learning techniques for a single-round optimal auction.
+        FL [28]. A few of the existing works also focus on the social               As discussed in Section III, such a design performs poorly in
+        welfare maximization of FL system. Zhou et al. apply the                    a FL system with multiple consecutive rounds. Although a few
+        greedy algorithm for FL social welfare maximization problems,               works [37], [38], [39] adopt RL for an online mechanism design,
+        while guaranteeing critical economic properties [9]. However,               they are designed for e-commerce rather than FL and thus cannot
+        they don’t consider the long-term influence of the FL sys-                  achieve the same goals of FL incentive mechanisms as described
+        tem (i.e., the decision made in the current FL round is not                 in Section II-A. Different from the existing learning-based in-
+        independent in every round, which will influence all subse-                 centive mechanism, this paper aims to adopt DRL approach to
+        quent rounds), as well as the information isolation and model               design a long-term optimal online auction mechanism for FL.
+        unknown constraints.
+                                                                                                       III. PRELIMINARY ANALYSIS
+           Furthermore, the long-term influence of FL and its optimiza-
+        tion problem also received wide attention from many existing                  To fully understanding the challenges that cannot be solved by
+        works [23], [29]. Liu et al. design a reinforcement-based in-               existing work, we conduct extensive pre-experiments to analyze
+        centive mechanism to achieve the long-term optimization of                  and illustrate them as follows.
+Authorized licensed use limited to: NANJING UNIVERSITY OF SCIENCE AND TECHNOLOGY. Downloaded on March 27,2025 at 15:55:15 UTC from IEEE Xplore. Restrictions apply.
+       WU et al.: LONG-TERM ADAPTIVE VCG AUCTION MECHANISM FOR SUSTAINABLE FL WITH PERIODICAL CLIENT SHIFTING                                               6063
+
+
+
+                                                                                            existing online auctions adopt similar solutions by splitting the
+                                                                                            entire process into a series of independent sub-problems in each
+                                                                                            single round and solving them one-by-one. This splitting method
+                                                                                            destroys the inherent before-and-after correlation in FL, because
+                                                                                            the global aggregation model in the previous round will serve as a
+                                                                                            new start-point for the next round. The optimal mechanism must
+                                                                                            consider its long-term subsequent influence when making deci-
+                                                                                            sion for current round. Our pre-experiment results in Fig. 2(b)
+                                                                                            also empirically illustrate that such splitting degrades the total
+                                                                                            system social welfare from a long-term perspective. Although
+                                                                                            our long-term mechanism may not be optimal in some particular
+                                                                                            rounds (i.e., round 5 and 6), it can guarantee the long-term
+                                                                                            optimality for the entire process, by considering its subsequent
+                                                                                            influence and sacrificing a portion of current social welfare to
+                                                                                            promote future improvement.
+                                                                                               3) Periodically Client Shifting: It is observed from practical
+                                                                                            FL applications that the available client population has a peri-
+                                                                                            odical change over time due to different time zones [13], [14].
+                                                                                            However, all existing mechanism designs cannot deal with this
+                                                                                            system dynamic because their strategies are static, in other word,
+                                                                                            the optimal strategy derived from previous client population will
+                                                                                            fail in next period with changes. The pre-experiment results
+                                                                                            in Fig. 2(c) demonstrate the tendency of global model accu-
+                                                                                            racy changes with different datasets. If the mechanism cannot
+                                                                                            perceive the impact of client shifting to adaptively update its
+                                                                                            strategy, the previous strategy will fail to handle the new client
+                                                                                            subset, which also leads to the social welfare reduction in the
+                                                                                            future (See experiment results in Fig. 9).
+       Fig. 2. Pre-experiment results to illustrate the critical challenges that existing
+       mechanism cannot handle, including Social Welfare Maximization, Long-term
+       Optimization and Periodically Client Shifting.                                              IV. SYSTEM MODEL & PROBLEM FORMULATION
+                                                                                            A. Federated Learning System
+                                                                                               The federated learning framework is composed by a central
+          1) Social Welfare Maximization: The majority of existing                          server and a set of clients denoted by N = {1, . . . , N }. Each
+       incentive mechanisms are mainly focus on server-side utility                         client i ∈ N has a local dataset Di composed by multiple data
+       maximization, they adopt different strategies to attract client par-                 samples {xj , yj }j∈Di , and perform local model training with a
+       ticipation, by elaborate reward designs based on resource condi-                     pre-defined loss function f . Specifically, in t-th round, only a
+       tions [3], [4], [40] or reputation credit allocation [5]. However,                   subset of total client population G t ⊆ N is available to connect
+       FL is a complex system with multi-party collaboration, a self-                       with the server due to periodically client shifting. All connected
+       ishly mechanism that only maximize the unilateral server-side                        clients will receive a global model ω t from server and train
+       utility will undermine client participation. Extensive studies in                    their own local model by its local loss on their own dataset
+       economics have illustrated that only a sustainable environment                       Di , where di = |Di | denotes the sample size of client i’s local
+       can promote the co-development of the whole system, and social                       dataset. Then, clients will send the updated local model ω ti back
+       welfare maximization is one of the most important properties                         to server for model aggregation:
+       for sustainability. Our pre-experiment results in Fig. 2(a) show                                                       t
+                                                                                                                            |G |
+       the utilities of all participants (both clients and sever) under                                                         di
+                                                                                                              ω   t+1
+                                                                                                                        =             ω ti , i ∈ G t ,      (1)
+       different mechanisms in a single round. For existing server-side                                                         d
+                                                                                                                            i=1
+       utility maximization methods, the most system utility is con-
+                                                                                                        |G t |
+       centrated on the server-side by squeezing all clients, which will                    where d = i=1 di is the total data size of t-th round. Finally,
+       significantly undermines client involvement. On the contrary,                        the new global model ω t+1 will serve as starting point for the
+       by actively sharing a portion of its utility with clients, the server                next round t + 1. The above process will repeat until the model
+       can strongly motivate clients and achieve a higher system social                     converges or meets specified requirements. Normally, the server
+       welfare under our mechanism (VCG auction).                                           has a validation dataset Dv and the target is to obtain the optimal
+          2) Long-Term Optimization: Since the FL training process                          global model ω ∗ that
+       is comprised of multiple consecutive rounds, the online auc-
+                                                                                                                                        1 
+       tion formulation [10], [11], [12] is appropriate for the system                       ω ∗ = arg min F (ω), where F (ω) =                   f (j, ω) . (2)
+       modeling of our social welfare maximization. However, all                                       ω                             |Dv |
+                                                                                                                                                     j∈Dv
+
+
+Authorized licensed use limited to: NANJING UNIVERSITY OF SCIENCE AND TECHNOLOGY. Downloaded on March 27,2025 at 15:55:15 UTC from IEEE Xplore. Restrictions apply.
+        6064                                                                            IEEE TRANSACTIONS ON MOBILE COMPUTING, VOL. 23, NO. 5, MAY 2024
+
+
+
+                                                                                    which is denoted by c and can be obtained in advance. Let δi
+                                                                                    denote the CPU-cycle frequency of client i to execute the local
+                                                                                    training task and βi denote the effective capacitance coefficient
+                                                                                    of client i’s computation chip-set, where βi and δi of each
+                                                                                    client i can vary significantly due to the heterogeneous hardware
+                                                                                    configurations. Recall that di = |Di | is the local dataset size
+                                                                                    of client i. According to the widely accepted system energy
+                                                                                    model [41], the computation energy cost of client i to perform
+                                                                                    one local epoch training is
+
+                                                                                                             ecomp
+                                                                                                              i    = βi cdi δi2 .                       (3)
+
+                                                                                       2) Communication Energy Cost. In a traditional FL system,
+                                                                                    the local model structure of all clients must be the same to
+                                                                                    support the global model aggregation, thus the required commu-
+                                                                                    nication volume of each client to upload their local models is the
+                                                                                    same, which is denoted by ξ. Let Bit denote the communication
+                                                                                    bandwidth of client i in t-th round. The communication time of
+                                                                                    client i can be computed by Tit,comm = ξ/Bit . According to the
+        Fig. 3.   Illustration of online auction-based FL system modeling.          typical energy modeling [41], the communication energy cost
+                                                                                    of client i in t-th round is defined as:
+        Generally speaking, as the loss F (ω) decreases, the accuracy                                                               i ξ
+        A(ω) will gradually increase. Thus, we adopt the model accu-                                  Eit,comm = i Tit,comm =           ,              (4)
+                                                                                                                                    Bit
+        racy A(ω) on validation dataset Dv as the metric to measure
+        model performance in the following part.
+                                                                                    where i is the unit energy consumption of client i for uploading
+                                                                                    the local model and it varies greatly depending on heterogeneous
+        B. Auction-Based Modeling for FL System
+                                                                                    hardware configuration.
+           To apply the VCG auction mechanism on our federated sys-                     3) Data Usage. In addition to the above energy cost, extensive
+        tem, we built the system model based on typical online auction              studies [42], [43], [44] also point out that the local dataset is an-
+        as shown in Fig. 3, where the whole process is comprised by                 other valuable resource of each client, which need to be charged
+        a series of consecutive communication rounds and each round                 according to its usage during participating in local training.
+        corresponds to a sub-auction. More specifically, in each round              However, due to the data Non-IID distribution of clients, the
+        t ∈ [1, T ], for those available clients i ∈ G t of current round,          data value of each client is dynamic depending on the data
+        they will first provide their own bidding price bti for joining             demand of server in different training stage. For example, to
+        one local epoch training to the server, which is based on each              improve the global model performance in current round, the
+        client’s true value vit (Fig. 3-❶). Then, the server will determine         server will select those clients with the largest likelihood of
+        its training strategy of those available clients in current round as        having good quality data according to its historical experience.
+        ψ t = {ψ1t , . . . , ψ|G
+                              t
+                                 t | }, where ψi denotes the local epoch training
+                                               t
+                                                                                    In other words, if a client is more frequently selected by the
+        number of client i in t-th round (Fig. 3-❷). Next, each client will         server in previous rounds (assigned more local epoch number),
+        perform their specific training task ψit and upload the training            it has a higher data value to help the server improve global model
+        results (local models) back to the server (Fig. 3-❸). Finally, the          performance. To formulate the dynamic changes of client data
+        server will compute the payment pti to each client based on their           value in different training stages, we introduce the economic
+        contribution with VCG payment rule (Fig. 3-❹). The details of               model of supply and demand [45], where the client is the data
+        above each step will be elaborated as follows.                              supply side and the server is the data demand side. Assume that
+           ❶ Client Bidding: For each available client i ∈ G t of t-th              the data value of client i in t-th round is defined as ρti according
+        round, the bidding price bti provided by them is based on its true          to the marketing rule [46], we can formulate the dynamics of
+        value vit . The true value is an estimation of their various resources      data value in the market as ρti = M (ρt−1 i , ψ1 ), where M is a
+                                                                                                                                    t−1
+
+        consumption after participating in current FL training, which               Markovian function reflecting how the data demand influences
+        may vary significantly among clients due to their heterogeneous             the data value [47]. We construct the Markovian function by
+        hardware configurations and Non-IID data distributions. The                 comparing ψit and ψ̄i , where ψ̄i is the historical average local
+        main components of true value are listed as follows:                        epoch number assigned to client i in previous rounds. If the local
+           1) Computation Energy Cost. Since the data type of each                  epoch number ψit determined by server is larger than history
+        client’s local dataset is the same, i.e., all MNIST data samples            average ψ̄i , then the system is a supply-side market in current
+        are 28 × 28 pixels gray-scale images, the number of CPU cycles              t-th round and client i will consider to increase its data value by
+        required to execute a data sample is the same for all clients,              (ψit − ψ̄i )/ψ̄i , and vice versa.
+
+Authorized licensed use limited to: NANJING UNIVERSITY OF SCIENCE AND TECHNOLOGY. Downloaded on March 27,2025 at 15:55:15 UTC from IEEE Xplore. Restrictions apply.
+       WU et al.: LONG-TERM ADAPTIVE VCG AUCTION MECHANISM FOR SUSTAINABLE FL WITH PERIODICAL CLIENT SHIFTING                                          6065
+
+
+
+          Based on above three components, each client first estimates                                             TABLE I
+                                                                                                              PARAMETER NOTATIONS
+       its true value of current round by:
+                                            per round
+                                                                    
+         v̄it (ψ̄it ) = η1 ∗ (ecomp ×    ψ̄it ) +η2 ∗ Eit,comm + η3 ∗ ρti , (5)
+                              i           
+                            per local epoch
+
+       where η1 , η2 , η3 are the hyperparameters for preference adjust-
+       ment. Since the exact local epoch number of current round
+       is determined by the server later, which is unknown in client
+       bidding stage, the true value estimation is depending on the
+       historical average local epoch number ψ̄it of previous rounds.
+       The computation energy cost ecomp   i    is evaluated for each local
+       epoch. The communication energy cost Eit,comm and data value
+       ρti are evaluated for the whole round, because each local training
+       round only needs to utilize the data once and upload the model
+       once.
+           Finally, due to the nature of selfishness and rationality, client
+       may raise a bidding price bti different from its true value estima-
+       tion vit to strive more payment from the server. Therefore, the
+       bidding price bti provided by client i in t-th round based on its
+       true value estimation is defined as:
+                                                 
+                        bti ψ̄it = vit ψ̄it + |N μ, σ 2 |,               (6)
+       where N (μ, σ 2 ) is a Gaussian noise with μ = 0 and σ = 1.
+          ❷ Server Strategy Determination: After receiving all client
+       bidding prices bt = {bt1 , . . . , bt|G t | }, the server will feed them
+       into of a DRL strategy network parameterized by θ as the
+       input, and the network output ψ t = {ψ1t , . . . , ψ|G   t
+                                                                  t | } is the local
+
+       epoch number strategy for all clients in t-th round. Please note
+       that there is a voluntary two-way selection between the server                     According to the typical assumption in economics that each
+       and clients, the server can refuse the participation of specific                client is individual rational, the target of client i is to maximize
+       clients by assigning a local epoch number of zero, and clients                             utility during the entire FL training process, which
+                                                                                       its long-term
+       can deliberately provide unreasonable bidding prices (or not                    is Ui = Tt=1 Uit .
+       provide) to force the server to give it up.                                        For the server-side, after the global model aggregation, the
+          ❸ Training Result Aggregation: Each client will conduct its                  server can obtain the global model accuracy A(·) of current t-th
+       own local training task according to the required local epoch                   round on its validation dataset Dv with Eq. (2). Therefore, the
+       number bti from the server, and then upload the updated local                   utility of server in t-th round is computed by:
+       model back to server-side. Besides, the client true value ρti will                                                          |G t |
+                                                                                                            t         
+       also be updated based on ρti = M (ρt−1        i , ψ1 ).
+                                                           t−1
+                                                                                                     Ust    ψ = λ · ΔAt ψ t −   pti ,                  (8)
+          ❹ Payment to Client: The server will allocate the correspond-                                                             i=1
+       ing payment pti to each client according to the VCG payment
+       rules defined later in Section V-C.                                             where ΔAt (ψ t ) = A(ω t ) − A(ω t−1 ) is the global model ac-
+          After all auction process of current round are completed, the                curacy increment in t-th round after adopting the local epoch
+       server and clients will compute their respective utilities and                  number strategy ψ t , G t is the available client subset in t-th
+       update their strategies for next round. Based on the payment pti                round, and λ is a non-negative parameter to adjust the server
+       from the server, the utility of client i in t-th round is computed              preference. A large λ means the server can afford more payments
+       as:                                                                             to facilitate clients participation, in exchange for model accuracy
+                                                                                      improvement, vice versa. All parameter notations appeared in
+           Uit (ψit ) = pti − vit ψit                                                  this paper are summarized in Table I for reference.
+                                                                                         From above auction modeling of FL system, we can observe
+                      = pti − η1 ecomp   ψit + η2 Eit,comm + η3 ρti ,            (7)
+                                   i                                                   that the server strategy ψ t will lead to two impacts: 1) Since Non-
+       The hyper-parameters η1 , η2 , and η3 here have no special mean-                IID data distribution of clients, the decision of ψ t will influence
+       ing, which are some preference adjustment weights. For ex-                      the model accuracy improvement by selecting different client
+       ample, if we assign a large value for eta1 , it means that the                  combination to join in FL training, which can be regarded as a
+       current client i is more concerned about its computation cost                   common client selection problem. 2) ψ t will also influence the
+       when evaluating its own utility function, and vice versa for other              FL training cost, including computation & communication en-
+       hyper-parameters.                                                               ergy cost and data usage. Therefore, the target of our mechanism
+
+Authorized licensed use limited to: NANJING UNIVERSITY OF SCIENCE AND TECHNOLOGY. Downloaded on March 27,2025 at 15:55:15 UTC from IEEE Xplore. Restrictions apply.
+        6066                                                                                 IEEE TRANSACTIONS ON MOBILE COMPUTING, VOL. 23, NO. 5, MAY 2024
+
+
+
+        is to find the optimal trade-off between the system performance                         Therefore, our target is to find the optimal long-term local
+        improvement and training cost by adaptively applying different                          epoch number strategy ψ ∗ that can maximize the long-
+        local epoch number strategy in each round.                                              term social welfare, i.e.,
+
+                                                                                                                  ψ ∗ = arg max S (ψ) .                   (11)
+        C. Problem Formulation
+                                                                                            2) Long-term incentive compatibility: When an auction
+           Before giving our problem formulation, we introduce several                         satisfies incentive-compatible (truthful), it means that any
+        traditional economic properties that should be guaranteed in a                         client i in t-th round will obtain the best utility gain, if and
+        well-designed auction mechanism [15]:                                                  only if it announces a bid that truthfully reveals its true
+           r Social welfare: the utility sum of all participants within the
+                                                                                               value vit . Assume that ψ ∗ is the long-term optimal strategy
+              system, including both the server and clients.                                                                                                  ∗
+           r Incentive compatibility: all participants can obtain the best                     when client i bids truthfully in the whole process and ψ̃
+                                                                                               is the long-term optimal strategy when it bids untruthfully.
+              return, if and only if they behave truthfully (truthful bidding                  Then, the definition of long-term incentive compatibility
+              price for clients and truthful payments for the server).
+           r Individual rationality: all participants can obtain non-                          is:
+                                                                                                                                ∗
+              negative utility.                                                                                Ui (ψ ∗ ) ≥ Ui ψ̃ , ∀i ∈ N ,                (12)
+           However, the above traditional economic properties can only
+        be guaranteed in a single auction, which is unsuitable for our                                      
+                                                                                               where Ui = Tt=1 Uit is the long-term utility sum of client
+        long-term online auction modeling, since the whole FL training                         i in the whole process.
+        process is comprised by a series of consecutive communication                       3) Long-term individual rationality: Individual rationality
+        rounds and each round is formulated as one auction. To further                         means that each client will choose to participate in the
+        enhance the mechanism reliability, we extend all economic                              FL training only when they can obtain a positive utility.
+        properties into a novel long-term form, which can be perfectly                         Therefore, to maintain attraction to clients in whole pro-
+        adapted to our long-term requirements. Therefore, the final                            cess, it must satisfy long-term individual rationality as:
+        target of our mechanism is to achieve long-term social welfare
+        maximization of a FL system, while guaranteeing all other
+        critical economic properties from a long-term perspective. We                                              Ui (ψ ∗ ) > 0, ∀i ∈ N .                (13)
+        describe the details of these long-term economic properties as
+        below:                                                                               Notice: All previously described long-term economic proper-
+           1) Long-term social welfare maximization: Social welfare                       ties are guaranteed from the long-term perspective, which means
+               is a widely accepted metric to evaluate the performance of                 they may not be satisfied in every FL round. In other words, the
+               an auction mechanism [10], [11], [12], [15]. According to                  server or clients can accept lower or even negative utility gain in
+               the utility definitions of the server and clients in Section               some specific rounds to further promote higher long-term utility
+               IV-B, we can compute the social welfare of t-th round as:                  maximization for the whole process, which is also illustrated in
+                                                                                          Fig. 2.
+                                                      |G t |
+                                                t   
+                S   t
+                            ψ   t
+                                    = Ust        ψ +  Uit ψ t                                           V. INCENTIVE MECHANISM DESIGN
+                                                      i=1                                 A. Motivation: Why Must DRL
+                                             
+                                    = λ · ΔAt ψ t                                            Since VCG-based auction is the only one that can simultane-
+                                                 t
+                                              |G |                                        ously satisfy all above mentioned economic properties [16], its
+                                                   comp t
+                                          −         η 1 ei ψi + η2 Eit,comm + η3 ρti ,    an ideal auction type adopted into our mechanism. The standard
+                                                i=1                                       VCG auction is consist of two steps: First, it requires to obtain
+                                                                                    (9)   the optimal strategy by solving the social welfare maximization
+                                                                                          problem, which are (10) and (11) in our paper. Second, the
+               where G t is the available client subset in t-th round.                    payment to each client is computed based on the externality that
+               Furthermore, the long-term social welfare is defined as                    client exerts on other clients, which will be elaborated in Section
+               the utility sum of both the server and clients in all rounds:              V-C later. However, directly applying standard VCG auction
+                                                                                          in our mechanism is difficult, because the following critical
+                                                                                          challenges prevent us from obtaining the long-term optimal
+                                                               |G t |
+                                    
+                                    T
+                                                 t  T 
+                                                                                        strategy ψ ∗ by precise mathematical analytical solutions:
+               S(ψ) =                     Ust    ψ +     Uit ψ t
+                                                                                             1) Myopic Observation: To derive the optimal long-term
+                                    t=1               t=1 i=1
+                                          ⎛                           ⎞                          strategy for (10) and (11) through precise mathemati-
+                                                     |G t |
+                                    
+                                    T
+                                                                        
+                                                                          T
+                                                                                                cal analytical solutions, we have to obtain the complete
+                            =             ⎝Ust ψ t +        Uit (ψ t )⎠ =   S t ψt .             knowledge about the FL system over its entire future
+                                    t=1                   i=1             t=1                    lifespan in advance. It is obviously impossible that we
+                                                                                  (10)           only have the historical knowledge.
+
+Authorized licensed use limited to: NANJING UNIVERSITY OF SCIENCE AND TECHNOLOGY. Downloaded on March 27,2025 at 15:55:15 UTC from IEEE Xplore. Restrictions apply.
+       WU et al.: LONG-TERM ADAPTIVE VCG AUCTION MECHANISM FOR SUSTAINABLE FL WITH PERIODICAL CLIENT SHIFTING                                                      6067
+
+
+
+          2) Information Isolation: During the theoretical derivation                     to the server. Then, after receiving all client states, the server will
+             process of ψ ∗ for (11), we must substitute (3)-(5) into (9)                 determine the local epoch number of them (action at ) according
+             to obtain the social welfare S t (ψ t ) of t-th round. However,              to its DRL strategy network πθ (at |st ). Next, clients will perform
+             those client private parameters (e.g., βi , ci , di , δi , i , Bit )        the corresponding local training task based on the requirements
+             in (3)-(5) is unavailable to the server due to the inherent                  (action at ) and upload their training results back to the server.
+             privacy protection in FL.                                                    After that, the server will conduct global aggregation to generate
+          3) Model Unknown: Due to the black-box of deep neural net-                      new global model and compute the social welfare of t-th round
+             work and the collaborative training manner in FL system, it                  (reward rt ). Finally, all clients will receive the payments from
+             is impossible to derive an analytical model of global model                  the server and update their strategy to provide new bidding price
+             performance, i.e., A(ω t ). In other words, we cannot use                    for next t + 1 round (new state st+1 ).
+             mathematical analysis to know the global model accuracy
+             in advance, but only after the actual FL training process is
+                                                                                          C. VCG-Based Payment Rule
+             completed.
+          Different from mathematical analytical solutions, DRL is well                      Let SN \i (ψ ∗ ) denote the social welfare after applying the
+       suited to our mechanism because of the following reasons: First,                   optimal global strategy ψ ∗ , but without considering the cost of
+       as an experience-driven approach, the update of DRL strategy                       client i. Besides, we define ψ ∗−i as the optimal individual strategy
+       only need to interact with the FL system and does not rely                         from a sub-auction, which is also the individual environment that
+       on any prior knowledge inside the FL system, which makes it                        excludes client i.
+       overcomes the model unknown and information isolation chal-                           Then, according to the VCG payment rule, the payment to
+       lenges. Second, the optimization objective of DRL strategy is                      client i is given as
+       the expected long-term accumulated reward (i.e., the long-term                                                                
+       social welfare optimization in our problem), which assists our                                           pi = SN \i (ψ ∗ ) − S ψ ∗−i ,                     (14)
+       mechanism to overcome the myopic observation challenge.                                         
+          Furthermore, previous studies [48] show that most machine                       where pi = Tt=1 pti is the total payment of client i throughout
+       learning applications are employed in dynamic environments,                        the whole FL training. To implement the above VCG payment
+       where data patterns change over time. Therefore, the server-side                   rule, we redesign the auction process in Section IV-B by a
+       global model in FL requires constant updates to adapt to the                       bookkeeping scheme, which means the contribution of clients
+       environment dynamics. During this process, extensive client                        in each round will be recorded and each client is paid at the end
+       interaction experience is accumulated in server-side, which also                   of the FL process.
+       provide conductive precondition for DRL deployment. Moti-                             Next, we can get the following theorem.
+       vated by these advantages, we adopt DRL into our long-term                            Theorem 1. The reinforcement-based online auction mecha-
+       online VCG auction mechanism.                                                      nism that produces strategy ψ and payments p, is both incentive-
+                                                                                          compatible and individual rationality.
+                                                                                             Proof. Based on the VCG payment rule in (14), we can get
+       B. DRL Design
+          According to the system model in Fig. 3, we combine the the                          Ui (ψ) = pi − vi (ψ)
+       Markov Decision Process (MDP) with the FL training process,
+       where each round is corresponding to a state transition process                                         
+                                                                                                               T
+                                                                                                                  comp t
+                                                                                                        = pi −    η 1 ei ψi + η2 Eit,comm + η3 ρti
+       {st , at , rt , st+1 }. The traditional Proximal Policy Optimization                                       t=1
+       (PPO) is adopted as our DRL optimization algorithm and other                                                       
+       details of our DRL design are described as follows:                                              = SN \i (ψ ∗ ) − S ψ ∗−i
+          State Design: The state st of agent in t-th FL round is the                                           
+                                                                                                                T
+                                                                                                                   comp t
+       bidding price vector of all clients for one local epoch and current                                  −      η 1 ei ψi + η2 Eit,comm + η3 ρti
+       round index, which is denoted by st = {bt1 , . . . , bti , . . . , bt|G t | , t}                         t=1
+       (see Section IV-B.)                                                                                            
+                                                                                                        ≥ S (ψ ∗ ) − S ψ ∗−i ≥ 0                                  (15)
+          Action Design: The action at of agent in t-th FL training round
+       is server’s local epoch number strategy for all clients, which is
+                                                                                          Therefore, the individual rationality property of the
+       denoted as at = {ψ1t , . . . , ψit , . . . , ψ|G
+                                                      t
+                                                        t | }.
+                                                                                          reinforcement-based online auction mechanism is satisfied.
+          Reward Design: The reward rt of agent is the social welfare
+                                                                                             Next, to prove the truthfulness of our mechanism, we compare
+       of system in t-th     FL round, which              is represented by rt =
+                                                                                          the utility of client i under the truthful bidding and an untruthful
+       S t = λ · ΔAt − i∈G t (η1 ecomp    i      ψ  t
+                                                    i +   η    t,comm
+                                                            2 Ei      + η3 ρti ). To
+                                                                                          bidding. Assume that in t-th round, client i reports an untruthful
+       achieve the long-term optimization objective, we adopt the
+                                                                                          bid bti which is not equal to its true value vit , i.e., bti = vit , then the
+       Monte-Carlo update rule for the DRL algorithm, which only                                                         ∗
+       update its strategy in the last round, although the agent can                      optimal strategy becomes ψ̃ . Its utility under untruthful bidding
+       receive the reward every round.                                                    can be calculated by
+          State Transition: In the beginning of t-th round, all clients will                                             
+       provide their bidding price (state st ) for one local epoch training                     Ui ψ̃ ∗ = SN \i ψ̃ ∗ − S ψ ∗−i − vi (ψ).                         (16)
+
+
+Authorized licensed use limited to: NANJING UNIVERSITY OF SCIENCE AND TECHNOLOGY. Downloaded on March 27,2025 at 15:55:15 UTC from IEEE Xplore. Restrictions apply.
+        6068                                                                            IEEE TRANSACTIONS ON MOBILE COMPUTING, VOL. 23, NO. 5, MAY 2024
+
+
+
+          Then, the difference of client utilities under truthful and
+        untruthful bidding is
+                      ∗                  
+        Ui (ψ) − Ui ψ̃ ≥ S (ψ ∗ ) − S ψ ∗−i
+                                         ∗                    
+                              − SN \i ψ̃ − S ψ ∗−i − vi (ψ)
+                                               ∗          
+                            = S (ψ ∗ ) − SN \i ψ̃ − vi (ψ)
+                                               ∗          
+                            = S (ψ ∗ ) − SN \i ψ̃ − vi (ψ)
+                                            ∗
+                            ≥ S (ψ ∗ ) − S ψ̃ .                   (17)
+
+        Since ψ ∗ maximizes the long-term social welfare of FL system,
+        we can get Ui (ψ) − Ui (ψ̃) ≥ 0, which means client i cannot
+        increase its utility by bidding untruthfully.               
+                                                                                    Fig. 4. Architecture of multi-branch strategy network. The available client
+          VI. MULTI-BRANCH NETWORK FOR CLIENT PERIODICALLY                          set is periodically changed in different time zones, which is indicated by
+                              SHIFTING                                              different client colors. The model branch responsible for the k-th client set
+                                                                                    is θ = (θ f , θ k ). The feature extractor θ f is shared by all model branches
+           The client periodically shifting problem in practical FL ap-             to provide common feature representations, while each decision head θ k is
+                                                                                    specialized for different client sets.
+        plications imposes more stringent requirements on dynamic
+        adaptability for all current incentive mechanism designs. Our
+        traditional single model-based DRL strategy network is unable
+        to handle this dynamic problem, once the available client pop-               Algorithm 1: The Training Workflow of Multi-Branch DRL
+        ulation is changed, the strategy network trained on the previ-               Strategy Network.
+        ous environment cannot be adapted to the new environment,                    Input: Total client set N , Initial multi-branch network
+        which leads to repeatedly retraining a new strategy network                   θ = (θ f , θ k ), k ∈ [1, K]
+        for incentive mechanism from scratch. Therefore, we propose                  Output: Optimal multi-branch strategy network θ(ψ ∗ ).
+        to jointly train a multi-branch strategy network to sense client              1: Initialize the multi-branch network (θ f , θ k ), k ∈ [1, K].
+        population changes and automatically switch to the correspond-                2: for time zone k = 1, 2, . . . , K do
+        ing specialized branches on different modes. The multi-branch                 3: The available client set changes in the current k-th
+        DRL strategy is based on the assumption of stable periodically                     time zone.
+        client shifting.                                                              4: The server senses the change of available client set and
+                                                                                           stars following model branch switching.
+        A. Multi-Branch DRL Strategy Network                                          5: Maintain the shared feature extractor layers θ f .
+                                                                                      6: Switch the specialized decision head to corresponding
+           Eichner et al. [13] first illustrated the advantages of training                θ k for current client set k.
+        separate models for different client data distributions in FL,                7: Form the new DRL strategy network θ = (θ f , θ k ).
+        when the dynamic change can be sensed during evaluation.                      8: Conduct DRL training to update network parameter
+        However, training and maintaining multiple separate models                         θ = (θ f , θ k ) until next time zone change.
+        on the server-side is too resource-consuming in real-world ap-                9: end for
+        plications. Motivated by studies in representation learning that             10: Repeat the DRL training on multi-branch strategy
+        heterogeneous client data distribution in the same task may                      network until all model branches reach convergence.
+        share a common representation [49]. For example, in vision
+        tasks, the former part of model (i.e., feature extractor layers)
+        will generate common (low-dimensional) representations for                  strategy network is demonstrated in Fig. 4. With the change
+        different images, while for language tasks it learns shared word            of time zone, the available client set is periodically shifted.
+        embeddings and grammars from different contexts.                            For client set in k-th time zone, the specialized model branch
+           To handle the client periodically shifting problem while learn-          responsible for the strategic decision of incentive mechanism is
+        ing shared feature representations in a more efficient manner,              θ = (θ f , θ k ).
+        we adopt the parameter-sharing strategy from multi-task learn-
+        ing [50] to collaboratively train a multi-branch strategy network
+                                                                                    B. Training & Inference Workflow
+        for our DRL agent. The multi-branch strategy network θ is
+        comprised of two parts: 1) shared feature extractor layers θ f that            Different from the traditional DRL training on single model,
+        extract common (low-dimensional) representations, and 2) sev-               we optimize the multi-branch network by an alternative man-
+        eral following specialized decision heads θ k for different client          ner, which is summarized in Algorithm 1. First, we randomly
+        sets in different time zones. The architecture of our multi-branch          initialize all parameters of the multi-branch strategy network
+
+Authorized licensed use limited to: NANJING UNIVERSITY OF SCIENCE AND TECHNOLOGY. Downloaded on March 27,2025 at 15:55:15 UTC from IEEE Xplore. Restrictions apply.
+       WU et al.: LONG-TERM ADAPTIVE VCG AUCTION MECHANISM FOR SUSTAINABLE FL WITH PERIODICAL CLIENT SHIFTING                                                 6069
+
+
+
+
+                                                                                               Algorithm 2: The Neighborhood Clustering Based on Client
+                                                                                               Distribution Similarity.
+                                                                                               Input: Client distribution C, Similarity threshold τ .
+                                                                                               Output: Optimal time zone division.
+                                                                                                1: for time zone k = 1, 2, . . . , K do
+                                                                                                2: sk−1 = similarity(Ck , Ck−1 ).
+                                                                                                3: sk+1 = similarity(Ck , Ck+1 ).
+                                                                                                4: if sk−1 ≥ sk+1 and sk−1 ≥ τ then
+       Fig. 5. Demonstration of neighborhood clustering based on client distribution            5:     Merge time zone k and k − 1.
+       similarity. The black bold line indicates the timeline and the dashed lines indicate     6: else if sk+1 ≥ sk−1 and sk+1 ≥ τ then
+       24-hour division in real-world. Different colors in each time slots denote different     7:     Merge time zone k and k + 1.
+       clients.
+                                                                                                8: else
+                                                                                                9:     Time zone k remains unchanged.
+       (Line 1). Then, the available client set will change in the current                     10: end if
+       k-th time zone, where some old clients exit and other new clients                       11: end for
+       join in (Line 2). Next, the server senses the dynamic change of                         12: update the new time zone list [1, . . . , K] and repeat
+       the available client set and conducts the model branch switching                            above process until convergence
+       to choose the specialized branch for client set k in k-th time zone
+       (Line 4 to 7). The subsequent training will be conducted on the                           Therefore, to further reduce the training cost of the multi-
+       new model branch until the dynamic change is sensed by server                          branch network, we propose an automatic time zone division
+       again and repeat the previous process. Finally, the DRL training                       by neighborhood clustering. The key insights of neighborhood
+       of multi-branch strategy network will keep going until all model                       clustering are based on the client distribution similarity between
+       branches reach convergence (Line 8).                                                   adjacent time zones, if the similarity is higher than a pre-defined
+          The inference workflow of our multi-branch strategy network                         threshold τ ∈ [0, 1], we will merge these two adjacent time slots
+       is based on the sensing of available client set change on the                          into the same time zone. Finally, we can generate a new time
+       timeline. In this paper, we assume that the available time zones                       zone division from the previous 24-hour division. The details of
+       for each client are stable, which means that each client will only                     neighborhood clustering are illustrated in Algorithm 2
+       connect with the server in their own pre-defined available time                           First, the server will obtain the client time zone distribution
+       zones. For easy understanding, we also set the change of avail-                        based on historical experience estimation and define a similarity
+       able client set only to occur at every whole time (e.g., 10:00).                       threshold τ ∈ [0, 1] (normally a large number such as τ = 0.9).
+                                                                                              Then, each time zone will compute its client distribution similar-
+       C. Automatic Time Zone Division                                                        ity with its neighborhoods (Line 2 to 3). If the client distribution
+          Client Time Zone Distribution. We assume that each client                           similarity reaches the threshold requirements, merging itself
+       has total 8 available time slots with 1-hour each, which means                         with its adjacent neighbors, else remaining unchanged (Line 4
+       they will connect with the server for 8 hours in a day. Besides,                       to 10). This process will repeat until convergence to generate a
+       we assume the number of connected clients in each 1-hour time                          new time zone division.
+       slot is the same on server-side. Therefore, under a real-world
+       24-hour time zone division, in each 1-hour time slot, the server                                      VII. PERFORMANCE EVALUATION
+                            24 = 3 clients simultaneously. As shown
+                                   N
+       will connect with 8˜N
+                                                                                              A. Experiment Setup
+       in Fig. 5, if we set total N = 15 clients in our FL system, the
+       server will connect with 8∗15
+                                   24 = 5 clients in each 1-hour time                            Our FL system framework is based on Google’s FedAvg,
+       slot, where different clients are indicated by different colors.                       where all experiments are conducted on three real-world datasets
+       At every whole time (dashed line), some old clients will exit                          including MNIST, Fashion-MNIST, and CIFAR-10. The FL
+       and other new clients will join, which makes the number of                             model parameters and structures for image tasks on different
+       connected clients unchanged.                                                           datasets exactly follow the setting in [1].
+          Automatic Time Zone Division by Neighborhood Cluster-                                  Federated Learning System Setup: The system setup on dif-
+       ing. Although the previous fixed 24-hour time zone division                            ferent datasets is the same. For client data Non-IID distribution,
+       is enough to cover many real-world FL applications, we can                             we randomly allocate the entire dataset to all clients in the
+       observe that the available client set is slowly changing and the                       FL system, where each data sample is uniquely owned by one
+       majority is unchanged. For example, clients will always connect                        client (Non-overlapping). Different Non-IID degrees of data
+       with the server in the daytime and exit the FL system in the                           distribution is controlled by setting different random seeds. The
+       nighttime, which means the majority of connected clients will                          Mini-batch Stochastic Gradient Descent (SGD) is adopted as
+       maintain unchanged for several time slots. This phenomenon                             the optimizer for the local FL model training on the client-side
+       indicates that we don’t need to build separated model branches                         with a mini-batch size of 20 and a learning rate of 0.01. For
+       for two neighborhood time slots, where their available client sets                     the parameters related to system energy cost modeling, the
+       are very similar.                                                                      number of CPU cycles required to execute one sample c is 20
+
+Authorized licensed use limited to: NANJING UNIVERSITY OF SCIENCE AND TECHNOLOGY. Downloaded on March 27,2025 at 15:55:15 UTC from IEEE Xplore. Restrictions apply.
+        6070                                                                                 IEEE TRANSACTIONS ON MOBILE COMPUTING, VOL. 23, NO. 5, MAY 2024
+
+
+
+
+        Fig. 6. Performance of our DRL-based long-term mechanism and its comparison with other benchmarks. “DRL+” indicates our new multi-branch network,
+        while “DRL” indicates the old single network. The dashed line in Fig. 6(a) indicates the training convergence point of DRL strategy network, while other dashed
+        lines in Fig. 6(b)-(d) shows the change tendency.
+
+
+        cycles/bit. To simulate client resource heterogeneity in the real                benchmark is based on the traditional FedAvg algorithms, where
+        world, we set the effective capacitance coefficient βi of differ-                the local epoch number is manually set according to the historical
+        ent clients’ computation chip-set randomly distributed within                    training experience. 3) -Greedy: This benchmark is a heuristic
+        1 ∼ 2 × 10−28 , and the CPU-cycle frequency δi is randomly                       algorithm that always chooses the strategy with maximal reward
+        distributed within 1 ∼ 2 GHz. The preference adjustment coef-                    from the training experience replay buffer. To achieve the trade-
+        ficient of server defaults to λ = 1000 on the trade-off between                  off between exploring and exploiting, we set a probability of
+        accuracy improvement and system training cost. The influence                     80% to follow above greedy strategy, while the remaining 20%
+        of different λ values on the trade-off is also investigated by                   probability will generate a random strategy.
+        various experiments in Fig. 8.
+            Deep Reinforcement Learning Mechanism Setup: We adopt
+        the PPO algorithm as the basis of our DRL method [51], which is                  B. Performance of Long-Term Incentive Mechanism
+        an advanced version of actor-critic network. To provide enough                      In Fig. 6, we use various experiment results to show the
+        historical experience for the training of DRL strategy network,                  performance of our incentive mechanism on long-term social
+        we set the total training episode number E = 3000, where the                     welfare optimization. First, Fig. 6(a) shows the reward conver-
+        step number in each episode is 5. The learning rate of actor and                 gence tendency of the multi-branch DRL strategy network in the
+        critic network in PPO is set as 0.00003, which will decay by 95%                 training process. The accumulative reward (i.e., the FL system
+        every 40 episodes. To drive the DRL agent to achieve our long-                   long-term social welfare) keeps growing during the training
+        term optimization objective, we stop the intermediate update un-                 process and reaches the convergence point at around 2000-th
+                                                              of DRL
+        til the whole episode is finished, and update the strategy                       episode, which indicates that our DRL agent has learned the
+        agent by the long-term accumulative reward R = Tt=0 γ t rt at                    optimal strategy ψ ∗ for the long-term optimization.
+        the end, where the reward discount factor is γ = 0.95.                              Then, extensive experiments on different datasets (MNIST,
+            Multi-Branch DRL Strategy Network Setup: The multi-branch                    Fashion-MNIST and CIFAR-10) further demonstrate the supe-
+        DRL strategy network consists of two parts: 1) The common                        riority of our multi-branch DRL-based incentive mechanism
+        feature extractor θ f , which are set as two-layer MLP networks,                 (“DRL+” in Fig. 6) by comparison with other benchmarks.
+        and each layer has 512 neurons with ReLu activation. 2) The                      We can observe obvious gaps between them in the achieved
+        following specialized decision heads θ k , which is defined as                   long-term social welfare. Taking the results on MINST in
+        a N -dimensional fully-connected layer with a final softmax                      Fig. 6(b) as an example, the old single DRL incentive mechanism
+        output, and N is the client number. Fig. 4 illustrates the whole                 of the conference version (“DRL” in Fig. 6) cannot adapt to
+        structure of our multi-branch DRL network, which is based                        the periodically client shifting environment, which results in
+        on the assumption of stable periodically client shifting. The                    a relatively low long-term social welfare optimization. The
+        details of client time zone distribution settings are elaborated                 Myopia can achieve a relatively high long-term social welfare
+        in Section VI-C.                                                                 since its strategy is optimal for each independent single-round
+            Comparison Benchmarks: We compare our method with                            sub-problem. However, the problem decomposition of Myopia
+        several other benchmark approaches as illustrated below: 1)                      makes it unable to sense the continual correlation between adja-
+        Myopia: The entire long-term optimization problem will be de-                    cent rounds, thus failing in long-term optimization compared to
+        composed into a series of independent one-round sub-problems,                    our method (36% gap). The EFA can outperform Greedy since its
+        which are widely accepted by many online auction solutions in                    strategy is manually adjusted according to our historical training
+        other studies [10], [11], [12]. Each sub-problem is optimally                    experience, which is much more efficient than the heuristic
+        solved with an exhaustive search in its solution space and the                   Greedy with randomness. The performance situations on the
+        payment rule strictly follows VCG. Obviously, this decompo-                      Fashion-MNIST dataset in Fig. 6(c) are very similar to MNIST
+        sition will break the continual correlation between adjacent                     due to their similar dataset features. Besides, the experiment
+        FL rounds, which results in a sub-optimal solution from the                      results on CIFAR-10 in Fig. 6(d) show a higher performance gap
+        long-term perspective. 2) Expert-guided FedAvg (EFA): This                       of our DRL-based method between other benchmarks, since the
+
+Authorized licensed use limited to: NANJING UNIVERSITY OF SCIENCE AND TECHNOLOGY. Downloaded on March 27,2025 at 15:55:15 UTC from IEEE Xplore. Restrictions apply.
+       WU et al.: LONG-TERM ADAPTIVE VCG AUCTION MECHANISM FOR SUSTAINABLE FL WITH PERIODICAL CLIENT SHIFTING                                                    6071
+
+
+
+
+       Fig. 7. Payment comparison on different benchmarks and datasets are shown in Fig. 7(a) to (c), where α is the parameter to simulate different untruthfulness
+       levels. “DRL+” indicates our new multi-branch network, while “DRL” indicates the old single network. Fig. 7(d) is experiment proof of the client’s long-term
+       individual rationality (IR) property in Eq. (13) on all datasets.
+
+
+
+
+       Fig. 8. Change trend between accuracy and training cost under different values   Fig. 9. Long-term Social Welfare (LTSW) & Accuracy tendency under client
+       of λ on MNIST, where λ is a preference adjustment parameter. The trade-off       periodically shifting with Single vs. Multi-branch Network. We uses a dual
+       equation is attached for reference.                                              coordinate system (LTSW on the left and Accuracy on the right). The bold lines
+                                                                                        indicated the Accuracy and the shadow bar areas indicate LTSW.
+
+       task complexity of CIFAR-10 is much higher than other datasets.
+       It’s more difficult for these non-learning-based benchmarks to                   are achieved by our DRL-based method (reduced by 37%
+       learn a good strategy, while our method can still learn an optimal               on MNIST, 39% on Fashion-MNIST, and60% on CIFAR-10),
+       long-term strategy from complex environments.                                    which is simultaneously under an optimal long-term social wel-
+          Furthermore, recalling the definition of λ in (8) and (9),                    fare guarantee. Besides, to further prove the long-term individual
+       which is the preference adjustment parameter for the trade-off                   rationality property of our DRL-based method in (8) and (9), we
+       between the accuracy improvement and training cost. A higher                     compare the received payments and the true value (true training
+       λ value means the server will concern more about the accuracy                    cost) sum of all clients in the whole FL process in Fig. 7(d),
+       improvement and ignore the training cost, and vice versa. We                     where the results clearly indicate that the individual rationality
+       conduct various experiments to show the influence of different λ                 property is satisfied.
+       values on this trade-off in Fig. 8. As the increasing of λ value, the
+       model accuracy and training cost are both growing with different
+       rates, where two key turning points (λ = 1000 and 5000) are                      C. Performance of Multi-Branch Network
+       marked by dashed lines. When 100 < λ < 1000, the strategy                           In this section, we show the performance of the traditional
+       will transform from the extreme strategy (choosing the most                      single network and our multi-branch network, facing the
+       cost-saving clients) to the optimal strategy (choosing diverse                   client periodically shifting problem in Fig. 9. The traditional
+       client combinations to improve accuracy while saving cost).                      single model fails to handle this problem due to its structural
+       When 1000 < λ < 5000, the comparable proportion of accuracy                      limitations, which leads to the droppings in both accuracy and
+       and cost make our mechanism sensitive to their trade-off, the                    long-term social welfare as the change of timeline. In contrast,
+       improvement of accuracy will consume much more cost than                         our multi-branch network design is sensitive to the available
+       before. When λ > 5000, the strategy is transformed to another                    client set change and can adaptively switch to corresponding
+       extreme that only improves the accuracy and ignores the cost.                    decision heads to handle time zone changes, which results
+          Fig. 7 shows the payment comparison of all methods. Since                     in overall smooth growth. Besides, we also illustrate the
+       EFA and Greedy cannot ensure truthfulness, clients can scam                      advantage of neighborhood clustering compared with the naive
+       more payments from the server by lying about their costs. For a                  24-hour division in Table II. Compared with single network, the
+       clear comparison, we add a parameter α to simulate the payments                  24-branch network can significantly improve long-term social
+       under different untruthfulness levels through multiplying the                    welfare by 140% with a 33% training time increase. After using
+       true cost by (1 + α). In particular, the α = 0 for our method                    neighborhood clustering, the performance of long-term social
+       and Myopia since they can ensure truthfulness. From Fig. 7(a),                   welfare can maintain the same while the training time only
+       (b), and (c), we can observe that minimal truthful payments                      increases by 12.9%.
+
+Authorized licensed use limited to: NANJING UNIVERSITY OF SCIENCE AND TECHNOLOGY. Downloaded on March 27,2025 at 15:55:15 UTC from IEEE Xplore. Restrictions apply.
+        6072                                                                                       IEEE TRANSACTIONS ON MOBILE COMPUTING, VOL. 23, NO. 5, MAY 2024
+
+
+
+                                      TABLE II                                                 [15] V. Krishna, Auction Theory, 2nd ed. New York, NY, USA: Academic Press,
+               PERFORMANCE OF NEIGHBORHOOD CLUSTERING ON MULTI-BRANCH                               2010.
+                                      NETWORK                                                  [16] W. Vickrey, “Counterspeculation, auctions, and competitive sealed ten-
+                                                                                                    ders,” J. Finance, vol. 16, no. 1, pp. 8–37, 1961. [Online]. Available:
+                                                                                                    http://www.jstor.org/stable/2977633
+                                                                                               [17] Y. LeCun, Y. Bengio, and G. Hinton, “Deep learning,” Nature, vol. 521,
+                                                                                                    no. 7553, pp. 436–444, 2015.
+                                                                                               [18] Y. Zhan, J. Zhang, Z. Hong, L. Wu, P. Li, and S. Guo, “A survey of
+                                                                                                    incentive mechanism design for federated learning,” IEEE Trans. Emerg.
+                                                                                                    Topics Comput., vol. 10, no. 2, pp. 1035–1044, Second Quarter 2022.
+                                                                                               [19] J. Weng, J. Weng, J. Zhang, M. Li, Y. Zhang, and W. Luo, “DeepChain:
+                                                                                                    Auditable and privacy-preserving deep learning with blockchain-based
+                                    VIII. CONCLUSION                                                incentive,” IEEE Trans. Dependable Secure Comput., vol. 18, no. 5,
+                                                                                                    pp. 2438–2455, Sep./Oct. 2021.
+           This paper focuses on designing an adaptive long-term incen-                        [20] U. Majeed and C. S. Hong, “FLchain: Federated learning via MEC-enabled
+                                                                                                    blockchain network,” in Proc. 20th Asia-Pacific Netw. Operations Manage.
+        tive mechanism for the sustainable FL system with a practical pe-                           Symp., 2019, pp. 1–4.
+        riodical client shifting problem. First, considering the long-term                     [21] S. R. Pandey, N. H. Tran, M. Bennis, Y. K. Tun, A. Manzoor, and C. S.
+        optimization objectives, we present an online VCG auction mod-                              Hong, “A crowdsourcing framework for on-device federated learning,”
+                                                                                                    IEEE Trans. Wireless Commun., vol. 19, no. 5, pp. 3241–3256, May 2020.
+        eling for the FL system to guarantee critical economic properties                      [22] L. U. Khan et al., “Federated learning for edge networks: Resource
+        for system sustainability. Second, we adopt a deep reinforcement                            optimization and incentive mechanism,” IEEE Commun. Mag., vol. 58,
+        learning-based method to achieve long-term objectives opti-                                 no. 10, pp. 88–93, Oct. 2020.
+                                                                                               [23] Y. Liu, L. Wu, Y. Zhan, S. Guo, and Z. Hong, “Incentive-driven long-
+        mization. Third, we design a multi-branch DRL strategy network                              term optimization for edge learning by hierarchical reinforcement mech-
+        to replace the original single network, which can adaptively                                anism,” in Proc. IEEE 41st Int. Conf. Distrib. Comput. Syst., 2021,
+        switch different decision heads as the change of available client                           pp. 35–45.
+                                                                                               [24] R. Zeng, S. Zhang, J. Wang, and X. Chu, “FMore: An incentive scheme of
+        sets on the timeline. Compared with state-of-the-art approaches,                            multi-dimensional auction for federated learning in MEC,” in Proc. IEEE
+        the long-term social welfare of FL system increases by 36% with                             40th Int. Conf. Distrib. Comput. Syst., 2020, pp. 278–288.
+        a 37% reduction in payment. Besides, the multi-branch network                          [25] Y. Jiao, P. Wang, D. Niyato, B. Lin, and D. I. Kim, “Toward an automated
+                                                                                                    auction framework for wireless federated learning services market,” IEEE
+        can adaptively handle periodical client shifting.                                           Trans. Mobile Comput., vol. 20, no. 10, pp. 3034–3048, Oct. 2021.
+                                                                                               [26] Y. Yuan, L. Jiao, K. Zhu, and L. Zhang, “Incentivizing federated learning
+                                            REFERENCES                                              under long-term energy constraint via online randomized auctions,” IEEE
+                                                                                                    Trans. Wireless Commun., vol. 21, no. 7, pp. 5129–5144, Jul. 2021.
+         [1] B. McMahan, E. Moore, D. Ramage, S. Hampson, and B. A. Y. Arcas,                  [27] Y. Deng et al., “FAIR: Quality-aware federated learning with precise user
+             “Communication-efficient learning of deep networks from decentralized                  incentive and model aggregation,” in Proc. IEEE Conf. Comput. Commun.,
+             data,” in Proc. Artif. Intell. Statist., PMLR, 2017, pp. 1273–1282.                    2021, pp. 1–10.
+         [2] A. Hard et al., “Federated learning for mobile keyboard prediction,”              [28] M. Tang and V. W. Wong, “An incentive mechanism for cross-silo feder-
+             2018, arXiv: 1811.03604.                                                               ated learning: A public goods perspective,” in Proc. IEEE Conf. Comput.
+         [3] Y. Zhan and J. Zhang, “An incentive mechanism design for efficient edge                Commun., 2021, pp. 1–10.
+             learning by deep reinforcement learning approach,” in Proc. IEEE Conf.            [29] J. Xu and H. Wang, “Client selection and bandwidth allocation in wire-
+             Comput. Commun., 2020, pp. 2489–2498.                                                  less federated learning networks: A long-term perspective,” IEEE Trans.
+         [4] Y. Zhan, P. Li, Z. Qu, D. Zeng, and S. Guo, “A learning-based incentive                Wireless Commun., vol. 20, no. 2, pp. 1188–1200, Feb. 2021.
+             mechanism for federated learning,” IEEE Internet Things J., vol. 7, no. 7,        [30] P. Dütting, Z. Feng, H. Narasimhan, D. Parkes, and S. S. Ravindranath,
+             pp. 6360–6368, Jul. 2020.                                                              “Optimal auctions through deep learning,” in Proc. Int. Conf. Mach.
+         [5] J. Kang, Z. Xiong, D. Niyato, S. Xie, and J. Zhang, “Incentive mechanism               Learn., PMLR, 2019, pp. 1706–1715.
+             for reliable federated learning: A joint optimization approach to combining       [31] P. Dütting, Z. Feng, H. Narasimhan, D. C. Parkes, and S. S. Ravindranath,
+             reputation and contract theory,” IEEE Internet Things J., vol. 6, no. 6, pp. 10        “Optimal auctions through deep learning,” Commun. ACM, vol. 64, no. 8,
+             700–10 714, Dec. 2019.                                                                 pp. 109–116, Jul. 2021. [Online]. Available: https://doi-org.ezproxy.lb.
+         [6] W. Hediger, “Sustainable development and social welfare,” Ecological                   polyu.edu.hk/10.1145/3470442
+             Econ., vol. 32, no. 3, pp. 481–492, 2000.                                         [32] J. Rahme, S. Jelassi, and S. M. Weinberg, “Auction learning as a two-
+         [7] J. Midgley, Social Development: The Developmental Perspective in Social                player game,” in Proc. Int. Conf. Learn. Representations, 2021. [Online].
+             Welfare. Newbury Park, CA, USA: Sage, 1995.                                            Available: https://openreview.net/forum?id=YHdeAO61l6T
+         [8] G. B. Asheim, T. Mitra, and B. Tungodden, “Sustainable recursive social           [33] Z. Feng, H. Narasimhan, and D. C. Parkes, “Deep learning for revenue-
+             welfare functions,” in The Economics of the Global Environment. Berlin,                optimal auctions with budgets,” in Proc. 17th Int. Conf. Auton. Agents
+             Germany: Springer, 2016, pp. 165–190.                                                  MultiAgent Syst., Richland, SC, 2018, pp. 354–362.
+         [9] R. Zhou, J. Pang, Z. Wang, J. C. Lui, and Z. Li, “A truthful procurement          [34] N. Golowich, H. Narasimhan, and D. C. Parkes, “Deep learning for multi-
+             auction for incentivizing heterogeneous clients in federated learning,” in             facility location mechanism design,” in Proc. 27th Int. Joint Conf. Artif.
+             Proc. IEEE 41st Int. Conf. Distrib. Comput. Syst., 2021, pp. 183–193.                  Intell., 2018, pp. 261–267. [Online]. Available: https://doi.org/10.24963/
+        [10] W. Shi, L. Zhang, C. Wu, Z. Li, and F. C. Lau, “An online auction                      ijcai.2018/36
+             framework for dynamic resource provisioning in cloud computing,” SIG-             [35] N. C. Luong, Z. Xiong, P. Wang, and D. Niyato, “Optimal auction for edge
+             METRICS Perform. Eval. Rev., vol. 42, no. 1, pp. 71–83, Jun. 2014.                     computing resource management in mobile blockchain networks: A deep
+             [Online]. Available: https://doi.org/10.1145/2637364.2591980                           learning approach,” in Proc. IEEE Int. Conf. Commun., 2018, pp. 1–6.
+        [11] S. Chen, L. Jiao, L. Wang, and F. Liu, “An online market mechanism for            [36] X. Liu et al., “Neural auction: End-to-end learning of auction mechanisms
+             edge emergency demand response via cloudlet control,” in Proc. IEEE                    for e-commerce advertising,” in Proc. 27th ACM SIGKDD Conf. Knowl.
+             Conf. Comput. Commun., 2019, pp. 2566–2574.                                            Discov. Data Mining, New York, NY, USA, 2021, pp. 3354–3364. [On-
+        [12] W. You, L. Jiao, J. Li, and R. Zhou, “Scheduling DDoS cloud scrubbing                  line]. Available: https://doi.org/10.1145/3447548.3467103
+             in ISP networks via randomized online auctions,” in Proc. IEEE Conf.              [37] P. Tang, “Reinforcement mechanism design,” in Proc. 26th Int. Joint Conf.
+             Comput. Commun., 2020, pp. 1658–1667.                                                  Artif. Intell., 2017, pp. 5146–5150. [Online]. Available: https://doi.org/10.
+        [13] H. Eichner, T. Koren, B. McMahan, N. Srebro, and K. Talwar, “Semi-cyclic               24963/ijcai.2017/739
+             stochastic gradient descent,” in Proc. Int. Conf. Mach. Learn., PMLR,             [38] Q. Cai, A. Filos-Ratsikas, P. Tang, and Y. Zhang, “Reinforcement mech-
+             2019, pp. 1764–1773.                                                                   anism design for e-commerce,” in Proc. World Wide Web Conf., Republic
+        [14] Y. Ding et al., “Distributed optimization over block-cyclic data,”                     and Canton of Geneva, CHE, 2018, pp. 1339–1348. [Online]. Available:
+             2020, arXiv: 2002.07454.                                                               https://doi.org/10.1145/3178876.3186039
+
+
+Authorized licensed use limited to: NANJING UNIVERSITY OF SCIENCE AND TECHNOLOGY. Downloaded on March 27,2025 at 15:55:15 UTC from IEEE Xplore. Restrictions apply.
+       WU et al.: LONG-TERM ADAPTIVE VCG AUCTION MECHANISM FOR SUSTAINABLE FL WITH PERIODICAL CLIENT SHIFTING                                                           6073
+
+
+
+       [39] Z. Zhang et al., “Optimizing multiple performance metrics with deep GSP                                  Zicong Hong (Graduate Student Member, IEEE)
+            auctions for e-commerce advertising,” in Proc. 14th ACM Int. Conf. Web                                   received the BEng degree in software engineering
+            Search Data Mining, New York, NY, USA, 2021, pp. 993–1001. [Online].                                     from the School of Data and Computer Science, Sun
+            Available: https://doi.org/10.1145/3437963.3441771                                                       Yat-sen University. He is currently working toward
+       [40] H. Yu et al., “A fairness-aware incentive scheme for federated learning,”                                the PhD degree with the Department of Computing
+            in Proc. AAAI/ACM Conf. AI Ethics Soc., 2020, pp. 393–399.                                               in The Hong Kong Polytechnic University. His cur-
+       [41] T. D. Burd and R. W. Brodersen, “Processor design for portable systems,”                                 rent research interest includes blockchain, edge/cloud
+            J. VLSI Signal Process. Syst. Signal, Image Video Technol., vol. 13, no. 2/3,                            computing, and federated learning.
+            pp. 203–221, 1996.
+       [42] A. Ghorbani and J. Zou, “Data Shapley: Equitable valuation of data
+            for machine learning,” in Proc. Int. Conf. Mach. Learn., PMLR, 2019,
+            pp. 2242–2251.
+       [43] E. Breck, N. Polyzotis, S. Roy, S. Whang, and M. Zinkevich, “Data
+            validation for machine learning,” in Proc. Mach. Learn. Syst., 2019,
+            pp. 334–347.
+       [44] S. Tang et al., “Data valuation for medical imaging using Shapley value                                  Yi Liu (Student Member, IEEE) received the BEng
+            and application to a large-scale chest X-ray dataset,” Sci. Rep., vol. 11,                               degree in automation from the School of Astronau-
+            no. 1, pp. 1–9, 2021.                                                                                    tics, Harbin Institute of Technology, in 2018. He
+       [45] M. L. Fisher, J. H. Hammond, W. R. Obermeyer, and A. Raman, “Making                                      is currently working toward the PhD degree with
+            supply meet demand in an uncertain world,” Harvard Bus. Rev., vol. 72,                                   the Department of Computing in The Hong Kong
+            pp. 83–83, 1994.                                                                                         Polytechnic University. His current research interest
+       [46] J.-P. Bouchaud, J. D. Farmer, and F. Lillo, “How markets slowly digest                                   include mobile edge learning, deep reinforcement
+            changes in supply and demand,” in Handbook of Financial Markets:                                         learning, model pruning, out-of-distribution general-
+            Dynamics and Evolution. Amsterdam, The Netherlands: Elsevier, 2009,                                      ization, and self-supervised learning.
+            pp. 57–160.
+       [47] M. de Oliveira Antunes and F. P. de Almeida Prado, “A housing price
+            dynamics model using heterogeneous interacting agents,” SIAM J. Appl.
+            Math., vol. 78, no. 5, pp. 2648–2671, 2018. [Online]. Available: https:
+            //doi.org/10.1137/17M1145215
+       [48] H. Tian, M. Yu, and W. Wang, “Continuum: A platform for cost-aware,
+            low-latency continual learning,” in Proc. ACM Symp. Cloud Comput.,
+            2018, pp. 26–40.                                                                                          Wenchao Xu (Member, IEEE) received the BE and
+       [49] Y. Bengio, A. Courville, and P. Vincent, “Representation learning: A                                      ME degrees from Zhejiang University, Hangzhou,
+            review and new perspectives,” IEEE Trans. Pattern Anal. Mach. Intell.,                                    China, in 2008 and 2011, respectively, and the PhD
+            vol. 35, no. 8, pp. 1798–1828, 2013.                                                                      degree from the University of Waterloo, Canada, in
+       [50] R. Caruana, “Multitask learning,” Mach. Learn., vol. 28, no. 1, pp. 41–75,                                2018. He is currently a research assistant professor
+            1997.                                                                                                     with The Hong Kong Polytechnic University. He has
+       [51] J. Schulman, F. Wolski, P. Dhariwal, A. Radford, and O. Klimov, “Proximal                                 been an assistant professor with the School of Com-
+            policy optimization algorithms,” 2017, arXiv: 1707.06347.                                                 puting and Information Sciences in Caritas Institute
+                                                                                                                      of Higher Education, Hong Kong, and a software
+                                                                                                                      engineer with Alcatel Lucent Shanghai Bell Com-
+                                  Leijie Wu (Student Member, IEEE) received the                                       pany Ltd., Shanghai. His research interests include
+                                  BEng degree of science in automation from the             distributed computing, Internet of Vehicles, and wireless communication.
+                                  School of Xuteli, Beijing Institute of Technology,
+                                  Beijing, China, in 2019. He is currently working
+                                  toward the PhD degree with the Department of Com-
+                                  puting in The Hong Kong Polytechnic University,
+                                  Hong Kong, China. His current research interest in-
+                                  cludes federated learning, mobile edge computing,
+                                  deep reinforcement learning, and incentive mecha-
+                                  nism design.                                                                       Yufeng Zhan received the PhD degree from the Bei-
+                                                                                                                     jing Institute of Technology (BIT), Beijing, China, in
+                                                                                                                     2018. He is currently an assistant professor with the
+                                                                                                                     School of Automation with BIT. Prior to join BIT,
+                                  Song Guo (Fellow, IEEE) is a full professor with                                   he was a post-doctoral fellow with the Department of
+                                  the Department of Computing, The Hong Kong Poly-                                   Computing with The Hong Kong Polytechnic Univer-
+                                  technic University. He also holds a Changjiang chair                               sity. His research interests include Internet of Things,
+                                  professorship awarded by the Ministry of Education                                 cloud/edge computing, and machine learning system.
+                                  of China. He is a fellow of the Canadian Academy
+                                  of Engineering. His research interests are mainly in
+                                  edge AI, machine learning, mobile computing, and
+                                  distributed systems. He published many papers in
+                                  top venues with wide impact in these areas and was
+                                  recognized as a Highly Cited researcher (Clarivate
+                                  Web of Science). He is the recipient of more than a
+       dozen Best Paper Awards from IEEE/ACM conferences, journals, and technical
+       committees. He is the editor-in-chief of IEEE Open Journal of the Computer
+       Society and the chair of IEEE Communications Society (ComSoc) Space and
+       Satellite Communications Technical Committee. He was an IEEE ComSoc
+       distinguished lecturer and a member of IEEE ComSoc Board of Governors. He
+       has served for IEEE Computer Society on fellow Evaluation Committee, and
+       been named on editorial board of a number of prestigious international journals
+       like IEEE Transactions on Parallel and Distributed Systems, IEEE Transactions
+       on Cloud Computing, IEEE Transactions on Emerging Topics in Computing, etc.
+       He has also served as chairs of organizing and technical committees of many
+       international conferences.
+
+
+Authorized licensed use limited to: NANJING UNIVERSITY OF SCIENCE AND TECHNOLOGY. Downloaded on March 27,2025 at 15:55:15 UTC from IEEE Xplore. Restrictions apply.
+

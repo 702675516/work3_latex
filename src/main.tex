@@ -10,8 +10,6 @@
 \usepackage{cite}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
-\usepackage{tikz}
-\usetikzlibrary{arrows.meta,calc,fit,positioning,shapes.geometric,shapes.symbols}
 \floatname{algorithm}{算法}
 \makeatletter
 \renewenvironment{thebibliography}[1]
@@ -38,26 +36,18 @@
 \date{}
 \maketitle
 \begin{abstract}
-在无人机（UAV）辅助边缘计算网络中，无人机可作为空中移动边缘服务器，为地面用户提供灵活的计算卸载服务。然而，多个用户对有限机载计算资源的竞争容易造成资源拥塞，进而增加任务时延并降低资源利用效率。为缓解资源竞争带来的拥塞并提升资源配置效率，有必要设计合理的定价激励机制，协调无人机与用户之间的资源交易。本文将无人机与地面用户之间的动态资源交易过程建模为部分可观测随机博弈（POSG）。在该博弈中，无人机作为计算资源提供方，联合决策任务接收与服务位置，以最大化长期折扣社会福利；地面用户根据自身私有的时延敏感类型选择报告策略，以最大化长期折扣效用。针对策略性报告导致的资源错配问题，本文提出由无人机执行的面向长期外部性的动态激励机制。该机制针对每个用户构造移除该用户的反事实环境，利用无人机 SAC 学习得到的动作价值函数，比较反事实环境下重新优化决策与沿用完整系统决策时其余参与者的长期折扣社会福利，并以二者差值确定外部性支付。无人机和各用户分别采用独立的离散动作 SAC，前者学习任务接收与服务位置策略，后者学习类型报告策略。仿真结果表明，与即时 VCG 定价和无定价基线相比，所提机制能够获得更高且更稳定的系统收益，并有效降低用户的类型报告偏差，说明该机制能够在提升长期资源配置效率的同时抑制策略性虚报。
+在无人机（UAV）辅助移动边缘计算（MEC）网络中，无人机为地面用户提供计算卸载服务，但有限的机载资源难以满足多用户需求，易造成拥塞、时延增加和资源利用率下降。因此，有必要设计合理的定价激励机制，协调无人机与用户之间的资源交易，提升资源配置效率。本文将无人机与地面用户之间的动态资源交易过程建模为部分可观测随机博弈（POSG）。在该博弈中，无人机作为计算资源提供方，联合决策任务接收与服务位置，以最大化长期折扣社会福利；地面用户根据自身私有的时延敏感类型选择报告策略，以最大化长期折扣效用。然而，用户可能通过策略性报告谋取额外收益，进而造成资源错配。针对这一问题，本文借鉴动态枢轴机制，提出一种基于反事实长期价值的动态 VCG 式激励机制，将 VCG 外部性定价拓展至动态卸载中的跨期决策。该机制针对每个用户构造移除该用户的反事实环境，并利用无人机 SAC 学得的动作价值函数，评估该环境下重新优化决策和沿用完整系统决策时其余参与者的长期折扣社会福利，据此确定跨期外部性支付。无人机和各用户分别采用独立的离散动作 SAC，前者学习任务接收与服务位置策略，后者学习类型报告策略。仿真结果表明，与即时 VCG 定价和无定价基线相比，所提机制能够获得更高且更稳定的系统收益，并有效降低用户的类型报告偏差，说明该机制能够在提升长期资源配置效率的同时抑制策略性虚报。
 
 \noindent\textbf{关键词：}无人机辅助移动边缘计算；动态激励机制；多智能体强化学习
 \end{abstract}
 \section{引言（Introduction）}
-现有移动设备受限于物理体积和本地算力，难以满足 5G 场景日益增长的计算需求。移动边缘计算（Mobile Edge Computing, MEC）通过将任务卸载至邻近边缘服务器，为资源受限设备提供计算支撑。在 UAV 辅助 MEC 网络中，UAV 可作为空中移动边缘服务器，为基站覆盖不足区域的用户提供卸载服务。已有研究围绕 UAV 部署与任务卸载、UAV 高度、用户关联及卸载决策等问题展开\cite{shen2023joint,hui2024optimal,wang2024distributed}。然而，MEC 中任务到达、信道状态和资源约束具有动态性，卸载、资源分配与 UAV 位置控制相互耦合，静态优化难以获得长期有效策略。强化学习（Reinforcement Learning, RL）通过环境交互学习决策策略，适用于此类动态序贯问题，并已用于 MEC 中的任务调度、卸载和轨迹优化\cite{tian2023deep,ju2024multi}。现有研究多以时延、能耗和吞吐量为目标，较少考虑用户私有信息与参与激励。鉴于 UAV 承担飞行、通信和计算成本、用户追求自身效用最大化，有必要设计兼顾动态决策与信息激励的机制，促进双方持续参与计算卸载。
+现有移动设备受限于物理体积和本地算力，难以满足 5G 场景日益增长的计算需求。移动边缘计算（Mobile Edge Computing, MEC）通过将任务卸载至邻近边缘服务器，为资源受限设备提供计算支撑。在 UAV 辅助 MEC 网络中，UAV 可作为空中移动边缘服务器，为基站覆盖不足区域的用户提供卸载服务。已有研究主要围绕 UAV 轨迹优化与任务卸载等问题展开\cite{shen2023joint,hui2024optimal,wang2024distributed}。然而，MEC 网络状态随任务到达、信道变化和资源约束而动态演化，任务卸载与 UAV 位置等决策相互影响，因此需要进行长期联合优化。此外，现有研究多以时延、能耗和吞吐量为优化目标，对用户私有信息及参与激励关注不足。考虑到 UAV 需要承担飞行、通信和计算成本，而用户追求自身效用最大化，有必要设计兼顾动态决策与信息激励的机制，促进双方持续参与计算卸载。
 
 在 MEC 场景中，拍卖机制可通过联合设计供需匹配、资源分配与支付规则，协调私有信息条件下的计算和通信资源交易，通常以社会福利作为重要优化目标。双边拍卖分别接收任务请求方的报价与服务提供方的要价，通过匹配确定交易对象和资源分配；组合拍卖则允许参与者针对任务及其所需资源组合提交偏好，以处理资源需求的耦合性。相关研究已探索多轮资源交易和真实组合拍卖。例如，Xiao 等研究面向边缘计算的多轮拍卖资源分配，以社会福利最大化为目标协调多用户与多服务器之间的供需关系\cite{xiao2023multiround}；Su 等面向工业物联网移动边缘计算提出真实组合拍卖机制，在组合资源配置中兼顾真实性与社会福利最大化\cite{su2022truthful}。这些工作为私有信息条件下的边缘资源配置与卸载激励研究提供了参考。
 
-然而，将上述拍卖机制按单轮交易独立执行，难以反映 MEC 系统的状态演化及其长期影响。在 UAV 辅助 MEC 中，服务位置、通信状态和资源配置均随时间变化，参与者的当前决策还会影响后续服务过程及其他参与者收益。因此，仅依据即时状态确定交易结果和支付，难以准确评估参与者在长期过程中的外部性。VCG 拍卖以参与者对其他参与者造成的外部性为支付依据，兼顾资源配置效率与真实报告激励。Wu 等进一步将其用于连续参与的联邦学习场景，提出长期自适应 VCG 拍卖机制\cite{wu2024longterm}。对于动态 UAV 辅助 MEC，定价机制需要同时处理动态服务决策与参与者私有信息，并在支付中反映当前参与对未来状态演化和社会福利的累计影响。因此，该场景需要面向持续交互过程的长期外部性定价，使支付能够体现参与者对其他参与者的跨期影响。
+特别地，VCG 拍卖作为经典拍卖机制，它依据参与者对其他参与者造成的外部性确定支付，在满足相关条件时能够实现配置效率，并激励参与者如实报告私有信息\cite{fang2024crossedge}。然而，以上拍卖机制将单轮交易独立执行，难以反映 MEC 系统的状态演化及其长期影响。MEC 中的资源交易具有跨期关联，当前时隙的任务接收和 UAV 服务决策会影响后续系统状态及服务机会，进而改变其他用户未来获得的资源与收益。若将标准 VCG 按时隙独立执行，支付仅反映当期外部性，无法计入用户当前参与对后续社会福利的影响。因此，如何将 VCG 机制拓展至能够适应 MEC 状态演化并反映跨期影响的动态场景，仍缺乏系统研究。
 
-针对上述问题，本文借鉴动态枢轴机制的思想\cite{bergemann2010dynamic}，构建面向跨期外部性的 UAV 辅助 MEC 动态激励机制。本文不以当前时隙的福利差异作为唯一计价依据，而是构造包含未来状态转移的反事实环境，利用长期 Q 值估计某一用户参与后对其余参与者累计折扣社会福利的影响，并据此确定长期外部性支付，从而在支付计算中纳入 UAV 位置演化和资源配置的跨时隙影响。
-
-本文主要贡献如下：
-
-\begin{itemize}
-    \item 面向任务动态到达、UAV 位置随时隙变化且机载资源受限的 UAV 辅助 MEC 场景，构建包含 UAV 服务平台与移动用户的长期动态激励模型，将用户私有时延敏感类型、任务接收、服务位置和支付规则纳入统一的长期社会福利分析框架。
-    \item 提出基于反事实长期 Q 值的跨期外部性定价方法。针对每个用户构造移除该用户的反事实环境，比较重新优化动作与完整系统动作删除该用户任务后的长期 Q 值，并以二者差值确定外部性支付，从而将 VCG 定价扩展至状态持续演化的动态卸载过程。
-    \item 构建基于多智能体离散动作 SAC 的策略学习与支付计算框架，分别学习 UAV 的任务接收与服务位置策略、移动用户的类型上报策略，并通过随机采样反事实分支降低长期外部性估计中的重复环境交互开销。
-\end{itemize}
+针对上述研究问题，本文借鉴动态枢轴机制的思想\cite{bergemann2010dynamic}，面向任务动态到达、UAV 服务位置随时隙变化且机载资源受限的 UAV 辅助 MEC 场景，构建包含 UAV 服务平台与移动用户的长期动态激励模型，将用户私有时延敏感类型、任务接收、服务位置和支付规则纳入统一的长期社会福利分析框架。在此基础上，提出基于反事实长期 Q 值的跨期外部性定价方法：针对每个用户构造移除该用户的反事实环境，比较反事实环境下重新优化决策与沿用完整系统决策对应的其余参与者长期折扣社会福利，并以差值确定外部性支付，从而将 VCG 定价拓展至动态卸载的跨时隙决策。进一步地，构建多智能体离散动作 SAC 策略学习与支付计算框架，分别学习 UAV 的任务接收与服务位置策略、移动用户的类型上报策略，并通过随机采样反事实分支减少估计长期外部性时的重复环境交互开销。
 
 \section{系统模型（System Model）}
 考虑由一架 UAV 和移动用户集合 $N=\{1,2,\ldots,N\}$ 组成的 UAV 辅助 MEC 系统，其中节点 $0$ 表示 UAV，节点 $n\in N$ 表示第 $n$ 个移动用户。系统在离散时隙中运行。在每个时隙内，UAV 基于当前系统状态联合确定目标服务位置和任务接收结果；被接收的任务经上行链路传输后由 UAV 处理，其余任务在本地完成。下文依次建立通信、计算卸载和 UAV 能耗模型。
@@ -339,64 +329,7 @@ Q_{0}^{-n,*}(t)=\max_{a_{0}^{-n}(t)}Q_{0}^{-n}(o_{0}^{-n}(t),a_{0}^{-n}(t)).
 图 \ref{fig:long-term-externality-sac-framework} 展示了所提方法中在线机制交互、长期外部性支付与多智能体 SAC 更新之间的关系。
 \begin{figure}[H]
 \centering
-\resizebox{\textwidth}{!}{%
-\begin{tikzpicture}[
-    font=\small,
-    >=Latex,
-    flow/.style={draw, rounded corners=2pt, align=center, minimum height=0.8cm, text width=2.8cm, fill=blue!6},
-    actor/.style={draw, rounded corners=2pt, align=center, minimum height=0.8cm, text width=2.8cm, fill=cyan!9},
-    critic/.style={draw, rounded corners=2pt, align=center, minimum height=0.8cm, text width=2.8cm, fill=green!8},
-    payment/.style={draw, rounded corners=2pt, align=center, minimum height=0.8cm, text width=4.2cm, fill=orange!12},
-    memory/.style={cylinder, shape border rotate=90, aspect=0.25, draw, align=center, minimum height=0.9cm, minimum width=2.0cm, fill=gray!12},
-    online/.style={->, thick},
-    learn/.style={->, thick, dashed}
-]
-% Online mechanism interaction
-\node[flow] (state) at (0,4.3) {系统状态\\$s(t)$};
-\node[flow, below=0.42cm of state] (report) {移动用户上报\\$\hat{\theta}_n(t)=\pi_n(o_n(t))$};
-\node[flow, below=0.42cm of report] (uavaction) {UAV 联合决策\\$a_0(t)=\pi_0(o_0(t))$};
-\node[flow, below=0.42cm of uavaction] (environment) {MEC卸载、传输、UAV计算与飞行};
-
-\draw[online] (state) -- (report);
-\draw[online] (report) -- (uavaction);
-\draw[online] (uavaction) -- (environment);
-\draw[online] (environment.west) to[out=180,in=180,looseness=0.7] node[right,xshift=-1mm ,font=\scriptsize] {$s(t+1)$} (state.west);
-
-% Experience memories
-\node[memory] (usermemory) at (-1.55,-3.15) {用户经验池\\$\{\mathcal{B}_n\}_{n\in N}$};
-\node[memory] (uavmemory) at (1.65,-3.15) {UAV 经验池 $\mathcal{B}_0$\\完整与反事实转移};
-\draw[learn] (environment.south west) to[out=-115,in=90] (usermemory.north);
-\draw[learn] (environment.south east) to[out=-65,in=90] (uavmemory.north);
-
-% Multi-agent SAC learning
-\node[actor] (useractor) at (5.7,3.45) {用户 Actor $\pi_n$\\生成类型上报};
-\node[critic, below=0.68cm of useractor] (usercritic) {用户 Critic $Q_n,\hat Q_n$\\评估上报策略};
-\node[actor, below=1.10cm of usercritic] (uavactor) {UAV Actor $\pi_0$\\生成联合决策};
-\node[critic, below=0.68cm of uavactor] (uavcritic) {UAV Critic $Q_0,\hat Q_0$\\评估完整与反事实价值};
-\node[draw, dashed, rounded corners=3pt, inner sep=0.34cm, fit=(useractor)(usercritic)(uavactor)(uavcritic)] (learnbox) {};
-\node[font=\small\bfseries, fill=white, inner sep=1pt] at (learnbox.north) {多智能体 SAC 学习模块};
-
-\draw[learn] (usercritic.north) -- node[right, font=\scriptsize] {策略梯度} (useractor.south);
-\draw[learn] (uavcritic.north) -- node[right, font=\scriptsize] {策略梯度} (uavactor.south);
-\draw[online] (useractor.west) to[out=180,in=0] (report.east);
-\draw[online] (uavactor.west) to[out=180,in=0] (uavaction.east);
-
-% Long-term externality payment
-\node[payment] (cfsample) at (11.1,3.25) {反事实样本构造\\$\kappa=n,\quad o_0^{-n}(t)$};
-\node[payment, below=0.68cm of cfsample] (valuecompare) {反事实长期福利对照\\$Q_0^{-n,*}$ 与 $Q_0^{-n}(\Pi_{-n}(a_0^*))$};
-\node[payment, below=0.68cm of valuecompare] (paymentnode) {外部性支付\\$\displaystyle p_n=Q_0^{-n,*}-Q_0^{-n}(\Pi_{-n}(a_0^*))$};
-\node[draw, dashed, rounded corners=3pt, inner sep=0.34cm, fit=(cfsample)(valuecompare)(paymentnode)] (paymentbox) {};
-\node[font=\small\bfseries, fill=white, inner sep=1pt] at (paymentbox.north) {长期外部性支付模块};
-
-\draw[learn] (uavactor.east) to[out=0,in=180] (cfsample.west);
-\draw[learn] (uavcritic.east) to[out=0,in=180] (valuecompare.west);
-\draw[online] (cfsample) -- (valuecompare);
-\draw[online] (valuecompare) -- (paymentnode);
-
-\node[draw, dashed, rounded corners=3pt, inner sep=0.42cm, fit=(state)(environment)(usermemory)(uavmemory)(learnbox)(paymentbox)] (framework) {};
-\node[font=\small\bfseries, fill=white, inner sep=1pt] at (framework.north) {所提长期外部性感知多智能体 SAC 训练框架};
-\end{tikzpicture}%
-}
+\includegraphics[width=\textwidth,trim=16pt 145pt 16pt 45pt,clip]{images/algorithm_framework.pdf}
 \caption{基于长期外部性支付的多智能体 SAC 框架。实线表示在线决策及模块内执行流程，虚线表示网络更新和反事实价值传递。}
 \label{fig:long-term-externality-sac-framework}
 \end{figure}

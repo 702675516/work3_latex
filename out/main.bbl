@@ -19,18 +19,6 @@ Tong Wang and Chuanchuan You.
   {UAV}-assisted mobile edge computing systems.
 \newblock {\em IEEE Access}, 12:63548--63567, 2024.
 
-\bibitem{tian2023deep}
-XianZhong Tian, PingTing Miao, and LuoMing Zhang.
-\newblock Deep reinforcement learning for scheduling and offloading in
-  {UAV}-assisted mobile edge networks.
-\newblock {\em Wireless Communications and Mobile Computing}, 2023:1--11, 2023.
-
-\bibitem{ju2024multi}
-Tao Ju, Linjuan Li, Shuai Liu, and Yu~Zhang.
-\newblock A multi-{UAV} assisted task offloading and path optimization for
-  mobile edge computing via multi-agent deep reinforcement learning.
-\newblock {\em Journal of Network and Computer Applications}, 229:103919, 2024.
-
 \bibitem{xiao2023multiround}
 J.~Xiao, Q.~Gao, and Z.~Yang.
 \newblock Multi-round auction-based resource allocation for edge computing:
@@ -43,11 +31,11 @@ Yi~Su, Wenhao Fan, Yuan'an Liu, and Fan Wu.
   computing in industrial internet of things.
 \newblock {\em IEEE Transactions on Cloud Computing}, 11(2):1678--1691, 2022.
 
-\bibitem{wu2024longterm}
-Leijie Wu, Song Guo, Zicong Hong, Yi~Liu, Wenchao Xu, and Yufeng Zhan.
-\newblock Long-term adaptive {VCG} auction mechanism for sustainable federated
-  learning with periodical client shifting.
-\newblock {\em IEEE Transactions on Mobile Computing}, 23(5):6060--6074, 2024.
+\bibitem{fang2024crossedge}
+Guang Fang, Ruiting Zhou, Xianglong Li, and Zongpeng Li.
+\newblock A cross-edge offloading framework for green {MEC} systems.
+\newblock {\em IEEE Transactions on Consumer Electronics}, 70(1):2884--2895,
+  2024.
 
 \bibitem{bergemann2010dynamic}
 Dirk Bergemann and Juuso V{\"a}lim{\"a}ki.

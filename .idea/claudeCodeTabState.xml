@@ -6,11 +6,11 @@
         <entry key="0">
           <value>
             <TabSessionState>
-              <option name="provider" value="claude" />
-              <option name="sessionId" value="a007a989-cbcc-4ba0-b666-e4aa4dfd8106" />
+              <option name="provider" value="codex" />
+              <option name="sessionId" value="01a10ff6-3792-7de0-84a5-c9316773d6e4" />
               <option name="cwd" value="$PROJECT_DIR$" />
-              <option name="model" value="deepseek-v4-pro" />
-              <option name="permissionMode" value="bypassPermissions" />
+              <option name="model" value="gpt-6-astra" />
+              <option name="permissionMode" value="acceptEdits" />
               <option name="reasoningEffort" value="medium" />
             </TabSessionState>
           </value>

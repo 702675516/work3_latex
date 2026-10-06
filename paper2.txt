@@ -1,0 +1,1227 @@
+       THE DYNAMIC PIVOT MECHANISM
+
+
+                         By
+
+         Dirk Bergemann and Juuso Välimäki
+
+
+
+                    August 2008
+
+
+
+
+ COWLES FOUNDATION DISCUSSION PAPER NO. 1672
+
+
+
+
+COWLES FOUNDATION FOR RESEARCH IN ECONOMICS
+               YALE UNIVERSITY
+                    Box 208281
+         New Haven, Connecticut 06520-8281
+
+             http://cowles.econ.yale.edu/
+                         The Dynamic Pivot Mechanism
+                           Dirk Bergemanny                Juuso Välimäkiz
+
+                                 First Version: September 2006
+                                 Current Version: August 2008
+
+
+
+                                               Abstract
+
+          We consider truthful implementation of the socially e¢ cient allocation in an in-
+      dependent private-value environment in which agents receive private information over
+      time. We propose a suitable generalization of the pivot mechanism, based on the mar-
+      ginal contribution of each agent. In the dynamic pivot mechanism, the ex-post incentive
+      and ex-post participation constraints are satis…ed for all agents after all histories. In
+      an environment with diverse preferences it is the unique mechanism satisfying ex-post
+      incentive, ex-post participation and e¢ cient exit conditions.
+          We develop the dynamic pivot mechanism in detail for a repeated auction of a single
+      object in which each bidder learns over time her true valuation of the object. We show
+      that the dynamic pivot mechanism is equivalent to a modi…ed second price auction.
+
+      Jel Classification: C72, C73, D43, D83.
+
+      Keywords: Pivot Mechanism, Dynamic Mechanism Design, Ex-Post Equilibrium,
+      Marginal Contribution, Multi-Armed Bandit, Bayesian Learning.
+
+
+
+     We thank the editor, Eddie Dekel, and three anonymous referees for many helpful comments. The current
+paper is a major revision and supersedes “Dynamic Vickrey-Clarke-Groves Mechanisms” (2007). We are
+grateful to Larry Ausubel, Jerry Green, Paul Healy, John Ledyard, Benny Moldovanu, Michael Ostrovsky,
+David Parkes, Alessandro Pavan, Ilya Segal and Xianwen Shi for many informative conversations. The
+authors gratefully acknowledge …nancial support through the National Science Foundation Grants CNS
+0428422 and SES 0518929 and the Yrjö Jahnsson’s Foundation, respectively. We thank seminar participants
+at DIMACS, Duke University, LSE, Northwestern University, Ohio State University, Princeton University,
+University of Iowa, University of Madrid, University of Maryland and UCL for valuable comments.
+   y
+     Department of Economics, Yale University, New Haven, U.S.A., dirk.bergemann@yale.edu.
+   z
+     Department of Economics, Helsinki School of Economics and University of Southampton, Helsinki,
+Finland, juuso.valimaki@hse.…
+
+
+                                                    1
+1        Introduction
+
+In this paper, we generalize the idea of the pivot mechanism (due to Green and La¤ont
+(1977b)) to dynamic environments with private information. We design an intertemporal
+sequence of transfer payments which allows each agent to receive her ‡ow marginal contri-
+bution in every period. In other words, after each history, the expected transfer that each
+player must pay coincides with the dynamic externality cost that she imposes on the other
+agents. In consequence, each agent is willing to truthfully report her information in every
+period.
+        We consider a general intertemporal model in discrete time and with a common discount
+factor. The private information of each agent in each period is her perception of her future
+payo¤ path conditional on the realized signals and allocations. We assume throughout that
+the information is statistically independent across agents. At the reporting stage of the
+direct mechanism, each agent reports her information. The planner then calculates the
+e¢ cient allocation given the reported information. The planner also calculates for each
+agent i the optimal allocation when agent i is excluded from the mechanism. The total
+expected discounted payment of each agent is set equal to the externality cost imposed on
+the other agents in the model. In this manner, each player receives as her payment her
+marginal contribution to the social welfare in every conceivable continuation game.
+        With transferable utilities, the social objective is simply to maximize the expected dis-
+counted sum of the individual utilities. Since this is essentially a dynamic programming
+problem, the solution is by construction time-consistent. In consequence, the dynamic pivot
+mechanism is time-consistent and the social choice function can be implemented by a se-
+quential mechanism without any ex-ante commitment by the designer.1 Furthermore, the
+mechanism yields a net surplus in each period, and therefore the mechanism designer does
+not need outside resources to achieve the e¢ cient allocation. Since marginal contributions
+    1
+        In revenue-maximizing problems, the “ratchet e¤ect” leads to very distinct solutions for mechanisms
+with and without intertemporal commitment ability, see Baron and Besanko (1984) and Freixas, Guesnerie,
+and Tirole (1985).
+
+
+
+
+                                                      2
+are positive by de…nition, the dynamic pivot mechanism induces all productive agents to
+participate in the mechanism after all histories.
+      In the intertemporal environment there is a multiplicity in transfer schemes that support
+the same incentives as the pivot mechanism. In particular, the monetary transfers necessary
+to induce the e¢ cient action in period t may become due at some later period s provided
+that the net present value of the transfers remains constant. We say that a mechanism
+supports e¢ cient exit if an agent who ceases to a¤ect the current and future allocations
+also ceases to pay and receive transfers. This condition is similar to the requirement often
+made in the scheduling literature that the mechanism be an online mechanism.2 Our
+main characterization result shows that in an environment with diverse preferences, the
+dynamic pivot mechanism is the only e¢ cient mechanism that satis…es ex-post incentive
+compatibility, ex-post participation and e¢ cient exit conditions.
+      The basic idea of the dynamic pivot mechanism is …rst explored in the context of a
+scheduling problem where a set of privately informed bidders compete for the services of
+a central facility over time. This class of problems is perhaps the most natural dynamic
+analogue to the static single-unit auction. It is easy to see that standard static mechanisms
+fail to produce e¢ cient outcomes in the dynamic context. Hence a more complete under-
+standing of the intertemporal trade-o¤s in the allocation process is needed. In section 5, we
+use the dynamic pivot mechanism to derive the optimal dynamic auction format for a model
+where bidders learn their valuations for a single object over time. We use the construct of
+the dynamic marginal contribution to derive explicit and informative expressions for the
+intertemporal transfer prices.
+      In recent years, a number of papers have been written with the aim to explore various
+issues arising in dynamic allocation problems. Athey and Segal (2007b) consider a similar
+model to ours. Their focus is on mechanisms that are budget balanced in every period of
+the game. The same repeated game strategies are employed by Athey and Segal (2007a)
+with a focus on repeated bilateral trade. In contrast, we emphasize voluntary participation,
+in particular the e¢ cient exit condition, as one of the key ingredients of our mechanism.
+  2
+      The term online mechanism was coined by Lavi and Nisan (2000).
+
+
+                                                   3
+This allows us to single out the dynamic pivot mechanism in the class of e¢ cient mecha-
+nisms. Cavallo, Parkes, and Singh (2006) consider a dynamic Markovian model and derive
+a sequence of Groves-like payments which guarantee interim incentive compatibility but not
+interim participation constraints. Bapna and Weber (2005) consider a sequential allocation
+problem for a single, indivisible object by a dynamic auction. They present necessary and
+su¢ cient conditions when an a¢ ne but report-contingent combination of dynamic alloca-
+tion indices can represent the externality cost. In contrast, we consider a direct mechanism
+and determine the transfers from general principles of the incentive problem. In particu-
+lar we do not require any assumptions beyond the independent private-value environment
+and transferable utility. In symmetric information environments, Bergemann and Välimäki
+(2003), (2006) use the notion of marginal contribution to construct e¢ cient equilibria in
+dynamic …rst price auctions. In this paper, we emphasize the role of a time-consistent util-
+ity ‡ow, namely the ‡ow marginal contribution, to encompass environments with private
+information.
+    This paper is organized as follows. Section 2 sets up the general model, introduces the
+notion of a dynamic mechanism and de…nes the equilibrium concept. Section 3 introduces
+the main concepts in a simple example. Section 4 analyzes the pivot mechanism in the
+general environment. Section 5 analyzes the implications of the general model for a licensing
+auction with learning.
+
+
+2    Model
+
+Uncertainty     We consider an environment with private and independent values in a
+discrete-time, in…nite-horizon model. The ‡ow utility of agent i 2 f1; 2; :::; Ig in period
+t 2 N is determined by the current allocation at 2 A, the current monetary transfer pi;t 2 R
+and a state variable   i;t 2   i . The von Neumann Morgenstern utility function ui of agent
+
+i is assumed to be quasi-linear in the monetary transfer:
+
+                               ui (at ; pi;t ; i;t ) , vi (at ; i;t )   pi;t .
+
+
+
+                                                     4
+We assume that vi (at ; i;t ) is nonnegative for all i, at and                  i;t . The current allocation at 2 A
+
+is an element of a …nite set A of possible allocations. The state of the world                         i;t for agent i
+
+is a general Markov process on a state space                   i . The aggregate state of the system is given
+
+by the vector
+
+                                                                              i ,
+                                                                   I
+                                      t = ( 1;t ; :::; I;t ) 2     i=1              :
+
+The current state      i;t and the current action at de…ne a probability distribution for next
+
+period state variables      i;t+1 on     i : We assume that this distribution can be represented by
+
+a stochastic kernel Fi ( i;t+1 ; i;t ; at ).
+    The utility functions ui ( ) and the probability transition functions Fi ( ; at ; i;t ) are com-
+mon knowledge at t = 0. There is also a common prior Fi ( i;0 ) regarding the initial type
+of each player i, and the common prior is independent across agents. At the beginning of
+each period t, each player i observes                i;t privately.      At the end of each period, an action
+at 2 A is chosen and payo¤s for period t are realized. The asymmetric information is there-
+fore generated by the private observation of                   i;t in each period t.      We observe that by the
+independence of the priors and the stochastic kernels across i, the information of player,
+
+ i;t+1 does not depend on       j;t for j 6= i. The expected ‡ow payo¤ of every agent is assumed
+
+to be bounded for every allocation plan a0 :                   !A:
+                                  Z
+                                       ui a0     0
+                                                      ; 0i dF      0
+                                                                       ; a;    < K;
+
+for some K < 1 for all i; all a and all .
+    The nature of the state space              will depend on the application at hand. At this point,
+we should stress that the formulation allows us to accommodate the possibility of random
+arrival or random departure of new agents. It is, for example, quite natural to model the
+                                                                                        0
+arrival or the departure of a player i through an inactive state                        i ; where vi   at ; 0i = 0 for
+all at 2 A and a random time             at which agent i privately observes her transitions in and
+out of the inactive state. We discuss the role of the richness of the signal space and the
+associated valuation pro…les in more detail in the context of Theorem 2 which presents a
+uniqueness result for e¢ cient mechanisms.
+
+
+
+                                                           5
+Social E¢ ciency All agents discount the future with a common discount factor ; 0 <
+ < 1. In an environment with quasi-linear utility, the socially e¢ cient policy is obtained
+by maximizing the utilitarian welfare criterion, namely the expected discounted sum of
+valuations. Given the Markovian structure of the stochastic process, the socially optimal
+program starting in period t at state        t can be written simply as
+                                               (1               I
+                                                                                  )
+                                                X               X
+                        W ( t ) , max
+                                    1
+                                      E                   s t
+                                                                      vi (as ; i;s ) :
+                                  fas gs=t
+                                                    s=t         i=1
+
+Alternatively, we can represent the social program in its recursive form:
+                                     ( I                               )
+                                       X
+                     W ( t ) = max E        vi (at ; i;t ) + EW ( t+1 ) :
+                                  at
+                                              i=1
+
+The socially e¢ cient policy is denoted by a = fat g1
+                                                    t=0 . In the remainder of the paper
+
+we focus attention on direct mechanisms which truthfully implement the socially e¢ cient
+policy a .
+   The social externality cost of agent i is determined by the optimal continuation plan in
+the absence of agent i. It is therefore useful to de…ne the value of the social program after
+removing agent i from the set of agents:
+                                                8                                    9
+                                                <X1             X                    =
+                       W i ( t ) , max E                  s t
+                                                                       vj (as ; j;s ) :
+                                     1
+                                   fas gs=t     :                                    ;
+                                                    s=t         j6=i
+                                                                n      o1
+The e¢ cient policy when agent i is excluded is denoted by a i = a i;t    : The marginal
+                                                                                           t=0
+contribution Mi ( t ) of agent i at signal      t is de…ned by:
+
+
+                                 Mi ( t ) , W ( t )         W i ( t) :                                         (1)
+
+The marginal contribution is the change in the social value due to the addition of agent i.
+
+
+Mechanism and Equilibrium              A dynamic direct mechanism asks every agent i to re-
+port her state   i;t in every period t. The report ri;t 2              i may be truthful or not depending
+
+on the incentives provided in the mechanism. The public history in period t is then a
+sequence of reports and allocations until period t                1, or ht = (r0 ; a0 ; r1 ; a1 ; :::rt 1 ; at 1 ),
+
+                                                     6
+where each rs = (r1;s ; :::; rI;s ) is a report pro…le of the I agents. The set of possible
+public histories in period t is denoted by Ht . The sequence of reports by the agents
+is part of the public history and hence we assume that the past and current reports of
+each agent are observable to all the agents. The private history of agent i in period t
+consists of the public history and the sequence of private observations until period t, or
+hi;t = ( i;0 ; r0 ; a0 ; i;1 ; r1 ; a1 ; :::; i;t 1 ; rt 1 ; at 1 ; i;t ) : The set of possible private histories in
+period t is denoted by Hi;t . An (e¢ cient) dynamic direct mechanism is then represented
+by a a family of allocations and monetary transfers, fat ; pt g1
+                                                               t=0 , speci…cally a sequence of
+
+allocations:
+                                                    at :      !     (A) ;
+
+and a sequence of monetary transfers:
+
+                                                   pt : H t        ! RI ;
+
+such that the decisions in period t respond to the reported information of all agents up to
+and including period t. With the focus on e¢ cient mechanisms, the allocation at depends
+only on the current state           t . In contrast, the determination of the transfer may depend on
+
+the entire history of reports and actions.
+    In a dynamic direct mechanism, a (pure) reporting strategy for agent i in period t is a
+mapping from the private history into the signal space:
+
+                                                     ri;t : Hi;t !       i.
+
+
+For a given mechanism, the expected payo¤ for agent i from reporting strategy ri = fri;t g1
+                                                                                          t=0
+
+given that the others agents are reporting r i = fr i;t g1
+                                                         t=0 is given by
+                                        1
+                                        X
+                                              t
+                                    E             [vi (a (rt ) ; i;t )        pi (ht ; rt )] :
+                                        t=0
+
+The allocations at (rt ) are determined by the current reports rt . Given the mechanism and
+the reporting strategies r i , the optimal reporting strategy of bidder i solves a sequential
+optimization problem which can be phrased recursively in terms of value functions, or
+
+          Vi (hi;t ) = max E fvi (at (ri;t ; r i;t ) ; i;t )             pi (ht ; ri;t ; r i;t ) + Vi (hi;t+1 )g :
+                       ri;t 2   i
+
+
+
+                                                              7
+The value function Vi (hi;t+1 ) represents the continuation value of agent i given the current
+private history hi;t , the current reports rt , the current allocation at and tomorrow’s pri-
+vate signal       i;t+1 as hi;t+1 = (hi;t ; rt ; at ; i;t+1 ).   We say that a dynamic direct mechanism
+is interim incentive compatible, if for every agent and every history, truthtelling is a best
+response given that all other agents report truthfully. We say that the dynamic direct mech-
+anism is periodic ex-post incentive compatible if truthtelling is a best response regardless of
+the history and the current signal realization of the other agents.
+        In the dynamic context, the notion of ex-post incentive compatibility is quali…ed by
+periodic as it is ex-post with respect to all signals received in period t, but not ex-post with
+respect to signals arriving after period t. The periodic quali…cation arises in the dynamic
+environment as agent i may receive information at some later time s > t such that in
+retrospect she would wish to change the allocation choice in t and hence her report in t.
+        Finally we de…ne the interim participation constraints of each agent. After each history
+ht , each agent i may opt out (permanently) from the mechanism, and receive the outside
+option value Oi (hi;t ) : We use payo¤s generated by the e¢ cient policy a i for the remaining
+agents to calculate Oi (hi;t ) for the rest of the paper.3 The periodic participation constraint
+requires that each agent’s equilibrium payo¤ after each history weakly exceeds Oi (hi;t ). For
+the remainder of the text we shall say that a mechanism is ex-post incentive compatible and
+individually rational if it satis…es the periodic incentive and participation constraints.
+
+
+3        Scheduling: An Example
+
+We consider the problem of allocating time to use a central facility among competing agents.
+Each agent has a private valuation for the completion of a task which requires the use of
+the central facility. The facility has a capacity constraint and can only complete one task
+per period. The cost of delaying any task is given by the discount rate                    < 1: The agents
+are competing for the right to use the facility at the earliest available time. The objective
+    3
+        The allocation decision a may in itself indicate which players are active in the game. As a result, the
+payo¤ to the remaining players will re‡ect the exit decisions through allocation decisions.
+
+
+
+                                                          8
+of the social planner is to sequence the tasks over time so as to maximize the sum of the
+discounted utilities. In an early contribution, Dolan (1978) developed a static mechanism
+to implement a class of related scheduling problems with private information.
+      An allocation policy in this setting is a sequence of choices at 2 f0; 1; :::; Ig; where
+at denotes the bidder chosen in period t: We allow for at = 0 and hence the possibility
+that no bidder is selected in t. Each agent has only one task to complete and the value
+
+ i;0 2 R+ of the task is constant over time and independent of the realization time (except
+
+for discounting). The transition function is then given by:
+
+                                       i;t+1 =       0 ; if at = i;
+
+                                       i;t+1 =       i;t     if at 6= i:
+
+The utility function vi (at ; i;t ) for bidder i from the e¢ cient allocation policy a is given
+by:                                              8
+                                                 <     i;t       if          at = i,
+                              vi (at ; i;t ) =
+                                                 : 0             if otherwise.
+      For this scheduling model, we …nd the marginal contribution of each agent and derive the
+associated dynamic pivot mechanism. We determine the marginal contribution of bidder i
+by comparing the value of the social program with and without i. With constant valuations
+vi ( ) over time for all i, the optimal policy is clearly given by assigning in every period the
+alternative j with the highest remaining valuation. To simplify notation, we let
+
+                                           vi , vi (i; i;t ) ;
+
+and by convention de…ne vt , 0 for all t > I. We may assume without loss of generality
+(after relabelling) that the valuations vi of the agents are ordered with respect to their
+identity i:
+                                         v1                  vI         0:                  (2)
+
+The descending order of the valuations of the bidders allows us to identify each alternative
+i with the time period i + 1 in which it is employed along the e¢ cient path and so:
+                                                           I
+                                                           X
+                                                                      t 1
+                                        W ( 0) =                            vt .            (3)
+                                                           t=1
+
+
+                                                       9
+Similarly, the e¢ cient program in the absence of bidder i assigns the bidders in descending
+order, but necessarily skips bidder i in the assignment process:
+                                          i 1
+                                          X                   I 1
+                                                              X
+                                                 t 1                  t 1
+                            W i ( 0) =                 vt +                 vt+1 :                     (4)
+                                          t=1                 t=i
+
+By comparing the social program with and without i, (3) and (4), respectively, we …nd
+that the assignments for bidders j < i remain unchanged after i is removed, but that each
+bidder j > i is allocated the slot one period earlier than in the presence of i. The marginal
+contribution of i from the point of view of period 0 is:
+                                                              I
+                                                              X
+                                                                      t 1
+                    Mi ( 0 ) = W ( 0 )     W i ( 0) =                       (vt         vt+1 ) :
+                                                              t=i
+
+Correspondingly, the present value of marginal contribution of i at the time t = i                    1 at
+which she realizes her task is
+                                                                    I
+                                                                    X
+                                                                            t i
+                 Mi ( i 1 ) = W ( i 1 )      W i ( i 1) =                         (vt      vt+1 ) :
+                                                                    t=i
+
+The social externality cost of agent i is now established in a straightforward manner. At
+time t = i   1, bidder i will complete her task and hence realize a gross value of vi . The
+immediate opportunity cost is given by the next highest valuation vi+1 . But this alone
+would overstate the externality cost, because in the presence of i all less valuable tasks
+will now be realized one period later. In other words, the insertion of i into the program
+leads to the realization of a relatively more valuable task in all subsequent periods The
+externality cost of agent i is hence equal to the value of the next valuable task vi+1 minus
+the improvement in future allocations due to the delay of all tasks by one period:
+                                                 I
+                                                 X
+                                                         t i
+                           pi ( t ) = vi+1                     (vt        vt+1 ) .                     (5)
+                                                 t=i+1
+
+Since by construction (see (2)), we have vt       vt+1         0, it follows that the externality cost of
+agent i in the intertemporal framework is less than in the corresponding single allocation
+problem where it would be vi+1 . Consequently, we can rewrite (5) to:
+                                                        I
+                                                        X
+                                                               t i
+                                 pi ( t ) = (1      )                vt+1 ,
+                                                        t=i
+
+
+                                                  10
+which simply states that the externality cost of agent i is the cost of delay imposed on the
+remaining and less valuable tasks. With the monetary transfers given by (5), Theorem 1 will
+formally establish that the dynamic pivot mechanism leads to thruthtelling with ex-post
+incentive and ex-post participation constraints.
+    We next show that the e¢ cient allocation can be realized through a bidding mechanism
+rather than a direct revelation mechanism. We …nd a dynamic version of the ascending
+price auction where the contemporaneous use of the facility is auctioned. As a given task is
+completed, the number of e¤ective bidders decreases by one. We can then use a backwards
+induction algorithm to determine the values for the bidders starting from a …nal period in
+which only a single bidder is left without e¤ective competition.
+    Consider an ascending auction in which all tasks except that of bidder I have been
+completed. Along the e¢ cient path, the …nal ascending auction will occur at time t = I         1.
+Since all other bidders have vanished along the e¢ cient path at this point, bidder I wins the
+…nal auction at a price equal to zero. By backwards induction, we consider the penultimate
+auction in which the only bidders left are I       1 and I. As agent I can anticipate to win the
+auction tomorrow even if she were to loose it today, she is willing to bid at most
+
+                                   bI (vI ) = vI      (vI       0) ;                           (6)
+
+namely the net value gained by winning the auction today rather than tomorrow. Naturally,
+a similar argument applies to bidder I      1, by dropping out of the competition today bidder
+I   1 would get a net present discounted value of vI 1 and hence her maximal willingness
+to pay is given by
+                              bI 1 (vI 1 ) = vI 1       (vI 1          0) .
+
+Since bI 1 (vI 1 )   bI (vI ), given vI 1   vI , it follows that bidder I     1 wins the ascending
+price auction in t = I   2 and receives a net payo¤:
+
+                                       vI 1    (1      ) vI :
+
+    We proceed inductively and …nd that the maximal bid of bidder I               k in period t =
+
+
+
+                                                11
+I       k    1 is given by:
+
+                           bI k (vI k ) = vI k         vI k     bI (k 1) vI (k 1)                          (7)
+
+In other words, bidder I            k is willing to bid as much as to be indi¤erent between being
+selected today and being selected tomorrow, when she would be able to realize a net valu-
+ation of vI k         bI (k 1) , but only tomorrow, and so the net gain from being selected today
+rather than tomorrow is:
+                                          vI k       vI k     bI (k 1)
+
+The maximal bid of bidder I                (k    1) generates the transfer price of bidder I           k and
+by solving (7) recursively with the initial condition given by (6), we …nd that the price in
+the ascending auction equals the externality cost in the direct mechanism. In this class
+of scheduling problems, the e¢ cient allocation can therefore be implemented by a bidding
+mechanism.4
+        We end this section with a minor modi…cation of the scheduling model to allow for
+multiple tasks. For this purpose it is su¢ cient to consider an example with two bidders.
+The …rst bidder has an in…nite series of single-period tasks, each delivering a value of v1 .
+The second bidder has only a single task with a value v2 . The utility function of bidder 1
+is thus given by                                  8
+                                                  < v1 if at = 1 for all t,
+                                 v1 (at ; 1;t ) =
+                                                  : 0 if     otherwise.
+whereas the utility function of bidder 2 is as described earlier.
+        The socially e¢ cient allocation in this setting either has at = 1 for all t if v1               v2 or
+a0 = 2; at = 1 for all t           1 if v1 < v2 : For the remainder of this example, we will assume
+that v1 > v2 : Under this assumption the e¢ cient policy will never complete the task of
+    4
+        The nature of the recursive bidding strategies bears some similarity to the construction of the bidding
+strategies for multiple advertising slots in the keyword auction of Edelman, Ostrovsky, and Schwartz (2007).
+In the auction for search keywords, the multiple slots are di¤erentiated by their probability of receiving a
+hit and hence generating a value. In the scheduling model here, the multiple slots are di¤erentiated by the
+time discount associated with di¤erent access times.
+
+
+
+                                                        12
+bidder 2. The marginal contribution of each bidder is:
+
+                                  M1 ( 0 ) = (v1           v2 ) +         v1 ;
+                                                                      1
+and
+                                             M2 ( 0 ) = 0.
+
+Along any e¢ cient allocation path, we have Mi ( 0 ) = Mi ( t ) for all i and the social
+externality cost of agent 1, p1 ( t ) for all t, is p1 ( t ) =            (1     ) v2 . The externality cost is
+again the cost of delay imposed on the competing bidder, namely (1                      ) times the valuation
+of the competing bidder. This accurately represent the social externality cost of agent 1 in
+every period even though agent 2 will never receive access to the facility.
+    We contrast the e¢ cient allocation and transfer with the allocation resulting in the
+dynamic ascending price auction. For this purpose, suppose that the equilibrium path
+generated by the dynamic bidding mechanism would be e¢ cient. In this case bidder 2
+would never be chosen and hence would receive a net payo¤ of 0 along the equilibrium
+path. But this means that bidder 2 would be willing to bid up to v2 in every period. In
+consequence the …rst bidder would receive a net payo¤ of v1                      v2 in every period and her
+discounted sum of payo¤ would then be:
+                                        1
+                                            (v1       v2 ) < M1 ( 0 ) :                                    (8)
+                                    1
+But more important than the failure of the marginal contribution is the fact that the
+equilibrium will not support the e¢ cient assignment policy. To see this, notice that if
+bidder 1 looses to bidder 2 in any single period, then the task of bidder 2 is completed and
+bidder 2 will drop out of the auction in all future stages. Hence the continuation payo¤ for
+bidder 1 from dropping out in a given period and allowing bidder 2 to complete his task is
+given by:
+                                                           v1 :                                            (9)
+                                                  1
+If we compare the continuation payo¤s (8) and (9) respectively, then we see that it is
+bene…cial for bidder 1 to win the auction in all periods if and only if
+                                                           v2
+                                             v1                   ;
+                                                       1
+
+                                                      13
+but the e¢ ciency condition is simply v1    v2 . It follows that for a large range of valuations,
+the outcome in the ascending auction is ine¢ cient and will assign the object to bidder 2
+despite the ine¢ ciency of this assignment. The reason for the ine¢ ciency is easy to detect
+in this simple setting. The forward looking bidders consider only their individual net payo¤s
+in future periods. The planner on the other hand is interested in the level of gross payo¤s
+in the future periods. As a result, bidder 1 is strategically willing and able to depress the
+future value of bidder 2 by letting bidder 2 win today to increase the future di¤erence in
+the valuations between the two bidders. But from the point of view of the planner, the
+di¤erential gains for bidder 1 is immaterial and the assignment to bidder 2 represents an
+ine¢ ciency. The rule of the ascending price auction, namely that the highest bidder wins,
+only internalizes the individual equilibrium payo¤ s but not the social payo¤s.
+    This small extension to multiple tasks shows that the logic of the marginal contribution
+mechanism can account for subtle intertemporal changes in the payo¤s. On the other hand,
+common bidding mechanisms may not resolve the dynamic allocation problem in an e¢ cient
+manner. Indirectly, it suggests that suitable indirect mechanisms have yet to be devised for
+scheduling and other sequential allocation problems.
+
+
+4    The Dynamic Pivot Mechanism
+
+We now construct the dynamic pivot mechanism for the general model described in Section
+2 The marginal contribution of agent i is her contribution to the social value. In the dynamic
+pivot mechanism, the marginal contribution will also be the information rent that agent i
+can secure for herself if the planner wishes to implement the socially e¢ cient allocation.
+In a dynamic setting if agent i can secure her marginal contribution in every continuation
+game of the mechanism, then she should be able to receive the ‡ow marginal contribution
+mi ( t ) in every period. The ‡ow marginal contribution accrues incrementally over time
+and is de…ned recursively:
+
+                              Mi ( t ) = mi ( t ) + EMi ( t+1 ) :
+
+
+
+                                              14
+The ‡ow marginal contribution can be expressed directly in terms of the social value func-
+tions, using the de…nition of the marginal contribution given in (1), as:
+
+                       mi ( t ) = W ( t )              W i ( t)         E [W ( t+1 )       W i ( t+1 )] .                 (10)
+
+We can further replace the value functions W ( t ) and W i ( t ) by the corresponding ‡ow
+payo¤s and continuation payo¤s to express the ‡ow marginal contribution of agent i in
+terms of ‡ow and continuation payo¤s. The continuation payo¤s of the social programs
+with and without i, respectively, may be governed by di¤erent transition probabilities as
+the respective social decisions in period t, at , at ( t ) and a i;t , at (                           i;t ), may di¤er. We
+
+denote the expected continuation value of the socially optimal programs, conditional on the
+current state and the current action, by:
+
+                                     W ( t+1 jat ; t ) , EF ( t+1 ;at ; t ) W ( t+1 ) ;
+
+where the transition from state                    t   to state        t+1   is controlled by the allocation at . For
+notational ease we omit the expectations operator E from the conditional expectation. We
+adopt the same notation for the marginal contributions Mi ( ) and the individual value
+functions Vi ( ). The ‡ow marginal contribution mi ( t ) can be expressed as:
+             I
+             X                         X
+mi ( t ) =          vj (at ; j;t )            vj a i;t ; j;t +           W i ( t+1 jat ; t )      W i       t+1   a i;t ; t   .
+             j=1                       j6=i
+                                                                                                                          (11)
+   A monetary transfer pi ( t ) such that the resulting ‡ow net utility matches the ‡ow
+marginal contribution leads agent i to internalize her social externalities:
+
+                                              pi ( t ) , vi (at ; i;t )       mi ( t ) :                                  (12)
+
+We refer to pi ( t ) as the transfer of the dynamic pivot mechanism. We observe that the
+transfer pi ( t ) depends only on the current report                         t and does not depend on the past public
+
+history ht . Inserting (11) into (12) we can express the transfer payment of the dynamic
+pivot mechanism in terms of the ‡ow utilities and the continuation social values:
+            X
+ pi ( t ) =   vj a i;t ; j;t  vj (at ; j;t ) + W i t+1 a i;t ; t     W i ( t+1 jat ; t ) :
+             j6=i
+                                                                                                                          (13)
+
+                                                                  15
+The transfer price (13) for agent i depends on the report of agent i only through the
+determination of the social allocation which is a prominent feature already in the static
+Vickrey-Clarke-Groves mechanisms. The monetary transfers pi ( t ) are always non-negative
+as the policy a i;t is by de…nition an optimal policy to maximize the social value of all agents
+exclusive of i. It follows that in every period t the sum of the monetary transfers across all
+agents generates a weak budget surplus.
+
+Theorem 1 (Dynamic Pivot Mechanism)
+The dynamic pivot mechanism fat ; pt g1
+                                      t=0 is ex-post incentive compatible and individually
+
+rational.
+
+    Proof. By the unimprovability principle, it su¢ ces to prove that if agent i receives as
+her continuation value her marginal contribution, then truthtelling is incentive compatible
+for agent i in period t, or:
+
+                 vi (at ( t ) ; i;t )         pi ( t ) + Mi ( t+1 jat ; t )                                                        (14)
+
+                 vi (at (ri;t ;     i;t ) ; i;t )         pi (ri;t ;          i;t ) +   Mi ( t+1 jat (ri;t ;       i;t ) ; t ) ;
+
+
+for all ri;t 2      i   and all         i;t   2            i,    where at = a ( i;t ;                i;t ) is the socially e¢ cient
+
+
+allocation if the report is ri;t =                i;t .    By construction of the transfer price pi in (13), the
+lhs of (14) represents the marginal contribution of agent i. We can express Mi ( t+1 jat ; t )
+and Mi ( t+1 jat (ri;t ;          i;t ) ; t ), respectively, in terms of the values of the di¤erent social
+
+programs to get:
+
+                    W ( t)         W i ( t)               vi (at (ri;t ;         i;t ) ; i;t )   pi (ri;t ;    i;t )               (15)
+
+                    + (W ( t+1 jat (ri;t ;                      i;t ) ; t )     W i ( t+1 jat (ri;t ;         i;t ) ; t )) :
+
+
+By construction of pi , we can represent the transfer that agent i would pay if allocation
+a (ri;t ;   i;t ) were chosen in terms of the marginal contribution if the reported signal ri;t
+
+were the true signal received by agent i. We can then insert the transfer price (13) into (15)
+
+
+
+
+                                                                       16
+to obtain:
+                                                                              X
+        W ( t)         W i ( t)           vi (at (ri;t ;      i;t ) ; i;t )            vj a i;t ; j;t          W i       t+1    a i;t ; t
+                                                                                j6=i
+            X
+        +          vj (at (ri;t ;    i;t ) ; j;t ) +       W ( t+1 jat (ri;t ;           i;t ) ; t ) :
+            j6=i
+
+But now we can reconstitute the entire expression in terms of the social value of the program,
+with and without agent i, and we are lead to the …nal inequality:
+                                    I
+                                    X
+ W ( t)            W i ( t)               vj (at (ri;t ;      i;t ) ; j;t ) +     W ( t+1 jat (ri;t ;          i;t ) ; t )     W i ( t) :
+                                    j=1
+
+The above inequality holds for all ri;t by the social optimality of at ( t ) in state                                           t.
+
+       The dynamic pivot mechanism speci…es a unique monetary transfer in every period and
+after every history. This mechanism guarantees that the ex-post incentive and ex-post par-
+ticipation constraints are satis…ed after every history ht . In the intertemporal environment,
+each agent evaluates the monetary transfers to be paid in terms of the expected discounted
+transfers, but is indi¤erent (up to discounting) about the incidence of the transfers over
+time. This temporal separation between allocative decisions and monetary decisions may
+be undesirable for many reasons. First, if the agents and the principal do not have the
+ability to commit to future transfer payments, then delays in payments become problem-
+atic. In consequence, an agent which is not pivotal should not receive or make a payment.
+Second, if it is costly (in a lexicographic sense) to maintain accounts of future monetary
+commitments, then the principal wants to close down (as early as possible) the accounts of
+those agents who are no longer pivotal.5
+       This motivates the following e¢ cient exit condition. Let state                                    i   in period      i be a state
+
+such that the probability that agent i a¤ects the e¢ cient social decision at for all t                                                 i is
+
+equal to zero:
+                                      Pr at ( t ) 6= a i;t ( t ) ; 8t                   ij     i   = 0:
+
+We now say that a mechanism satis…es the e¢ cient exit condition if for every agent i the
+end of her allocative in‡uence coincides with the end of her monetary transfers .
+   5
+       We would like to thank an anonymous referee for the suggestion to consider the link between exit and
+uniqueness of the transfer rule.
+
+
+                                                                       17
+De…nition 1 (E¢ cient Exit)
+A dynamic direct mechanism satis…es the e¢ cient exit condition if for all i;              i;    i   :
+
+                                             pi (   i   ) = 0:
+
+   We now establish the uniqueness of the dynamic pivot mechanism in an environment
+with diverse preferences and the e¢ cient exit condition. The assumption of diverse pref-
+erences allows for rich preferences over the current allocations and indi¤erence over future
+allocations. We maintain this assumption for the remainder of the paper.
+
+Assumption 1 (Diverse Preferences)
+
+                               0
+  1. For all i, there exists   i2     i such that for all a, vi      a; 0i = 0 and Fi     0      0
+                                                                                          i ; a; i       = 1:
+
+  2. For all i, and for all a and all x 2 R+ , there exists a;x
+                                                             i   2          i such that
+                                                  8
+                                                  < x if at = a;
+                                 vi (at ; a;x
+                                          i   ) =                  ;
+                                                  : 0 if a 6= a;
+                                                                 t
+
+                           0        a;x
+     and for all at ; Fi   i ; at ; i     = 1.
+
+   The …rst part of the diverse preference assumption assigns to each agent a state in
+which she gets no payo¤ from any allocation, and that this state is an absorbing state. The
+second part requires that each agent have a state in which she has a positive valuation x for
+a speci…c current allocation a and no value for other current or future allocations. Assuming
+diverse preferences is similar to imposing the rich domain conditions introduced in Green
+and La¤ont (1977a) and Moulin (1986) to establish the uniqueness of the Groves and the
+Pivot mechanism in a static environment. Relative to their conditions, we augment the
+                                                                                            0
+diverse (‡ow) preferences with the certain transition into the absorbing state              i . With this
+
+transition we ensure that the diverse ‡ow preferences continue to matter in the intertemporal
+environment.
+   The assumption of diverse preference in conjunction with the e¢ cient exit condition
+guarantees that in every dynamic direct mechanism there are some types, speci…cally the
+
+                                                    18
+                          a;x
+types of the form         i   , that receive exactly the ‡ow transfers they would have received in
+the dynamic pivot mechanism.
+
+Lemma 1
+If fat ; pt g1
+             t=0 is ex-post incentive compatible and individually rational, and satis…es the ef-
+
+…cient exit condition, then:
+
+                      pi (ht ; a;x
+                               i ;
+                                                          a;x
+                                             i;t ) = pi ( i ;         i;t ) ,    for all i; a; x; t ; ht .
+
+   Proof. Consider any arbitrary history ht and type realization ( a;x
+                                                                   i ;                                              i;t ) in period t.
+                                                             a;x
+The ex-post incentive constraints of type                    i   at type pro…le ( a;x
+                                                                                  i ;                      i;t ) are:
+
+
+   vi (a ( a;x
+           i ;
+                             a;x
+                     i;t ) ; i )      pi (ht ; a;x
+                                               i ;          i;t ) +   Vi (hi;t+1 ja ( a;x
+                                                                                      i ;
+                                                                                                                    a;x
+                                                                                                          i;t ) ; ( i ;   i;t ) )
+
+                              a;x                                                                                   a;x
+     vi (a (ri;t ;    i;t ) ; i )       pi (ht ; ri;t ;     i;t ) +    Vi (hi;t+1 ja (ri;t ;              i;t ) ; ( i ;   i;t ) ) ;
+
+
+for all ri;t : Given ( a;x
+                       i ;          i;t ),    the continuation payo¤ for i along the equilibrium path
+satis…es Vi (hi;t+1 ja ( a;x
+                         i ;
+                                                 a;x
+                                       i;t ) ; ( i ;       i;t ) ) = 0 by the e¢ cient exit condition.
+                                                                                                    a;x
+   In the dynamic pivot mechanism, if the valuation x of type                                       i   for allocation a exceeds
+the social externality cost, or
+                            X
+                      x             vj a i (        i;t ) ; j;t       vj (a; j;t )                                                    (16)
+                             j6=i
+                      + W i            i;t+1     a i(      i;t ) ;    i;t          W i(         i;t+1 ja;       i;t ) ,
+
+
+then the transfer price pi ( a;x
+                             i ;                i;t ) would be:
+
+                                                 X
+                      pi ( a;x
+                           i ;         i;t ) =            vj a i (          i;t ) ; j;t     vj (a; j;t )
+                                                 j6=i
+                      + W i             i;t+1    a i(       i;t ) ;   i;t           W i(            i;t+1 ja;   i;t )
+
+
+otherwise it would be equal to zero.
+   We now argue by contradiction. By the ex-post incentive compatibility constraints, all
+        a;x
+types   i   of agent i where x satis…es the inequality (16) must pay the same transfer.                                                To
+see this, suppose that for x; y 2 R+ satisfying (16)
+
+                                    pi (ht ; a;x
+                                             i ;
+                                                                            a;y
+                                                           i;t ) < pi (ht ; i ;           i;t ) .
+
+
+                                                                19
+           a;y
+Now type   i   has a strict incentive to mis-report ri;t = a;x
+                                                           i , a contradiction. We therefore
+
+denote the constant transfer for all a;xi  and x satisfying (16) by pi (ht ; a; i;t ) and the
+corresponding dynamic pivot transfer by pi (a;                       i;t ).
+
+   Suppose next that pi (ht ; a;            i;t ) > pi (a;       i;t ) :This implies that the ex-post participa-
+
+tion constraint for some x with pi (ht ; a;                i;t ) > x > pi (a;               i;t ) is violated, contradicting
+
+the hypothesis of the lemma. Suppose to the contrary that pi (ht ; a;                                         i;t ) < pi (a;       i;t ),
+                                                                                 a;x
+and consider the ex-post incentive constraints of a type                         i   with a valuation x such that
+
+                                      pi (ht ; a;     i;t ) < x < pi (a;          i;t ) :                                         (17)
+
+If the inequality (17) is satis…ed then it follows that a ( a;x
+                                                            i ;                                   i;t ) = a i (         i;t ), and in
+
+particular that a    ( a;x
+                       i ;       i;t ) 6= a.        If the ex-post incentive constraint of type                                a;x
+                                                                                                                               i   were
+satis…ed, then we would have
+
+          vi (a ( a;x
+                  i ;
+                                   a;x
+                           i;t ) ; i )       pi (ht ; a;x
+                                                      i ;         i;t )       vi (a; a;x
+                                                                                     i )              pi (ht ; a;    i;t ) .      (18)
+
+                    a;x
+Given that   i =    i , we can thus rewrite (18) as:
+
+
+                             0        pi (ht ; a;x
+                                               i ;      i;t )    x        pi (ht ; a;       i;t ) :
+
+
+But given (17), this implies that pi (ht ; a;x
+                                           i ;                   i;t ) < 0. In other words, type
+                                                                                                                     a;x
+                                                                                                                     i   receives a
+strictly positive subsidy even though her report is not pivotal for the social allocation as
+a ( a;x
+    i ;    i;t ) = a i (     i;t ).   Now, a negative transfer (i.e. a positive subsidy) necessarily
+                                                                                                      0
+violates the ex-post incentive constraint of the absorbing type                                       i.   By the e¢ cient exit
+                   0
+condition, type    i should not receive any contemporaneous (or future) subsidies.                                             But by
+                                        a;x            0
+mis-reporting her type to be            i , type       i would gain access to a positive subsidy without
+
+changing the social allocation, which would leave her with a strictly positive net utility. It
+thus follows that pi (ht ; a;x
+                           i ;
+                                                      a;x
+                                         i;t ) = pi ( i ;        i;t ) for all a and all x.
+
+   Given that the transfers of the dynamic pivot mechanism are part of every dynamic
+direct mechanism with diverse preferences, we next establish that every type                                        i;0 in t = 0 has
+
+to receive the same ex-ante expected utility as she would in the dynamic pivot mechanism.
+
+
+
+                                                            20
+Lemma 2
+If fat ; pt g1
+             t=0 is ex-post incentive compatible and individually rational, and satis…es the ef-
+
+…cient exit condition, then for all i and all                         0 : Vi ( 0 ) = Mi ( 0 ).
+
+
+     Proof. The argument is by contradiction. Consider an i such that Vi ( 0 ) 6= Mi ( 0 ).
+Suppose …rst that Vi ( 0 ) > Mi ( 0 ). Then there is a history h and a state                                                such that
+pi (h ;       ) < pi ( ). The socially e¢ cient allocation in state                                       is denoted a , a ( ).
+We now show that such a transfer pi (h ;                              ) leads to a violation of the ex-post incentive
+                                        a;x                                                           a ;x
+constraint for some type                i   2       i . Speci…cally consider a type                   i    such that pi (h ;          )<
+                                                                                          a ;x
+x < pi ( ). The ex-post incentive constraints of type                                     i    imply that
+
+                     a ;x                    a ;x                     a ;x                                         a ;x
+0 = vi a             i    ;       i;     ; i              pi h ; i           ;     i;      + Vi hi; +1 a           i    ;   i;    ;
+                                                                              a ;x
+          x     pi (h ;       ) + Vi hi; +1 a (ri; ;                   i; ) ; i    ;          i;    > 0;
+
+leading to a contradiction.
+     Suppose next that
+                                                        Mi ( 0 )      Vi ( 0 ) > ";                                               (19)
+
+for some " > 0. By hypothesis of ex-post incentive condition we have for all ri;0 :
+
+ Mi ( 0 )       [vi (a0 (ri;0 ;         i;0 ) ; i;0 )      pi (h0 ; ri;0 ;       i;0 ) +    Vi (hi;1 ja0 (ri;0 ;   i;0 ) ; i;0 )] > ".
+
+                                                                                                                                  (20)
+                                                                                                   a ( 0 );x
+But by Lemma 1, we know that there exists a report ri;0 =                                          i         for agent i such that
+a ( 0 ) is induced at the price pi ( 0 ) associated with the dynamic pivot mechanism. After
+                      a ( 0 );x
+inserting ri;0 =      i         into (20) and observing that
+
+                          vi (a0 (ri;0 ;            i;0 ) ; i;0 )    pi (h0 ; ri;0 ;         i;0 ) = mi ( 0 ) ,
+
+
+we are lead to conclude that
+
+                                       (Mi ( 1 )         Vi (hi;1 ja0 (ri;0 ;           i;0 ) ; i;0 )) > ",
+
+
+or
+                                                                                                      "
+                                       Mi ( 1 )         Vi (hi;1 ja0 (ri;0 ;       i;0 ) ; i;0 ) >        .
+
+                                                                     21
+But now we can repeat the argument we started with (19) and …nd that there is a path of
+realizations of   0 ; :::; t , such that the di¤erence between the marginal contribution and the
+
+value function of agent i grows without bound. But the marginal contribution of agent i is
+…nite given that the expected ‡ow utility of agent i is bounded by some K > 0, and thus
+eventually the ex-post participation constraint of the agent is violated, and we obtain the
+desired contradiction.
+   The above lemma can be viewed as a revenue equivalence results of all (e¢ cient) dy-
+namic direct mechanisms. As we are analyzing a dynamic allocation problem with an in…nite
+horizon, we cannot appeal to the revenue equivalence results established for static mecha-
+nisms. In particular, the statement of the standard revenue equivalence results involve a
+…xed utility for the lowest type. In the in…nite horizon model here, the diverse preference
+                                                                              0
+assumption give us a natural candidate of a lowest type in terms of           i , and the e¢ cient
+
+exit condition determines her utility. The remaining task is to argue that among all in-
+tertemporal transfers with the same expected discounted value, only the time pro…le of the
+dynamic pivot mechanism satis…es the relevant conditions. Alternative payments streams
+could either require an agent to pay earlier or later relative to the dynamic pivot transfers.
+If the payments were to occur later, payments would have to be lower in an earlier period
+by the above revenue equivalence result. This would open the possibility for a “short-lived”
+       a;x
+type   i   to induce action a at a price below the dynamic pivot transfer and hence violate
+incentive compatibility. The reverse argument applies if the payments were to occur earlier
+relative to the dynamic pivot transfer, for example if the agent were to be asked to post a
+bond at the beginning of the mechanism.
+
+Theorem 2 (Uniqueness)
+If fat ; pt g1
+             t=0 is ex-post incentive compatible and individually rational, and satis…es the ef-
+
+…cient exit condition, then it is the dynamic pivot mechanism.
+
+   Proof. The proof is by contradiction. Suppose not, then by Lemma 2 there exists a
+player i, a history h and an associated state       i;   such that pi (h ;   ) 6= pi ( ). Suppose
+…rst that pi (h ;   ) < pi ( ). We show that the current monetary transfer pi (h ;         ) leads
+
+                                               22
+                                                                                         a;x
+to the violation of the ex-post incentive constraint of some type                        i . The socially e¢ cient
+                                                                                                      a ;x
+allocation at the true pro…le               is given by a = a (               ). Consider now a type i     with a
+valuation x for the allocation a such that x > pi ( ). Her ex-post incentive constraint is
+given by
+
+      vi (a ( a;x
+              i ;
+                               a;x
+                       i;t ) ; i )      pi (ht ; a;x
+                                                 i ;      i;t ) +    Vi (hi;t+1 ja (ri;t ;                     a;x
+                                                                                                     i;t ) ; ( i ;   i;t ) )
+
+                                                                                                           a;x
+       vi (a (ri;t ;    i;t ) ; i;t )   pi (ht ; ri;t ;   i;t ) +   Vi (hi;t+1 ja (ri;t ;        i;t ) ; ( i ;       i;t ) ) :
+
+
+By the e¢ cient exit condition, we have
+
+                                             a;x                                                    a;x
+        Vi (hi;t+1 ja (ri;t ;      i;t ) ; ( i ;    i;t ) ) = Vi (hi;t+1 ja     (ri;t ;   i;t ) ; ( i ;        i;t ) ) = 0:
+
+
+By Lemma 1, we also have that pi (ht ; a;x
+                                       i ;                          i;t )   = pi ( a;x
+                                                                                   i ;       i;t )    = pi ( ). Consider
+                                                     a;x
+then the report of ri; =           i;   by type      i . The ex-post incentive constraints now reads: x
+
+pi ( )      x pi (h ;        ), which leads to a contradiction as by hypothesis we had pi (h ;                                   )<
+pi ( ).
+      Suppose next that pi (h ;             ) > pi ( ). Now by Lemma 2, it follows that the ex-ante
+expected payo¤ is equal to the value of the marginal contribution of agent i in period 0. It
+therefore follows from pi (h ;             ) > pi ( ) that there also exists another time                            0 and state
+
+  0   such that pi (h ;       ) < pi ( ). By repeating the argument in the …rst part of the proof,
+we obtain a contradiction.
+      We should reiterate that in the de…nition of the ex-post incentive and participation con-
+ditions, we required that a candidate mechanism satis…es these conditions after all possible
+histories of past reports. It is in the spirit of the ex-post constraints that these constraints
+hold for all possible states rather than strictly positive probability events. In the context
+of establishing the uniqueness of the mechanism it allows us to use the diverse preference
+condition without making additional assumption about the transition probability from a
+                                                   a;x
+given state      i;t into a speci…c state          i . We merely require the existence of these types in
+
+the establishing the above result.
+
+
+
+
+                                                             23
+5     Learning and Licensing
+
+In this section, we show how our general model can be interpreted as one where the bidders
+learn gradually about their preferences for an object that is auctioned repeatedly over time.
+We use the insights from the general pivot mechanism to deduce properties of the e¢ cient
+allocation mechanism. A primary example of an economic setting that …ts this model is the
+leasing of a resource or license over time.
+     In every period t; a single indivisible object can be allocated to a bidder i 2 f1; :::; Ig,
+and the allocation decision at 2 f1; 2; :::; Ig simply determines which bidder gets the object
+in period t: In order to describe the uncertainty explicitly, we assume that the true valuation
+of bidder i is given by ! i 2     i = [0; 1].    Information in the model represents therefore the
+bidder’s prior and posterior beliefs on ! i : In period 0, bidder i does not know the realization
+of ! i , but she has a prior distribution       i;0 (! i ) on   i . The prior and posterior distributions
+
+on    i are assumed to be independent across bidders.                 In each subsequent period t, only
+the winning bidder in period t        1 receives additional information leading to an updated
+posterior distribution   i;t on   i according to Bayes’rule. If bidder i does not win in period
+
+t, we assume that she gets no information, and consequently the posterior is equal to the
+prior. In the dynamic direct mechanism, the bidders simply report their posteriors at each
+stage.
+     The socially optimal assignment over time is a standard multi–armed bandit problem
+and the optimal policy is characterized by an index policy (see Gittins (1989) and Whittle
+(1982) for a textbook introduction). In particular, we can compute for every bidder i the
+Gittins index based exclusively on the information about bidder i. The index of bidder i
+after private history hi;t is the solution to the following optimal stopping problem:
+                                                 (P                )
+                                                      i  l
+                                                    l=0 vi (at+l )
+                               i (hi;t ) = max E       P i l         ;
+                                            i
+                                                                l=0
+
+where at+l is the path in which alternative i is chosen l times following a given past alloca-
+tion (a0 ; :::; at ) ; and where the expectation is taken with respect to the realized posteriors
+
+ i;t+l : An important property of the index policy is that the index of alternative i can be
+
+
+
+                                                      24
+computed independent of any information about the other alternatives. In particular, the
+index of bidder i remains constant if bidder i does not win the object. The socially e¢ cient
+allocation policy a = fat g1
+                           t=0 is to choose in every period a bidder i if:
+
+
+                                      i (hi;t )   j (hj;t ) for all j:
+
+
+   In the dynamic direct mechanism, we construct a transfer price such that under the
+e¢ cient allocation, each bidder’s net payo¤ coincides with her ‡ow marginal contribution
+mi ( t ). We consider …rst the payment of the bidder i who has the highest index in state                   t
+
+and who should therefore receive the object in period t. In order to match her net payo¤
+to her ‡ow marginal contribution, we must have:
+
+                                    mi ( t ) = vi (hi;t )        pi ( t ) :                             (21)
+
+The remaining bidders, j 6= i, should not receive the object in period t and their transfer
+price must o¤set the ‡ow marginal contribution: mj ( t ) =                    pj ( t ). We expand the ‡ow
+marginal contribution in (21) by noting that i is the e¢ cient assignment and that another
+bidder, say k, would constitute the e¢ cient assignment in the absence of bidder i:
+
+           mi ( t ) = vi (hi;t )   vk (hk;t )     (W i ( t+1 ji; t )          W i ( t+1 jk; t )) :
+
+We notice that with private values, the continuation value of the social program without i
+but conditional on the object being assigned to agent i in period t is simply equal to the
+value of the program conditional on          t alone, or
+
+
+                                    W i ( t+1 ji; t ) = W i ( t ) :
+
+The additional information generated by the assignment to agent i only pertains to agent
+i and hence has no value for the allocation problem once i is removed. We can therefore
+rewrite the ‡ow marginal contribution of the winning agent i as:
+
+                               mi ( t ) = vi (hi;t )        (1    ) W i ( t) :
+
+It follows that the transfer price should simply be given by pi ( t ) = (1                 ) W i ( t ), which
+is the ‡ow social opportunity cost of assigning the object today to agent i. A similar analysis
+
+                                                       25
+leads to the conclusion that the losing bidders makes zero payments: pj ( t ) =   mj ( t ) = 0.
+Our main result in this section collects this information on the transfers in the dynamic
+pivot mechanism.
+
+Theorem 3 (Dynamic Second Price Auction)
+The socially e¢ cient allocation rule a is ex-post incentive compatible in the dynamic direct
+mechanism with the payment rule p where:
+                                8
+                                < (1 ) W j ( t)           if at = j;
+                     pj ( t ) =
+                                :      0                  if at 6= j:
+
+   The incentive compatible pricing rule has a few interesting implications. First, we
+observe that in the case of two bidders, the formula for the dynamic second price reduces to
+the static solution. If we remove one bidder, the social program has no other choice but to
+always assign it to the remaining bidder. But then, the expected value of that assignment
+policy is simply equal to the expected value of the object for bidder j in period t by the
+martingale property of the Bayesian posterior. In other words, the transfer is equal to the
+current expected value of the next best competitor. It should be noted, though, that the
+object is not necessarily assigned to the bidder with the highest current ‡ow payo¤.
+   With more than two bidders, the ‡ow value of the social program without bidder i is
+di¤erent from the ‡ow value of any remaining alternative. Since there are at least two
+bidders left after excluding i; the planner has the option to abandon any chosen alternative
+if its value happens to fall su¢ ciently. This option value increases the social ‡ow payo¤ and
+hence the transfer that the e¢ cient bidder must pay. In consequence the social opportunity
+cost is higher than the highest expected valuation among the remaining bidders.
+   Second, we observe that the transfer price of the winning bidder is independent of her
+own information about the object. This means that for all periods in which the ownership
+of the object does not change, the transfer price stays constant as well, even though the
+value of the object to the winning bidder may change.
+
+
+
+
+                                             26
+References
+
+Athey, S., and I. Segal (2007a): “Designing E¢ cient Mechanisms for Dynamic Bilateral
+  Trading Games,” American Economic Review Papers and Proceedings, 97, 131–136.
+
+         (2007b): “An E¢ cient Dynamic Mechanism,” Harvard University and Stanford
+  University.
+
+Bapna, A., and T. Weber (2005): “E¢ cient Dynamic Allocation with Uncertain Valua-
+  tions,” Stanford University.
+
+Baron, D., and D. Besanko (1984): “Regulation and Information in a Continuing Rela-
+  tionship,” Information Economics and Policy, 1, 267–302.
+
+Bergemann, D., and J. Välimäki (2003): “Dynamic Common Agency,” Journal of
+  Economic Theory, 111, 23–48.
+
+        (2006): “Dynamic Price Competition,”Journal of Economic Theory, 127, 232–263.
+
+Cavallo, R., D. Parkes, and S. Singh (2006): “Optimal Coordinated Planning Amon
+  Self-Interested Agents with Private State,” in Proceedings of the 22nd Conference on
+  Uncertainty in Arti…cial Intelligence, Cambridge.
+
+Dolan, R. (1978): “Incentive Mechanisms for Priority Queuing Problems,” Bell Journal
+  of Economics, 9, 421–436.
+
+Edelman, B., M. Ostrovsky, and M. Schwartz (2007): “Internet Advertising and
+  the Generalized Second Price Auction: Selling Billions of Dollars Worth of Keywords,”
+  American Economic Review, 97, 242–259.
+
+Freixas, X., R. Guesnerie, and J. Tirole (1985): “Planning under Incomplete Infor-
+  mation and the Ratchet E¤ect,” Review of Economic Studies, 52, 173–191.
+
+Gittins, J. (1989): Allocation Indices for Multi-Armed Bandits. London, Wiley.
+
+
+
+                                           27
+Green, J., and J. Laffont (1977a): “Characterization of Satisfactory Mechanisms for
+  the Revelation of the Preferences for Public Goods,” Econometrica, 45, 427–438.
+
+         (1977b): “Révélation Des Préférences Pour Les Biens Publics: Charactérisation
+  Des Mécanismes Satisfaisants,” Cahiers du Séminaire d’Économétrie, 13.
+
+Lavi, R., and N. Nisan (2000): “Competitive Analysis of Incentive Compatible Online
+  Auctions,” in Proceedings of 2nd Conference of Electronic Commerce, pp. 233–241, New
+  York. ACM Press.
+
+Moulin, H. (1986): “Characterization of the Pivotal Mechanism,” Journal of Public Eco-
+  nomics, 31, 53–78.
+
+Whittle, P. (1982): Optimization Over Time, vol. 1. Wiley, Chichester.
+
+
+
+
+                                          28
+
