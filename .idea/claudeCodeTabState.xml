@@ -15,7 +15,44 @@
             </TabSessionState>
           </value>
         </entry>
+        <entry key="1">
+          <value>
+            <TabSessionState>
+              <option name="provider" value="codex" />
+              <option name="sessionId" value="01a1102f-a65c-7752-9631-9b2c2aa801f5" />
+              <option name="cwd" value="$PROJECT_DIR$" />
+              <option name="model" value="gpt-6-astra" />
+              <option name="permissionMode" value="acceptEdits" />
+              <option name="reasoningEffort" value="medium" />
+            </TabSessionState>
+          </value>
+        </entry>
+        <entry key="2">
+          <value>
+            <TabSessionState>
+              <option name="provider" value="codex" />
+              <option name="sessionId" value="01a117a5-5842-7621-8f0a-8c2de3bd298b" />
+              <option name="cwd" value="$PROJECT_DIR$" />
+              <option name="model" value="gpt-6-astra" />
+              <option name="permissionMode" value="acceptEdits" />
+              <option name="reasoningEffort" value="medium" />
+            </TabSessionState>
+          </value>
+        </entry>
+        <entry key="3">
+          <value>
+            <TabSessionState>
+              <option name="provider" value="codex" />
+              <option name="sessionId" value="01a117d2-2f31-76c1-ad30-2038ab70deb6" />
+              <option name="cwd" value="$PROJECT_DIR$" />
+              <option name="model" value="gpt-6-astra" />
+              <option name="permissionMode" value="acceptEdits" />
+              <option name="reasoningEffort" value="medium" />
+            </TabSessionState>
+          </value>
+        </entry>
       </map>
     </option>
+    <option name="tabCount" value="4" />
   </component>
 </project>
