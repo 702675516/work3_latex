@@ -19,35 +19,26 @@ Tong Wang and Chuanchuan You.
   {UAV}-assisted mobile edge computing systems.
 \newblock {\em IEEE Access}, 12:63548--63567, 2024.
 
-\bibitem{tian2023deep}
-XianZhong Tian, PingTing Miao, and LuoMing Zhang.
-\newblock Deep reinforcement learning for scheduling and offloading in
-  {UAV}-assisted mobile edge networks.
-\newblock {\em Wireless Communications and Mobile Computing}, 2023:1--11, 2023.
+\bibitem{wang2024opponent}
+Shuyu Wang, Zhe Wang, Long Shi, Bin Li, and Jun Li.
+\newblock Opponent modeling based dynamic auction for {UAV}-assisted task
+  offloading.
+\newblock In {\em 2024 16th International Conference on Wireless Communications
+  and Signal Processing (WCSP)}, pages 980--986, 2024.
 
-\bibitem{ju2024multi}
-Tao Ju, Linjuan Li, Shuai Liu, and Yu~Zhang.
-\newblock A multi-{UAV} assisted task offloading and path optimization for
-  mobile edge computing via multi-agent deep reinforcement learning.
-\newblock {\em Journal of Network and Computer Applications}, 229:103919, 2024.
+\bibitem{habiba2024repeated}
+Ummy Habiba, Setareh Maghsudi, and Ekram Hossain.
+\newblock A repeated auction model for load-aware dynamic resource allocation
+  in multi-access edge computing.
+\newblock {\em IEEE Transactions on Mobile Computing}, 23(7):7801--7817, 2024.
 
-\bibitem{xiao2023multiround}
-J.~Xiao, Q.~Gao, and Z.~Yang.
-\newblock Multi-round auction-based resource allocation for edge computing:
-  Maximizing social welfare.
-\newblock {\em Future Generation Computer Systems}, 140:365--375, 2023.
-
-\bibitem{su2022truthful}
-Yi~Su, Wenhao Fan, Yuan'an Liu, and Fan Wu.
-\newblock A truthful combinatorial auction mechanism towards mobile edge
-  computing in industrial internet of things.
-\newblock {\em IEEE Transactions on Cloud Computing}, 11(2):1678--1691, 2022.
-
-\bibitem{wu2024longterm}
-Leijie Wu, Song Guo, Zicong Hong, Yi~Liu, Wenchao Xu, and Yufeng Zhan.
-\newblock Long-term adaptive {VCG} auction mechanism for sustainable federated
-  learning with periodical client shifting.
-\newblock {\em IEEE Transactions on Mobile Computing}, 23(5):6060--6074, 2024.
+\bibitem{ren2024dependent}
+Hualing Ren, Kai Liu, Guozhi Yan, Chunhui Liu, Yantao Li, Chuzhao Li, and
+  Weiwei Wu.
+\newblock Truthful auction mechanisms for dependent task offloading in
+  vehicular edge computing.
+\newblock {\em IEEE Transactions on Mobile Computing}, 23(12):14987--15002,
+  2024.
 
 \bibitem{bergemann2010dynamic}
 Dirk Bergemann and Juuso V{\"a}lim{\"a}ki.

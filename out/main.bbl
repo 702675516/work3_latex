@@ -59,13 +59,6 @@ Changsheng You, Kaibin Huang, Hyukjin Chae, and B.-H. Kim.
 \newblock {\em IEEE Transactions on Wireless Communications}, 16(3):1397--1411,
   2017.
 
-\bibitem{kim2024distributed}
-Minwoo Kim, Jonggyu Jang, Youngchol Choi, and Hyun~Jong Yang.
-\newblock Distributed task offloading and resource allocation for latency
-  minimization in mobile edge computing networks.
-\newblock {\em IEEE Transactions on Mobile Computing}, 23(12):15149--15166,
-  2024.
-
 \bibitem{mao2016dynamic}
 Yuyi Mao, Jun Zhang, and Khaled~B. Letaief.
 \newblock Dynamic computation offloading for mobile-edge computing with energy
