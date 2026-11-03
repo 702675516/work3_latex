@@ -85,13 +85,14 @@ g_{0,n}\left(t\right)=\left(h_{0,n}\left(t\right)\right)^{2}\chi _{0,n}\left(t\r
 \subsection{计算卸载模型}
 用户 $n$ 在时隙 $t$ 产生的数据量为 $D_{n}\left(t\right)$ 的计算任务。设单位比特任务需要 $\xi$ 个 CPU 周期，则该任务的计算量为 $L_{n}\left(t\right)=D_{n}\left(t\right)\xi$。任务可在本地执行，也可卸载至 UAV 处理\cite{you2017energy}。
 
-设 UAV 的总计算能力为 $F_{\mathrm{uav}}$，并采用按任务量比例分配的计算资源分配策略。定义卸载决策变量 $x_{n}\left(t\right)\in \{0,1\}$，其中 $x_{n}\left(t\right)=1$ 表示任务卸载至 UAV，$x_{n}\left(t\right)=0$ 表示任务在本地执行。则 UAV 分配给用户 $n$ 的计算频率为
+设 UAV 的总计算能力为 $F_{\mathrm{uav}}$。定义卸载决策变量 $x_{n}\left(t\right)\in \{0,1\}$，其中 $x_{n}\left(t\right)=1$ 表示任务卸载至 UAV，$x_{n}\left(t\right)=0$ 表示任务在本地执行。参考给定接收任务集合下最小化计算时延之和的平方根分配结果\cite{kim2024distributed}，UAV 分配给用户 $n$ 的计算频率为
 \begin{equation}
-f_{n}^{\mathrm{uav}}\left(t\right)=x_{n}\left(t\right)\frac{D_{n}\left(t\right)\xi }{\sum_{k=1}^{N} x_{k}\left(t\right)D_{k}\left(t\right)\xi }F_{\mathrm{uav}}.
+f_{n}^{\mathrm{uav}}\left(t\right)=x_{n}\left(t\right)\frac{\sqrt{L_{n}(t)}}{\sum_{k=1}^{N}x_{k}(t)\sqrt{L_{k}(t)}}F_{\mathrm{uav}}.
 \end{equation}
-对于被卸载的任务，UAV 侧的计算时延为
+当该时隙没有接收任务时，规定所有 $f_{n}^{\mathrm{uav}}(t)=0$。
+当用户 $n$ 的任务卸载至 UAV，即 $x_n(t)=1$ 时，其 UAV 侧计算时延为
 \begin{equation}
-\tau _{n}^{off}\left(t\right)=\frac{D_{n}\left(t\right)\xi }{f_{n}^{\mathrm{uav}}\left(t\right)}.
+\tau _{n}^{off}\left(t\right)=\frac{L_{n}(t)}{f_{n}^{\mathrm{uav}}(t)}.
 \end{equation}
 因此，用户 $n$ 的任务完成时延由卸载路径或本地计算路径决定，表示为
 \begin{equation}
@@ -121,8 +122,7 @@ E_{comp}(t)=\sum_{n=1}^{N} x_{n}(t)\kappa_{\mathrm{uav}} \xi D_{n}(t)(f_{n}^{\ma
 \begin{equation}
 E_{0}(t)=E_{move}(t)+E_{hov}(t)+E_{comp}(t)
 \end{equation}
-上述模型共同决定用户任务时延与 UAV 能耗，并将在下一节用于构造参与者效用和系统社会福利。
-\section{问题建模（Problem Formulation）}
+上述模型共同决定用户任务时延与 UAV 能耗，并为后续参与者效用与系统社会福利的定义提供基础。
 \subsection{动态激励机制}
 为刻画 UAV 辅助 MEC 中任务接收与轨迹控制的时序耦合，本文构建基于类型报告和外部性定价的长期动态激励机制\cite{clarke1971multipart}。由于 UAV 的位置随时隙演化，当前决策会影响后续服务条件与资源分配，因此需要在动态过程中联合确定资源分配与支付规则。
 
@@ -142,10 +142,11 @@ U_{0}\left(t\right)=\sum_{n=1}^{N} p_{n}\left(t\right)-\beta E_{0}\left(t\right)
 \begin{equation}
 W(t)=U_{0}(t)+\sum_{n=1}^{N} U_{n}(t)=-\sum_{n=1}^{N} \theta _{n}\left(t\right)\tau _{n}\left(t\right)-\beta E_{0}(t)
 \end{equation}
-\subsection{长期优化问题}
-在动态 UAV 辅助边缘计算场景中，任务到达、用户状态与 UAV 位置均随时间演化，当前决策不仅影响即时资源配置结果，还会改变后续时隙的系统状态。因此，动态激励机制需要同时考虑系统层面的长期资源配置效率与用户层面的个体决策激励，在优化长期社会福利的同时，兼顾用户的类型上报激励与持续参与意愿。基于上述目标，本文分别从 UAV 服务平台和移动用户两个层面构建长期优化问题。
+\section{问题建模（Problem Formulation）}
+\subsection{优化问题}
+在动态 UAV 辅助边缘计算场景中，任务到达、用户状态与 UAV 位置均随时间演化，当前决策不仅影响即时资源配置结果，还会改变后续时隙的系统状态。因此，动态激励机制需要同时考虑系统层面的长期资源配置效率与用户层面的个体决策激励，在优化长期社会福利的同时，兼顾用户的类型上报激励与持续参与意愿。基于上述目标，本文分别从 UAV 服务平台和移动用户两个层面构建优化问题。
 
-\noindent\textbf{UAV 侧长期社会福利优化：}
+\noindent\textbf{UAV 侧社会福利优化：}
 作为服务平台，UAV 根据当前系统状态与用户类型报告，在各时隙联合确定任务接收决策和目标服务位置。为刻画当前决策对未来系统演化的影响，UAV 以期望折扣累计社会福利最大化为目标，其优化问题表述为
 \begin{equation}
 \begin{aligned}
@@ -156,8 +157,8 @@ W(t)=U_{0}(t)+\sum_{n=1}^{N} U_{n}(t)=-\sum_{n=1}^{N} \theta _{n}\left(t\right)\
 \end{equation}
 其中，$\gamma\in[0,1)$ 为折扣因子，$\mathbb{E}[\cdot]$ 表示对任务到达、状态转移及策略随机性等不确定因素取期望。约束条件分别限定任务接收变量的取值范围和 UAV 的可选服务位置。
 
-\noindent\textbf{用户侧长期效用优化：}
-移动用户作为具有自利性的机制参与者，其决策目标并非直接最大化系统社会福利，而是在给定机制规则及其他参与者策略的条件下最大化自身效用。对于任意用户 $n$，其决策变量为各时隙提交的类型报告 $\hat{\theta }_{n}(t)$，相应的长期优化问题表述为
+\noindent\textbf{用户侧效用优化：}
+移动用户作为具有自利性的机制参与者，其决策目标并非直接最大化系统社会福利，而是在给定机制规则及其他参与者策略的条件下最大化自身效用。对于任意用户 $n$，其决策变量为各时隙提交的类型报告 $\hat{\theta }_{n}(t)$，相应的优化问题表述为
 \begin{equation}
 \begin{aligned}
 \max_{\{\hat{\theta}_n(t)\}} \quad & \mathbb{E}\left[\sum_{t=0}^{T}\gamma^t U_n(t)\right] \\
@@ -165,9 +166,8 @@ W(t)=U_{0}(t)+\sum_{n=1}^{N} U_{n}(t)=-\sum_{n=1}^{N} \theta _{n}\left(t\right)\
 \end{aligned}
 \end{equation}
 用户效用 $U_n(t)$ 同时取决于任务完成时延和支付，因此，支付规则会直接影响用户的类型报告策略。综上，本文旨在联合设计任务接收、UAV 轨迹控制与支付规则，协调平台侧的长期社会福利目标和用户侧的长期效用目标，从而在兼顾用户上报激励与参与意愿的同时，提高系统的长期资源配置效率。
-\section{算法设计（Algorithm Design）}
 \subsection{多智能体部分可观测随机博弈建模}
-为求解前述长期社会福利优化问题，本文将 UAV 辅助 MEC 系统建模为部分可观测随机博弈（Partially Observable Stochastic Game, POSG）。在该框架下，UAV 根据用户上报学习任务接收与轨迹控制策略，各移动用户则基于局部信息学习上报策略。该博弈记为 $G=\langle I,S,\{Z_i\}_{i\in I},\{A_i\}_{i\in I},P,\{r_i\}_{i\in I},\gamma\rangle$，其中，$I$、$S$、$Z_i$ 和 $A_i$ 分别表示智能体集合、全局状态空间、智能体 $i$ 的局部观测空间和动作空间。$P\bigl(s(t+1)\mid s(t),a(t)\bigr)$ 为状态转移概率，$r_i$ 为即时奖励函数，$\gamma$ 为折扣因子。智能体集合为 $I=\{0\}\cup N$，其中 $0$ 表示 UAV 智能体。为描述环境状态，时隙 $t$ 的全局状态定义为
+为求解上述优化问题，本文将 UAV 辅助 MEC 系统建模为部分可观测随机博弈（Partially Observable Stochastic Game, POSG）。在该框架下，UAV 根据用户上报学习任务接收与轨迹控制策略，各移动用户则基于局部信息学习上报策略。该博弈记为 $G=\langle I,S,\{Z_i\}_{i\in I},\{A_i\}_{i\in I},P,\{r_i\}_{i\in I},\gamma\rangle$，其中，$I$、$S$、$Z_i$ 和 $A_i$ 分别表示智能体集合、全局状态空间、智能体 $i$ 的局部观测空间和动作空间。$P\bigl(s(t+1)\mid s(t),a(t)\bigr)$ 为状态转移概率，$r_i$ 为即时奖励函数，$\gamma$ 为折扣因子。智能体集合为 $I=\{0\}\cup N$，其中 $0$ 表示 UAV 智能体。为描述环境状态，时隙 $t$ 的全局状态定义为
 \begin{equation}
 s(t)=\left\{l_0(t-1),\{l_n(t-1)\}_{n=1}^{N},\{D_n(t)\}_{n=1}^{N},\{\theta_n(t)\}_{n=1}^{N}\right\}.
 \end{equation}
@@ -198,6 +198,7 @@ a_{n}(t)=\hat{\theta }_{n}(t).
 r_{n}(t)=U_{n}(t).
 \end{equation}
 在每个时隙开始时，环境给定全局状态 $s(t)$。各移动用户基于 $o_n(t)$ 生成类型上报动作 $a_n(t)$，UAV 接收全部上报后依据策略 $\pi_0(a_0(t)\mid o_0(t))$ 生成联合控制动作 $a_0(t)$。随后，环境执行任务卸载、传输与计算，得到用户时延 $\tau_n(t)$ 和相应的长期外部性支付 $p_n(t)$，并依据上述奖励函数反馈各智能体。最后，环境转移至 $s(t+1)$，训练过程利用该转移更新策略。
+\section{算法设计（Algorithm Design）}
 \subsection{基于 SAC 的策略学习}
 UAV 依赖策略 $\pi _{0}(a_{0}(t)\mid o_{0}(t))$ 将局部观测转化为联合控制动作，而各移动用户 $n$ 则通过策略 $\pi _{n}(a_{n}(t)\mid o_{n}(t))$ 生成相应的上报动作。给定 UAV 的局部观测 $o_{0}(t)$ 和联合控制动作 $a_{0}(t)$，在系统联合策略 $\left(\pi _{0},\pi _{n},\forall n\in N\right)$ 下，UAV 的状态--动作值函数（Q 函数）定义为：
 \begin{equation}
@@ -215,7 +216,7 @@ Q_{n}\left(o_{n}\left(t\right),a_{n}\left(t\right)\right)=\max_{\pi _{n}}\mathbb
 \begin{equation}
 \pi _{n}^{*}=\operatorname*{arg\,max}_{\pi _{n}}Q_{n}\left(o_{n}(t),a_{n}(t)\right)
 \end{equation}
-针对动态环境下联合决策变量连续、系统状态随时间演化且难以获得精确解析解的问题，本文采用 SAC 算法求解长期优化策略\cite{haarnoja2018soft}。
+针对动态环境下联合决策变量连续、系统状态随时间演化且难以获得精确解析解的问题，本文采用 SAC 算法学习相应的决策策略\cite{haarnoja2018soft}。
 与传统强化学习仅最大化期望累积回报不同，SAC 在目标函数中引入策略熵项，以鼓励策略保持适当随机性，避免过早收敛到局部最优。其最大熵目标函数可表示为
 \begin{equation}
 \begin{aligned}

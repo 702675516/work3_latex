@@ -1,0 +1,1875 @@
+                                                                                                                                                                                             1
+
+
+
+
+                                                 Distributed Task Offloading and Resource
+                                                Allocation for Latency Minimization in Mobile
+                                                         Edge Computing Networks
+                                              Minwoo Kim, Jonggyu Jang, Member, IEEE, Youngchol Choi, and Hyun Jong Yang, Member, IEEE
+
+                                                Abstract—The growth in artificial intelligence (AI) technology has attracted substantial interests in latency-aware task offloading of
+                                                mobile edge computing (MEC)—namely, minimizing service latency. Additionally, the use of MEC systems poses an additional problem
+arXiv:2404.03154v2 [eess.SP] 9 Sep 2024
+
+
+
+
+                                                arising from limited battery resources of MDs. This paper tackles the pressing challenge of latency-aware distributed task offloading
+                                                optimization, where user association (UA), resource allocation (RA), full-task offloading, and battery of mobile devices (MDs) are jointly
+                                                considered. In existing studies, joint optimization of overall task offloading and UA is seldom considered due to the complexity of
+                                                combinatorial optimization problems, and in cases where it is considered, linear objective functions such as power consumption are
+                                                adopted. Revolutionizing the realm of MEC, our objective includes all major components contributing to users’ quality of experience,
+                                                including latency and energy consumption. To achieve this, we first formulate an NP-hard combinatorial problem, where the objective
+                                                function comprises three elements: communication latency, computation latency, and battery usage. We derive a closed-form RA
+                                                solution of the problem; next, we provide a distributed pricing-based UA solution. We simulate the proposed algorithm for various
+                                                resource-intensive tasks. Our numerical results show that the proposed method Pareto-dominates baseline methods. More specifically,
+                                                the results demonstrate that the proposed method can outperform baseline methods by 1.62 times shorter latency with 41.2% less
+                                                energy consumption.
+
+                                                Index Terms—Latency minimization, delay minimization, mobile edge computing, resource allocation, user association, task
+                                                offloading, energy efficiency, edge AI.
+
+                                                                                                                         ✦
+
+
+
+                                          1    I NTRODUCTION                                                                 burden on MDs, it increases the communication demands
+                                                                                                                             of the network. For edge servers, this results in an overall
+
+                                          A     S artificial intelligence (AI) technology advances and
+                                                support for such technology in mobile devices (MDs)
+                                          continues to grow, the demand for resource-intensive tasks
+                                                                                                                             increase in both computational and communication loads,
+                                                                                                                             leading to potential service delays. To minimize the latency
+                                                                                                                             while maintaining sustainability of MEC system devices, it
+                                          in edge computing is anticipated to surge. We have al-
+                                                                                                                             is essential to jointly consider communication, computation
+                                          ready experienced the impact of emerging applications with
+                                                                                                                             resources, and energy consumption. Addressing these con-
+                                          heavy computational load such as voice-activated virtual
+                                                                                                                             cerns, especially in systems heavily reliant on AI, introduces
+                                          assistants, generative model-based applications, and au-
+                                                                                                                             a set of novel challenges to be tackled in optimizing task
+                                          tonomous driving systems. These applications’ high de-
+                                                                                                                             offloading.
+                                          mand for computing power and energy poses a significant
+                                          challenge for MDs, as they are limited in processing power
+                                          and battery life. A viable solution to this problem is the
+                                                                                                                             1.1 Challenges of Task Offloading in MEC Systems
+                                          implementation of task offloading using mobile edge com-
+                                          puting (MEC), which entails shifting local tasks to a remote                       1) The need for full offloading of AI tasks. In general, as
+                                          edge server. While this approach lightens the computational                        mentioned in [14], full offloading problems can be relaxed to
+                                                                                                                             partial offloading problems, which simplifies discrete vari-
+                                          This research was supported in part by Korea Institute of Marine Science           ables into differentiable continuous variables. Thus, in many
+                                          & Technology Promotion(KIMST) funded by the Ministry of Oceans and                 previous studies, partial offloading techniques are widely
+                                          Fisheries, Korea (RS-2022-KS221606, Development of underwater space re-
+                                          source creation technologies), in part by the National Research Foundation         used to solve complex problems [2], [4], [15]. However, since
+                                          of Korea (NRF) grant funded by the Korea government (MSIT) (No. RS-                most AI tasks are unsuitable for partial offloading, MEC
+                                          2023-00250191), and in part by the MSIT(Ministry of Science and ICT),              optimization for AI task offloading requires hard decisions
+                                          Korea, under the ITRC(Information Technology Research Center) support              rather than soft decisions. This constraint is a challenge
+                                          program(IITP-2024-2021-0-02048) supervised by the IITP(Institute for In-
+                                          formation & Communications Technology Planning & Evaluation).                      when applying AI task offloading into complex scenarios.
+                                          M. Kim and J. Jang are with the Department of Electrical Engineer-
+                                          ing, Pohang University of Science and Technology (POSTECH), (email:                2) Joint optimization of user association and resource
+                                          {mwkim0210,jgjang}@postech.ac.kr). Y. Choi is with the Korea Research In-          allocation. The process of offloading local tasks in a MEC
+                                          stitute of Ships and Ocean Engineering (KRISO), (email: ycchoi@kriso.re.kr).       network is analogous to the conventional user association
+                                          H. J. Yang is with the Department of Electrical and Computer Engineering,          and resource allocation (UARA) problem commonly en-
+                                          Seoul National University, (email: hjyang@snu.ac.kr). Minwoo Kim and
+                                          Jonggyu Jang equally contributed. (The corresponding author is Hyun Jong           countered in wireless networks. In typical wireless net-
+                                          Yang.)                                                                             works, a user equipment (UE) connects to a base station
+                                                                                                                                                                     2
+
+                                                                      TABLE 1
+                                               Comparison of the Proposed Method and Previous Works
+
+                                                             [1]     [2]     [3]      [4]     [5]     [6]     [7]     [8]     [9]    [10]    [11]    [12]    [13]
+             Novelty and Related Works               Ours
+                                                            (’23)   (’23)   (’23)    (’23)   (’23)   (’23)   (’22)   (’22)   (’22)   (’22)   (’22)   (’21)   (’20)
+                         Multi-Cell Networks          ✓      ✓       ✓       ✗        ✓       ✓       ✗       ✗       ✗       ✓       ✓       ✗       ✗       ✓
+                         Multi-User Networks          ✓      ✓       ✓       ✓        ✓       ✓       ✓       ✓       ✓       ✓       ✓       ✓       ✓       ✓
+ Architecture
+                         User Association             ✓      ✗       ✗       ✗        ✓       ✓       ✗       ✗       ✗       ✗       ✓       ✗       ✗       ✓
+                         Resource Allocation          ✓      ✓       ✓       ✓        ✓       ✓       ✓       ✓       ✓       ✓       ✓       ✓       ✓       ✓
+                         Full Offloading              ✓      ✗       ✗       ✓        ✗       ✗       ✗       ✓       ✓       ✗       ✗       ✓       ✗       ✓
+                         Distributed optimization
+                                                      ✓      ✗       ✗        -       ✗       ✗        -       -       -      ✓       ✗        -       -      ✗
+                         (multi-cell)
+                         Energy Efficiency            ✓      ✗       ✓       ✓        ✓       ✓       ✓       ✗       ✗       ✓       ✗       ✗       ✓        -
+ Objective
+                         Delay Minimization           ✓      ✓       ✓       ✓        ✓       ✓       ✓       ✓       ✓       ✓       ✓       ✓       ✓        -
+                         Optimization                 ✓      ✓       ✗       ✗        ✓       ✗       ✓       ✓       ✓       ✓       ✗       ✗       ✓        -
+ Approach
+                         Lyapunov                     ✗      ✗       ✗       ✓        ✓       ✓       ✗       ✗       ✗       ✗       ✗       ✗       ✗       ✓
+                         Deep Learning                ✗      ✗       ✓       ✗        ✗       ✓       ✗       ✗       ✗       ✗       ✓       ✓       ✗        -
+                         Latency Minimization         ✓      ✓       ✓       ✓        ✗       ✓       ✓       ✓       ✗       ✓       ✓       ✓       ✗        -
+ Performance Analysis
+                         Energy Consumption           ✓      ✗       ✓       ✓        ✓       ✓       ✗       ✗       ✗       ✓       ✗       ✗       ✓        -
+                         Convergence Analysis         ✓      ✗       ✓       ✓        ✗       ✓       ✓       ✗       ✗       ✓       ✓       ✓       ✓       ✓
+ Theoretical Analysis
+                         Upperbound Analysis          ✓      ✗       ✗       ✗        ✗       ✓       ✗       ✗       ✗       ✗       ✗       ✗       ✗       ✓
+
+
+
+(BS), and resources such as bandwidth are allocated accord-                       specific constraints inherent in MEC systems and formulates
+ingly. Similarly, in MEC systems, each MD associates with                         an optimization problem for UARA. We develop a novel
+an edge server (ES) to receive resource allocations. However,                     optimization-based solution to address this challenge. To
+MEC systems need to manage both computational and                                 validate the effectiveness of our solution, we conduct simu-
+communication resources, where the delays arise from both                         lations under conditions that closely mimic real-world sce-
+computation and communication stages. What makes the                              narios. The results of these simulations show that our model
+problem worse is the diversity in computational capabilities                      outperforms other baseline models in terms of latency and
+of both local and edge devices, such as variations in floating                    energy efficiency, highlighting its potential applicability in
+point operations per second (FLOPS), VRAM capacity, and                           practical MEC environments.
+the number of available cores at the ESs. Additionally,
+centralized optimization, which has been adopted in most                          1.2 Summary of Our Contributions
+existing works, introduces further delays due to the commu-
+nication overhead that occurs during information exchange.                        To the best of the authors’ knowledge, our work repre-
+Therefore, a distributed approach to joint optimization of                        sents the first attempt at optimizing the joint problem of
+user association (UA) and resource allocation (RA) is nec-                        UARA for communication and computation resources in
+essary to effectively address the implications of these dual                      the context of distributed task offloading. Previous works’
+factors.                                                                          contributions and their limitations can be summarized as
+                                                                                  follows:
+3) Trade-off between latency and energy consumption. In
+                                                                                     • As in Table 1, topics regarding UARA in MEC net-
+a MEC system, local devices have the option to offload tasks
+                                                                                       works have been studied intensively [1]–[13]. Amongst
+to an edge server or process them locally. In scenarios where
+                                                                                       them, only a few works have addressed UARA for
+the edge server is heavily loaded, local computation can be
+                                                                                       full offloading in MEC networks [3], [7], [8], [11], [13],
+advantageous in terms of latency, despite its higher energy
+                                                                                       and even fewer research have jointly considered energy
+consumption. In such situations, it is essential to prioritize
+                                                                                       efficiency in MEC networks [3], [11].
+task offloading based on the remaining battery life to main-
+                                                                                     • More importantly, distributed optimization, which re-
+tain network continuity. It becomes necessary to understand
+                                                                                       quires extremely minimal information exchange for
+the relationship between the degree of prioritization and the
+                                                                                       control information, is challenging for reducing com-
+resulting latency versus local energy consumption. One of
+                                                                                       munication overhead. Despite its importance, only one
+the key challenges is to find a Pareto-optimal solution that
+                                                                                       work [9] in Table 1 has considered distributed optimiza-
+balances these factors effectively.
+                                                                                       tion, which does not consider full-offloading.
+    Motivated by these complexities in MEC systems, we
+                                                                                     • One might assume that partial offloading is a more
+identify several crucial questions:
+                                                                                       general form of full offloading, similar to how contin-
+  • How    can the remaining battery life of mobile devices be                         uous variables encompass discrete variables. However,
+    factored into the strategy for task offloading?                                    at least from an optimization standpoint, continuous-
+  • What constitutes the most effective optimization strategy for                      valued variables are often easier to manage because
+    distributed UARA that takes into account both communica-                           most problems can be solved using gradient-based
+    tion and computation latency?                                                      algorithms. As a result, previous studies have tackled
+   Building on these questions, our paper focuses on the                               the full-offloading problem by relaxing it into a more
+                                                                                                                                                3
+
+                                                                                   2   S YSTEM M ODEL AND P ROBLEM F ORMULATION
+                                    No information exchange
+                                                                                   In this section, we first introduce the system model
+                                                                                   overview embracing communication/computation model-
+                           ES 2                      User Association: Which
+                                                                                   ing. Then, we provide a joint UARA optimization problem
+                                          ES
+            ES                                       BS should we offload to?      for prioritized task offloading.
+                                                     Resource Allocation:
+                                                     How much resource
+                                                     should each MD use?
+                                                                                   2.1 System Model Overview
+
+            Task
+                    Task     Task       Task
+                                                                                   Figure 1 illustrates a MEC network composed of NES edge
+                                                      Task Offloading: Do we       servers and NMD MDs, where each of the edge servers has
+                                                      offload the task to an ES?
+                                                                                   its capacity-limited computing hardware. The total compu-
+             MD 1   MD 2     MD 3       MD                                         tation capacities of MD i and ES j are denoted as FMD,i and
+                                                                                   FES,j respectively. We assume that each MD always has a
+                                                                                   task at hand, creating a task whenever the previous task is
+                                                                                   finished. The generated service at MD i has a computation
+Fig. 1. An illustration of the system model. NMD MDs with limited battery          load of fi flops and a communication load of di bits. For
+and heterogeneous tasks can associate with NES ESs. Information                    readability, we summarize the variables used in this paper
+exchange between the ESs is unnecessary.                                           in Table 5.
+                                                                                       In the edge server layer, each ES broadcasts its price
+                                                                                   to users in a decentralized manner. Based on the received
+     tractable form with continuous-valued variables [3],                          prices, each MD aggregates load information from base sta-
+     which has loss of generality.                                                 tions to decide whether to compute locally or offload its task
+We further highlight previous studies and their contribu-                          to a remote edge server. In this context, edge servers allocate
+tions in Section 6. Building upon these foundations, the                           computing and communication resources to minimize the
+contributions of our work are multifaceted and can be                              delay experienced by the users they are servicing.
+summarized as follows:                                                             Assumptions. In our system model, we have postulated
+  • We unveil a groundbreaking task offloading strategy,                           the following assumptions to better emulate the real-world
+    optimization UARA in a novel approach. This strategy                           scenario and to ease the deployment of our proposed
+    not only i) prioritizes full-task offloading with a keen                       method.
+    eye on the MD’s battery level but also ii) features a                          A1) We assume that the time intervals are small enough that
+    fully distributed optimization of load balancing.                                   the channel differences between adjacent time steps are
+  • For the sake of full-task offloading, the formulated op-                            negligible.
+    timiation problem is a mixed integer problem. We take                          A2) Based on the 3GPP small cell Scenario 1 [16], we assume
+    on the challenge of the mixed-integer combinatorial                                 all of the ESs share the cell areas, thereby cooperating
+    optimization problem, which has not been solved in                                  to serve users efficiently.
+    previous studies. To solve the problem, we leverage a                          A3) We assume that the frequency reuse factor is NES , i.e.,
+    novel auxiliary variable-based relaxation technique that                            all the ESs occupy separate bandwidth.
+    enables us to balance loads by a continuous variable,                                • As our objective is to optimize offloading over the
+    not a combinatorial one. The solution we derive fa-                                    long term, we can leverage the previous time step’s
+    cilitates distributed optimization while simultaneously                                channel interference to facilitate dynamic offloading
+    lowering the execution complexity.                                                     and make full use of bandwidth resources.
+  • We provide a thorough analysis of both the convergence
+                                                                                   A4) For brevity of the notation, we omit the time step index
+    and the optimality of the distributed optimization prob-                            in this paper. The index is negligible since our focus is
+    lem, offering insights into the efficacy of our method.                             on long-term optimization of network load balancing.
+  • As well as theoretical analysis, our distributed opti-
+    mization method is scalable for increasing network size                        2.2 Task Offloading Variables and Constraints
+    (number of edge devices or servers), since the compu-
+    tational complexity at each MD and ES is O(NES ) and                           In a MEC system, once a task is generated at an MD, the MD
+    O(NMD ), respectively. Furthermore, the total communi-                         makes its offloading decision. Let xij denote the offloading
+    cation overhead is linearly-proportional to the number                         decision of MD i regarding ES j . The association of MD i
+    of edge servers.                                                               and ES j is represented by
+  • Through experimental results, we demonstrate that the
+                                                                                                        (
+                                                                                                          1, ES j servers MD i,
+    proposed scheme consumes at least 39.1% less energy,                                          xij =                                      (1)
+    while achieving a reduction in latency by at least 1.98                                               0, otherwise.
+    times. Best results in each objective show 5.29 times                              For readability, we define an augmented matrix of xij as
+    reduction in latency and 64.0% reduction in energy                             X ∈ {0, 1}NMD×NES , where [X]i,j = xij . Since AI task cannot
+    consumption. Also, the duality gap analysis shows that                         be partially offloaded, at most 1 ES can be associated to an
+    the proposed method can closely achieve its latency                            MD. Hence, the UA indication variable xij is constrained as
+    lower bound. These findings are supported by simula-                           follows:
+    tions in practical environments, incorporating various                                 X
+    AI services and load scenarios.                                                            xik ≤ 1 and xij ∈ {0, 1}, ∀i ∈ M, j ∈ E.      (2)
+                                                                                          k∈E
+                                                                                                                                          4
+
+If xij = 0 for all j ∈ E , MD i processes its task locally.         where an arbitrarily small constant ǫ is added to the de-
+                                                                    nominator as a regularization technique to prevent potential
+2.3 Communication Model                                             computational issues associated with division by zero.
+
+In this paper, we assume a flat power spectral density (PSD),
+i.e., the transmission power is uniform across all frequency        2.4 Computing Model
+resources for every MDs. The MDs transmit the task data             Here, we introduce our computing model and provide com-
+with full transmission power, where the transmission power          puting delay of local computation and edge computation.
+of MD i is denoted by Pi . To mitigate the inter-cell in-           In general, local devices such as mobile devices and laptops
+terference, the bandwidth is equally divided and occupied           have fewer computation cores compared to the ES (GPU
+by different edge servers. Let us define the bandwidth of           server). For a more practical modeling of computing delay,
+the network as W . Then, the total bandwidth of ES j is             we divide the computation of resource-intensive tasks into
+expressed as Wj = W/B , for all j ∈ E . The allocated               parallelizable and non-parallelizable parts. Since our objec-
+bandwidth is then divided and allocated to the associated           tive is to minimize end-to-end delay, if parallelizable portion
+MDs. The fraction of the bandwidth allocated from ES j to           is high, offloading can lead to higher delay reduction due
+MD i is denoted by yij , Pi.e., the bandwidth allocated to MD       to abundant number of processors at the edge server. To
+i can be represented by j∈E yij Wj .                                model this delay model, we adopt Amdahl’s law. Amdahl’s
+     To simplify our notation, we augment the variables yij to      law describes the relationship between the latency of a task
+create Y. Since the bandwidth allocated to each MD cannot           and the number of available processors, accounting for the
+overlap, the variable Y is constrained by                           portion of the task where parallel computing is feasible:
+                                                                                                                           1
+                                                                                Amdahl’s law: Slatency (s) =                       ,
+        X
+             ykj ≤ 1 and yij ∈ [0, 1], ∀i ∈ M, j ∈ E.         (3)                                                                       (7)
+                                                                                                                      (1 − ρ) + ρs
+       k∈M
+                                                                    where Slatency signifies the acceleration in completing the
+Capacity Model. Let hij denote the channel coefficient
+                                                                    entire task, ρ represents the parallelizable fraction of the
+between MD i and ES j . Again, the allocated bandwidth
+                                                                    original task, and s denotes the achievable acceleration of
+of each MD does not overlap. We can therefore define
+                                                                    the parallelizable proportion.
+the signal-to-noise-ratio (SNR) of MD i served by ES j as
+          |h |2 P
+SNRij = ijN0 i .                                                    Computing Latency at MDs. If MD i has a computational
+                                                                    task at hand, it can fully leverage its computing resource to
+Remark 1 (Interference model). Here, we operate under the           the task. The total number of computing cores at MD i is
+   assumption that the ES divides the bandwidth equally,            represented as ZMDi , and each of the cores has a computing
+   which may not be optimal in terms of frequency effi-             capacity of FMDi . From our assumption, up to one task is
+   ciency. Nevertheless, by finely segmenting the time slots        processed at an MD. Thus, the computing delay of MD
+   as previously designed, the interference state from the          i with task that requires fi flops and has a parallelizable
+   previous time slot approximates that of the current time         fraction of ρi is represented by
+   slot. This allows for a distributed formulation of the
+   Signal-to-Interference-plus-Noise Ratio (SINR) model,                                       fi                    fi
+                                                                                DMD,i =             (1 − ρi ) +             (ρi ),      (8)
+   where the ESs share the total bandwidth.                                                FMDi                   FMDi ZMDi
+   Then, the achievable rate of MD i associated to an ES is         where the first term represents the delay obtained from
+defined by            X                                             the core-independent part of the task, and the second term
+                          xij yij Rij ,                 (4)         represents the delay deriving from the parallelizable portion
+                         j∈E                                        of the task.
+where the spectral efficiency Rij is defined as                     Computing Latency at Edge Servers. The most significant
+                                                                    difference in computation delay between local computing
+                      Wj log(1 + SNRij ).                     (5)   and task offloading is on shared computing resources. More
+Latency Injected from Communication. The latency is an              simply, in each ES, the tasks offloaded from its associated
+important measure for many AI tasks, especially when they           MDs are simultaneously processed. Let ZES,j denote the
+require real-time computation. In our scenario, the Latency         total number of cores available at ES j . Then, if ES j allocates
+is incurred by 2 major components: communication delay              a fraction zij of computing cores to i, the task generated at
+and computation delay. Here, we examine the communi-                MD i is computed with ZES,j zij cores. Thus, the computing
+cation latency model. If an MD decides to process its task          delay of the task generated at MD i offloaded to ES j can be
+locally, there exists no communication delay. On the other          represented by
+hand, once an MD decides to offload a task to ES j , di bits              X       fi                         fi
+                                                                                                                            
+of data should be transferred to ES j via a wireless channel                              (1 − ρi ) +                     ρi xij (9)
+                                                                                FES,j + ǫ             FES,j ZES,j zij + ǫ
+before the service is processed.                                          j∈E
+                                                                          X
+    Using the achievable rate definition in (4), we have the
+                                                                                                        
+                                                                       =      xij DES(s),ij + DES(p),ij                          (10)
+communication delay of MD i associated to ES j as follows:                j∈E
+                                                                          X
+                X di xij         X                                    =         xij DES,ij .                                           (11)
+                               =    xij Dcm,ij ,          (6)
+                j∈E
+                    Rij yij + ǫ j∈E                                       j∈E
+                                                                                                                                                                5
+
+Similar to equation (6), a very small constant ǫ is added to             !"#                        !"#$!                             ;-("2290&()$&"0
+                                                                                                                                      ;-("2<9$&04-=',*6,*>
+the denominator to prevent indeterminacy occurring from                                                                               ;-("2<9$&04-=?"()?>
+division by zero. Also, the computing resource variable zij                                                                   !"#$#
+is constrained by
+                                                                                                            !"#$"
+      X
+          zkj ≤ 1 and zij ∈ [0, 1], ∀i ∈ M, j ∈ E.      (12)
+     k∈M
+                                                                                                                                                !
+Memory Requirement. Another factor to consider is the
+amount of memory the task consumes. The memory the                                                                                          $
+                                                                     %&'(! )
+tasks use should not exceed the VRAM of the edge device. If        +,<)*$9*,   %&'()*+,+-./-
+                                                                                                        5,*6&(,'-)*,-0"$-4,0,*)$,+-
+                                                                                                          73,0-8%'-)*,-.9'/:
+we denote the proportion of the memory used to load model                      &01"*2)$&"0-
+                                                                                *,1*,'3&04
+parameter as Mj , the constraints imposed on the variable
+can be expressed as
+                                                                  Fig. 2. Illustration of the time-evolution of the AoI in our system. The
+                                                                  communication and computation periods are depicted with purple and
+           X
+               mi xkj ≤ 1 − Mj , ∀i ∈ M, j ∈ E,       (13)
+                                                                  green slashes, respectively. The local computing is depicted with gray
+           k∈M                                                    slashes.
+where mi is the linearly-increasing memory consumption
+term.                                                                  Thus, the total energy consumption at MD i is denoted
+Remark 2. When assessing the memory usage of AI models,           by
+  both the number of parameters of the model and the                                    Etot,i = Ecp,i + Ecm,i + Eb,i ,                                      (17)
+  number of activations should be examined. Here, we
+                                                                  where Eb,i denotes the base energy consumption required
+  employ a model size computation method introduced in
+  [17] to calculate the memory size of Transformer-based          to operate MD i.
+  models. The memory calculating equation is as follows:          Energy consumption at Edge Servers. In ESs, the majority
+                                                                  of the energy consumption is due to the computing process.
+                                    24    as                      Similar to equation (10), the total energy consumption re-
+       Memory = p × (sbhL(10 +         + 5 ) + |θ|),       (14)
+                                     t    ht                      quired to process the offloaded tasks from MDs is denoted
+   where p is the precision in bytes, s is the sequence length,   as
+   b is the batch size, h is the size of the hidden dimension,
+   L is the number of transformer layers, t is the tensor              Etot,j = δcp,j
+                                                                                        X
+                                                                                               (FES,j (1 − ρi ) + FES,j ZES,j zij ρi ) ,                     (18)
+   parallel size, a is the number of attention heads, and                               i∈M
+   |θ| is the number of parameters of the model. We use
+   this formula to assess the memory size of the AI models        where we omit the base energy consumption for brevity.
+   based on Vision Transformer (ViT).
+                                                                  2.6 Problem Formulation
+                                                                  We first introduce the objective function of our problem
+2.5 Energy Consumption Model
+                                                                  formulation. We aim to minimize end-to-end delay while
+Energy Consumption at MDs. Most MDs have limited                  reducing energy consumption of low-battery-level MDs.
+battery capacity while some user devices may be powered           Thus, the objective function is formulated by a balanced
+and therefore does not have finite battery capacity. To take      form of average end-to-end delay and battery usage.
+this scenario into account and generalize our scenario, we        Average Latency. Here, for brevity of the notation, we use
+compose our user set M with both type of users, one with          sum-delay of the tasks generated from MDs as follows:
+limited battery and the other with infinite energy.                              XX
+    In MDs, energy is expended on communication and                                       xij (Dcm,ij + DES,ij )
+computation. If a task is not offloaded, the device energy is                           i∈M j∈E
+spent on computation only. However, if offloading occurs,                                                                                                    (19)
+                                                                                                                     
+                                                                                               X            X
+energy is expended on the transmission of radio waves                                   +          1 −           xij  DMD,i .
+at a specific frequency. We first look at the case of local                                 i∈M             j∈E
+computation. Let us define the computing energy efficiency
+as δcp,i (Watt/flops). Then, the computing energy of MD i         Remark 3 (Objective function from the viewpoint of AoI).
+per unit time is represented by                                     In Fig. 2, we have depicted an illustration of the time-
+                                                 X                  evolution of the AoI in our system. We focus on the peak
+  Ecp,i = δcp,i ·(FMDi (1−ρi )+FMDi ZMDi ρi )(1−    xij ). (15)     AoI (PAoI) represented in [18]. The PAoI is formulated
+                                                 j∈E                as
+                                                                                                    1
+Next, defining the power efficiency of transmission of MD i                             ∆ = lim       Tn ,               (20)
+                                                                                             N →∞ N
+as δcm,i , the energy consumption of MD i connected to ES j
+                                                                    where N denotes the number of processed tasks and Tn
+for offloading can be expressed as follows:
+                                                                    denotes the peak of the age of n-th process. As depicted
+                                                                    in Fig. 2, the peak age is proportional to the average
+                               X
+                 Ecm,i = δcm,i   (xij yij Wj ) Pi .     (16)
+                            j∈E                                     delay of each service. Hence, with the linear age (∝ t),
+                                                                                                                                                                6
+
+    our objective function complies with the concept of AoI
+    with linear age and PAoI.
+Penalized Term for Battery Usage for Low-Battery level
+MDs. We now formulate the energy consumption of lo-
+cal computation. The energy penalty of local processing is
+denoted as
+                                       di
+                 Gi = δcp,i fi − δcm,i     .          (21)
+                                       Rij
+                                                                   Obtain a closed form solution of                          Obtain a closed form solution of
+Then, the energy consumption part of the objective function
+is formulated by
+                                    
+                     X       X         Gi
+               max      1 −     xij     ,            (22)
+                 X
+                    i∈M      j∈E
+                                       Bi
+
+where Bi is the remaining battery of MD i. We take the
+fractional representation of the two variables to enhance         Fig. 3. Schematic of the algorithms for the latency and energy consump-
+the consideration of device energy, particularly in situations    tion minimization problem in the MEC system.
+where the energy levels are low.
+    By combining the objective functions (21) and (22) with
+                                                                  the optimality and convergence of the proposed algorithm
+the constraints presented in the previous sections, the
+                                                                  in the next section.
+UARA optimization problem is formulated as
+
+               XX
+ P1 : min               xij (Dcm,ij + DES,ij )                    3.1 Communication Resource Allocation With Fixed
+      X,Y,Z
+              i∈M j∈E                                                 User Association
+                                      
+                                                    Gi
+                                                      
+                  X            X                                  We first focus on solving for the variable Y in the context of
+              +         1 −       xij   DMD,i − α      (P1 a)
+                                                    Bi            Problem P1 . For brevity of the explanation, we formulate
+                  i∈M          j∈E
+                                                                  a sub-problem, in which the other variables (X and Z)
+       s.t.   (2), (3), (6), (8) − (13), (15), (16),     (P1 b)   are fixed1 . Hence, Problem P1 can be reformulated to a
+where α is the balance coefficient between MD energy              subproblem for Y as
+preservation and average latency. Specifically, the energy-
+                                                                                                                    di xij
+related term G
+                                                                                                             XX
+              Bi is integrated into the time-domain objective                        P2 : min                                                         (P2 a)
+               i
+
+function with the help α. Here, α can be regarded as a                                        Y
+                                                                                                          i∈M j∈E
+                                                                                                                  Rij yij + ǫ
+
+unit conversion factor, converting energy consumption into
+                                                                                                           X
+                                                                                               s.t.           ykj ≤ 1, ∀j ∈ E                         (P2 b)
+delay. Additionally, α serves as a weight term of energy                                                  k∈M
+expenditure. By adjusting the value of α, the network can
+                                                                                                          yij ≥ 0, ∀(i, j) ∈ M × E.                    (P2 c)
+regulate all the MDs’ local energy consumption. In our
+problem, we do not incorporate energy conservation of
+                                                                     Since all the constraints and objective function in Prob-
+ESs as an objective for minimization, given that each ES is
+                                                                  lem P2 are decomposable for each ES j , we can relax the
+typically connected to an energy source. Consequently, we
+                                                                  problem into sub-problems for each ES j as follows:
+prioritize on energy conservation of MDs with the risk of
+battery depletion due to limited battery capacity.                                                              X   di
+    In Problem P1 , the main challenge is that the problem                                 P3 : min                                                   (P3 a)
+                                                                                                      Y           R ij yij
+is in a non-linear form in terms of all unknown variables                                                    i∈Mj
+X, Y and Z. Also, the binary variable X is a combinatorial
+                                                                                                              X
+                                                                                                      s.t.        ykj ≤ 1                             (P3 b)
+variable, coupled with Y, which is continuous. This exacer-                                                  k∈Mj
+bates the problem, as the problem becomes non-linear and
+                                                                                                             yij ≥ 0, ∀i ∈ Mj ,                        (P3 c)
+a mixed-integer problem.
+                                                                  where Mj is a subset of M such that Mj = {i ∈ M|xij =
+3   O PTIMIZATION - BASED O FFLOADING S CHEME                     1}.
+In this section, we propose a distributed task offloading             We obtain the solution to the Problem P3 using the
+framework via UARA optimization under MEC networks.               Karush-Kuhn-Tucker (KKT) conditions. For brevity of the
+To this end, we first solve the RA part of the original           notation, we present the details of the derivation in Ap-
+problem P1 for given UA variable X, where closed-form             pendix A.1, which can be found in the supplemental ma-
+solutions are obtained for both communication and com-
+puting RA variable. Next, we obtain the UA solution X for            1. Here, although the variables X and Z are fixed, we can obtain a
+the optimal Y and Z. The resulting solution minimizes the         closed-form solution of Y. That is to say, we can plug-in the optimal
+                                                                  variable Y into Problem P1 and solve the problem only for the variable
+objective function, which is a balanced function of average       X. Furthermore, the variable Z is independent with the variable Y for
+latency and energy preservation. Furthermore, we analyze          fixed X.
+                                                                                                                                                           7
+
+terial. From the solution of Problem P3 , the optimal band-                 optimal solution is obtainable without such communication
+width allocation is given as                                                overhead.
+               q          .
+                                                                              Before solving the problem; the challenge is that the
+                                X q                                         first and second terms in Equation (P5 a) are non-linear
+         yij =     di /Rij           dk /Rkj          (23)
+                                                                            to the binary variable xij and cannot be decomposed. To
+                                       k∈Mj
+              q        .                                 !                obtain a solution, we may require computation-intensive
+                                          X q                               exhaustive search, the computational complexity of which is
+            =   di /Rij                      dk /Rkj xkj       .    (24)          NMD +1
+                                                                            O(NES        NMD ). To resolve this issue, we propose a method
+                                       k∈M                                                                                   q            2
+                                                                                                                       P
+                                                                            to add two slack variables: i) aj =           i∈M  D̂cm,ij xij
+3.2 Computing Resource Allocation With Fixed User                                                
+                                                                                                   P     q                2
+    Association                                                             and ii) bj =             i∈M    D̂ES(s),ij xij , where a =
+Similar to the bandwidth resource allocation from the previ-                [a1 , · · · , aNES ] and b = [b1 , · · · , bNES ]. With these slack vari-
+ous section, the computing resource allocation problem can                  ables, we can reformulate the problem P5 without loss of
+be decomposed for each ES j . The decomposed computing                      generality, as follows:
+resource allocation sub-problem for ES j is represented by
+                 X  fi (1 − ρi )        f i ρi
+                                                                                                  X                    XX
+    P4 : min                      +                   (P4 a)                       P6 : min              (aj + bj ) +             cij xij             (P6 a)
+                                                                                         a,b,X
+          Z
+                i∈Mj
+                          FES,j     FES,j ZES,j zij                                                j∈E                  i∈M j∈E
+                                                                                                   X
+                                                                                          s.t.           xij ≤ 1, ∀i ∈ M                              (P6 b)
+                 X
+          s.t.        zkj ≤ 1                         (P4 b)
+                                                                                                   j∈E
+                    k∈Mj
+                    zij ≥ 0, ∀i ∈ Mj .                             (P4 c)                          xij ∈ {0, 1}, ∀(i, j) ∈ M × E                      (P6 c)
+                                                                                                   √       Xq
+   We use KKT conditions to find the optimal solution                                                aj =        D̂cm,ij xij                          (P6 d)
+                                                                                                             i∈M
+to Problem P4 . We omit the solution in this section, and                                          q     Xq
+we elaborate the solution in Appendix A.1 (available at                                             bj =   D̂ES(s),ij xij .                           (P6 e)
+the supplmental material). The optimal solution for the                                                      i∈M
+computing resource allocation is denoted as follows:
+                                                                                Now, the objective function of the problem given by
+                                                                            (P6 a) is linear. Furthermore, xij related terms in the con-
+           s                    s                !
+                f i ρi . X          f k ρk
+     zij =                                    xkj .   (25)                  straints are all linear, which enables us to find the optimum
+             FES,j ZES,j          FES,j ZES,j
+                          k∈M                                               X by minimizing the Lagrangian of problem P6 . Interest-
+                                                                            ingly, the association variable xij of MD i can be computed
+3.3 User Association                                                        in MD i locally without exchanging information with other
+                                                                            MDs. Henceforth, in Lagrangian duality approach, if the
+In Sections 3.1 and 3.2, we obtain the optimal solutions of
+                                                                            Lagrangian multiplier of the dual problem can be computed
+Y and Z for given UA variable X. Here, we aim to solve
+                                                                            distributedly, the algorithm can be implemented in a fully
+the optimization problem P1 , with the solutions for RA
+                                                                            distributed manner. In the remainder of this section, we
+variables Y and Z are provided in (23) and (25), respectively.
+                                                                            solve the problem in the following steps:
+   First, for the brevity of the notation, we rewrite the
+problem P1 by substituting the optimal RA solutions into                     1) Minimization of Lagrangian of Problem P6 with respect
+the problem. The problem can be reformulated as                                 to variables X, a, and b. (L(X, a, b).)
+                                             !2                              2) Obtain dual objective function g(µ, ν) of Problem P6
+                  X Xq                                                          by substituting the optimal variables (from step 1) into
+      P5 : min                D̂ES(s),ij xij                                    the problem.
+            X
+                      j∈E       i∈M                                          3) Solve the Lagrangian dual function by maximizing the
+                                                      !2
+                                X     Xq                                        dual objective function.
+                            +           D̂cm,ij xij                (P5 a)
+                                j∈E   i∈M                                   3.3.1 Step 1: Minimize Lagrangian
+                                XX
+                            +             cij xij                           In the first step of the Lagrangian duality approach, we
+                                j∈E i∈M                                     obtain the Lagrangian dual objective function of the prob-
+                      X
+             s.t.           xij ≤ 1, ∀i ∈ M                        (P5 b)   lem P6 . To this end, we formulate problem P6 into the
+                      j∈E                                                   Lagrangian form as follows:
+                      xij ∈ {0, 1}, ∀(i, j) ∈ M × E,               (P5 c)                   X               XX
+                                                                              L(X, a, b) =     (aj + bj ) +       cij xij
+                                                        fi ρi
+where cij = −DES(p),ij − DMD,i + α G
+                                   Bi , D̂ES(s),ij = FES,j ZES,j ,
+                                     i                                                           j∈E               i∈M j∈E
+                                                                                                                                          !
+                                                                                                              √
+                                                                                                                             q
+and D̂cm,ij = di /Rij                                                                             X                 X
+                                                                                             +          µj   − aj +           D̂cm,ij xij              (26)
+    A well-designed heuristic method could also obtain a                                          j∈E                    i
+near-optimal solution; however, it would require heavy                                                                                        !
+                                                                                                              q     Xq
+information exchange between the MDs in order to achieve
+                                                                                                  X
+                                                                                             +          νj   − bj +   D̂ES(s),ij xij              ,
+good performance. As for our scheme, we show that an                                              j∈E                    i
+                                                                                                                                      8
+
+where µj and νj are the Lagrangian multipliers correspond-             Algorithm 1 Pricing-Based Distributed Task Offloading Al-
+ing to the constraints (P6 d) and (P6 e). For simplicity, we           gorithm for Latency Minimization
+define augmented vector notation of Lagrangian multipliers              1: Initialisation:
+by µ = [µ1 , · · · , µNES ] and ν = [ν1 , · · · , νNES ]. We can now    2:    − Randomly initialize νj and µj for all j ∈ E .
+obtain the Lagrangian dual objective function by                        3:    − Initialize step size η1 and η2 .
+                                                                        4: for t = 0 to T do
+                    g(µ, ν) = min L(X, a, b).                  (27)     5:     ES j for all j ∈ E broadcast prices µj and νj to users.
+                              X,a,b
+                                                                           ⊲ Broadcast Price
+Because the primal variables a, b, and X in Lagrangian are              6:     for i ∈ M do
+not coupled, we minimize those variables separately.                    7:         if MD i generates a service then
+Step 1-1: Minimizers a∗ and b∗ for Lagrangian. Because                  8:             Update xij , j ∈ E by (30). ⊲ Task offloading
+the Lagrangian (26) is strongly convex, the minimizers a                9:         end if
+and b can be obtained by first-order optimality condition.             10:     end for
+Denoting the minimizers by a∗ = [a∗1 , · · · , a∗NES ] and b∗ =        11:     for j ∈ E do
+[b∗1 , · · · , b∗NES ], we have the following condition:               12:         # Locally update the lines 13 - 15 at ES j
+                                                                       13:         Update yij and zij ∀i ∈ Mj by (23) and (25).
+              ∂L        µj             µ2j                             14:         Update µj and νj by (32).              ⊲ Update price
+                  = 1 − √ = 0 =⇒ a∗j =                         (28)    15:     end for
+              ∂aj      2 aj             4
+                                                                       16: end for
+              ∂L        ν              νj2
+                  = 1 − p = 0 =⇒ b∗j =     .                   (29)
+              ∂bj      2 bj             4
+                                                                       functions of µ and ν . Thus, we design the sub-gradient
+Step 1-2: Minimizer X∗ for Lagrangian. Let us define                   descent algorithm by
+the optimal X minimizing Lagrangian L as X∗ . Although                                                                   !
+the variable X is combinatorial, the minimizer X∗ for the                                        Xq
+                                                                                                                 ∗    µj
+                                                                                  µj ← µj + η1         D̂cm,ij xij −
+Lagrangian can be easily obtained since xij ∈ {0, 1} and                                                              2
+P                                        ∗                                                      i∈M
+   j∈E xij ≤ 1. More specifically, X can be obtained by se-
+                                                                                                                        !   (32)
+                                                                                                                     νj
+                                                                                                  q
+lecting index j (ES j ) with the minimum coefficient, whereas
+                                                                                               X
+                                                                                                                ∗
+                                                                                νj ← νj + η2        D̂ES(s),ij xij −      ,
+none of the ESs are chosen if the minimum coefficient is                                      i∈M
+                                                                                                                     2
+larger than zero, i.e.,
+                                                                       where η1 and η2 denote the step sizes for µ and ν , re-
+         
+                                                                       spectively. As previously stated, the update procedure in
+                                  q               q
+         
+          1,   j =  argmin(µ   j   D̂ cm,ij + ν j D̂ES(s),ij
+                                                                      (32) can be done with local information only; thus, the
+  x∗ij =                +cij ),                               (30)     proposed method can optimize the load of the network in a
+         
+         
+          0, otherwise.                                               distributed manner.
+                                                                           Now, we analyze the information exchange of the net-
+3.3.2 Step 2: Formulate Lagrangian dual problem                        work. The information exchange necessary for the proposed
+                                                                       method can be outlined as follows:
+Substituting the minimizers X∗ , a∗ , and b∗ into the La-
+                                                                         • Control information collection from the MDs to
+grangian, we rewrite the Lagrangian dual objective function
+                                                                            the ESs: From the update equation (32), the in-
+of (27) as
+                                                                            formationqrequired for ES j to q     determine its price
+                                 !
+                 X µ2j       νj2                                            is
+                                                                               P                  ∗
+                                                                                         D̂cm,ij xij and i∈M D̂ES(s),ij x∗ij . Those
+                                                                                                         P
+                                                                                  i∈M
+     g(µ, ν) = −          +
+                        4     4                                             values are already accessible at each ES, as ES j can
+                 j∈E
+         X         q              q                    (31)                 obtain the delay term of the serving users (x∗ij = 1)
+      +     min(µj D̂cm,ij + νj D̂ES(s),ij + cij ).                         without additional information exchange.
+              j∈E
+        i∈M                                                              • ED-side actions: The task of each MD is to simply
+                                                                            compare the weighted delay for ESs and determine
+   Since the minimum of affine functions is concave, the                    their xij values, as outlined in (30). Subsequently, the
+new dual objective function (31) is a concave function.                     remaining communication load is negligible since the
+Finally, we find the optimum µ and ν by maximizing the                      MD only needs to send two integers when the MEC
+Lagrangian dual objective function as follows:                              network is initialized – each representing the number of
+                                                                            bits and the number of flops of the task.
+                       P7 : max g(µ, ν).                     (P7 a)
+                            µ,ν                                          • Information exchange between the ESs: No informa-
+                                                                            tion exchange between the ESs is needed, as the price of
+                                                                            an ES is calculated based on the load from the allocated
+3.3.3 Step 3: Solve Lagrangian dual problem                                 MDs only.
+In order to find the optimal solutions µ∗ and ν ∗ of Prob-               • Price broadcasting from the ESs to the MDs: As the
+lem P7 , we use the sub-gradient descent method, which                      price each ES needs to broadcast is a single floating
+is widely used in the optimization of non-differentiable                    point number, only a short communication is necessary.
+functions. In fact, the dual function is sub-differentiable                In Algorithm 1, we present a detailed step-by-step im-
+because the dual function g(µ, ν) is the minimum of affine             plementation of the proposed scheme.
+                                                                                                                                                 9
+
+       g(µ, ν)                                                                        However, as depicted in Fig. 4, since X is in a discrete
+                                                       g(µ, ν)                    space, the solution may lie on a non-differentiable point.
+                                                                                  The green-colored fist term is discontinuous at the points
+                                                                                  where the output of the argmin operator in (30) changes.
+                                                                                  That is, the objective function of Problem P7 can be non-
+                                                                                  differentiable for µ or ν . The black dashed circle in Fig. 4
+                                                                   µj             indicates an example where the solution is located at a non-
+                                                                                  differentiable point. This means that the constraints (P6 d)
+                                                                                  and (P6 e) cannot be satisfied. Whether the constraints (P6 d)
+                                                                  P µj
+                                                                                  and (P6 e) are satisfied or not, we can recover the variable
+                                                                 j∈E
+                                                                        2         X using (30); however, the average latency term in the
+                                                                                  objective function of Problem P6 is different from the actual
+                                                                 DES(p),ij x∗ij
+                                                          P p
+                                                         i∈M
+                                                                                  latency, as written below:
+                                                                                     • The objective function of the primal problem P6 :
+                                                                                       P                  P         P
+                                                                   µj                    j∈E (aj + bj ) +    i∈M      j∈E cij xij .
+                 The solution may lie on a non-differential                          • Actual delay with penalized energy consumption cor-
+                 point of function g(µ, ν)
+                                                                                       responding to X:
+                                                                                                                    !2                          !2
+Fig. 4. Intuition of the situation that the solution lies on a non-                     X Xq                             X Xq
+differentiable point.                                                                                D̂ES(s),ij xij    +            D̂cm,ij xij
+                                                                                       j∈E   i∈M                          j∈E   i∈M
+                                                                                           XX
+                                                                                       +             cij xij .
+4   T HEORETICAL A NALYSIS                                                                 i∈M j∈E
+In Section 3, we proposed a joint task offloading and re-
+                                                                                     Hereby, the query is that the solution may be no longer
+source allocation scheme for long-term delay minimization.
+                                                                                  optimal for Problem P6 . In Theorem 1, it is shown that the
+The proposed method can be implemented in multiple edge
+                                                                                  gap between the obtained solution and the globally optimal
+servers without cooperation. In this section, we analyze the
+                                                                                  solution is bounded.
+optimality and convergence of the proposed algorithm.
+                                                                                  Theorem 1 (Weak duality condition). Let us define the
+                                                                                     UA variable recovered by the dual solution to Prob-
+4.1 Optimality                                                                       lem P7 as X̂, â, and b̂. Then, the performance gap
+From Sections 3.1 and 3.2, the RA solutions (23) and (25) are                        between the solution X̂      and the globally optimal   so-
+                                                                                                                                       
+globally optimal for given X. Therefore, there is no optimal-                                                           (1) 2     (2) 2
+                                                                                                                             
+                                                                                     lution is bounded by O          ∆j       + ∆j        , where
+ity loss in the RA solutions. However, in the optimization                                                                  
+                                                                                              √
+                                                                                                                q
+of X, there may exist a gap between the dual solution and                               (1)
+                                                                                     ∆j = aj −
+                                                                                                        P                            (2)
+                                                                                                                  D̂cm,ij xkj and ∆j = bj −
+                                                                                                                                            p
+                                                                                                            i∈M
+primal solution. Here, we analyze the duality gap of the UA                                   q               
+problem and the convergence of the proposed scheme.                                    P
+                                                                                                 D̂          x
+                                                                                           i∈M      ES(s),ij ij .
+    Before analyzing the optimality, we clarify that the con-
+straints on slack variables (P6 d) and (P6 e) may not be                                  Proof: For the proof of the proposition, please consult
+satisfied if X is recovered by (30). Figure 4 illustrates the                     Appendix B in the supplementary materials.
+intuition that the solution cannot always satisfy the slack                       Extension to Machine Learning (L2 Loss Minimization
+constraints. As depicted in the figure, the gradients of                          Approach). We have aj = µ2j /4 and bj = νj2 /4, where
+g(µ, ν) respect to µ and ν are represented by                                     aj , bj ≥ 0. In machine learning approaches for task offload-
+                 ∂g     Xq                      µj                                ing [19], the learning algorithm aims to minimize a loss
+                    =         D̂ES(s),ij x∗ij −                                   function. If we set the loss function for minimizing the error
+                ∂µj                              2
+                       i∈M                                                                          (1) 2      (2) 2
+                                                                                                               
+                                                          (33)                    terms as ℓ = ∆j         + ∆j       , we can rewrite the gradient
+                ∂g                              νj
+                       X  q
+                    =        D̂ES(p),kj x∗ij − .                                  descent step in (32) as follows:
+               ∂νj    i∈M
+                                                2
+                                                                                                                         ∂ℓ
+   Simply put, because the dual function g is concave, if                                                  µj ← µj + η1
+                                                                                                                        ∂µj
+the dual function is differentiable at all points, the solution                                                                              (35)
+                                                                                                                        ∂ℓ
+must satisfy                                                                                               νj ← νj + η2     .
+                                                                                                                        ∂νj
+   µj     Xq                        νj    Xq
+      =         D̂ES(s),ij x∗ij and    =       D̂ES(p),kj x∗ij .
+    2    i∈M
+                                    2    i∈M                                      4.2 Convergence Analysis
+                                                              (34)
+                                                                                  It is well known that the sub-gradient descent method
+   The condition (34) is satisfied if the two terms, i) mono-
+                                                                                  generally converges to the optimal point if the problem is
+tonically decreasing affine term and ii) monotonically in-
+                                                                                  a convex function. Here, we show that the proposed scheme
+creasing step-like term2 , are equal.
+                                                                                  converges within O(1/ǫ2 ) gradient descent steps.
+  2. As the value of ν1,j increases, the indicator xij changes one to             Proposition 1 (Convergence of the proposed scheme). Let
+zero, i.e., the services are offloaded to other ESs.                                  us define the sequence of Lagrange multipliers (µ, ν)
+                                                                                                                                                         10
+
+                                     TABLE 2                                                                   TABLE 3
+                                 Simulation Settings                                       Communication and Computation Loads of the AI Tasks
+
+
+                           Parameters                                 Values               Tasks          Communication [bits]   Computational [flops]
+                        Number of MDs, NMD                            20 to 160
+                         Number of ESs, NES                            4 to 20
+                                                                                      Llama (7 billion)        4.1 × 103              5.0 × 1013
+                          Bandwidth (MHz)                                 10             ResNet18              6.0 × 106              4.2 × 109
+                Maximum transmission power (dBm)                          30
+                       Noise power (dBm/Hz)                             -174
+                                                                                         ResNet50              6.0 × 106              1.8 × 109
+                             Pathloss (dB)                       41 + 28 log10 (d)     MobileNetV2             3.2 × 107              3.0 × 108
+       Coefficient of energy consumption for computing, δcp             109            MobileNetV3             3.2 × 107              8.0 × 1012
+    Coefficient of energy consumption for communication, δcm,i           2.6
+                 Weight for energy penalized term, α                  0 to 100             SAN                 9.6 × 107              7.2 × 1013
+                                                                                          PSPNet               3.2 × 107              5.2 × 1013
+
+
+     updated by (32) as (µ(0) , ν (0) ), (µ(1) , ν (1) ), ..., (µ, ν)
+     for arbitrary k . We define the best solution until the                         in close proximity are more likely to be associated to the
+     T -th step as gmax,k = maxt=0,...,T g(µ, ν). Then, for                          same ES. Still, clustered users are considered in order to
+     any ǫ > 0, there exist a constant step size (η1 , η2 ) and                      better mimic the actual network scenarios. These different
+     optimization step T ∈ O(1/ǫ2 ) satisfying the following                         types of users allow us to simulate a more realistic cell
+     inequality:                                                                     network environment. Additionally, in order to reproduce
+                         g ∗ − gmax,T ≤ ǫ,                       (36)                a more task-intensive network, we prompt our users to
+                                                                                     generate tasks right after the completion of their previous
+     where g ∗ = maxµ,ν g(µ, ν).                                                     tasks, which increases the chance of the network saturating.
+       Proof: The proof is shown in Appendix C, which is                                 The number of MDs ranges from 20 to 160. We use vari-
+located in the supplementary material.                                               ous types of MDs, including energy-limited mobile devices
+                                                                                     and energy-unlimited local computers. For energy-limited
+                                                                                     mobile devices, we use Samsung’s Galaxy S23, Huawei’s
+4.3 Computational Complexity
+                                                                                     Mate 60, and Apple’s iPhone 14, some of the latest mobile
+As previously mentioned, the proposed algorithm requires                             devices available in the market. As for the energy-unlimited
+O(1/ǫ2 ) steps to converge, with the total computational                             computers, we use Apple’s iMac with M1 processor. We
+complexity of each step being O(NES NMD ). Therefore, for                            use 4 to 20 number of ESs for our simulation. Each ES is
+optimization with a fixed ǫ, the proposed algorithm ne-                              equipped with computing resources that outperforms MD’s
+cessitates total O( ǫ12 NES NMD ) floating-point operations. By                      computing power. We use a combination of NVIDIA’s RTX
+virtue of the distributed optimization, each of MDs and ESs                          2080, RTX 3090 and A6000 as the ES’s computing device.
+has computational complexities of O(NES ) and O(NMD ) in                                 As for the tasks that the users generate, we use both the
+each step, respectively. In contrast, the heuristic exhaustive                       language-based AI tasks and computer vision tasks. Typi-
+                                                N
+search method has a complexity of O(NESMD+1 NMD ). In                                cally, large language models (LLMs) that deal with language
+practical scenarios, the number of MDs typically exceeds                             tasks require large computing power and small input size. In
+20, significantly increasing the computational complexity.                           contrast, computer vision models require comparably small
+Thus, the proposed algorithm effectively reduces computa-                            computing resources, while the communication loads are
+tional complexity, making it more efficient and scalable. This                       relatively big due to larger input data. We combine these
+efficiency makes it well-suited for practical applications in                        two tasks in different ratio. For language tasks, we employ
+large-scale MEC systems.                                                             Llama 2 model with approximately 7 billion parameters. As
+                                                                                     for vision tasks, we use a combination of convolutional neu-
+5      P ERFORMANCE E VALUATION                                                      ral network (CNN)-based models and ViT-based models.
+                                                                                     Specifically, we adopt 2 residual net (ResNet) models, 2 Mo-
+In this section, we evaluate the proposed UARA of-                                   bileNet models, ViT-based side adapter network (SAN) and
+floading scheme in realistic AI-native MEC systems. Our                              pyramid scene parsing network (PSPNet). Using these tasks,
+scheme is tested and compared in diverse network sce-                                we simulate three types of networks: network with high
+narios. Our network scenarios include different network                              communication load, network with heavy computational
+loads, different number of MDs and ESs and different                                 load and a network with balanced load. In a network with
+simulation parameters. We first introduce our simula-                                high communication load, the tasks predominantly consist
+tion environment in subsection 5.1, and show the perfor-                             of vision tasks. The task parameters are listed in Table 3.
+mance of our scheme in subsection 5.2. For reproducibil-                             The table values are based on the simulation results and cal-
+ity of the results, our implementation code is available at                          culations conducted by the authors. As for a network with
+https://github.com/mwkim00/mec uara.                                                 high computational load, the tasks that the users generate is
+                                                                                     mainly comprised of language tasks.
+5.1 Simulation Environment                                                               We compare our results with some reference agents,
+We use the 3GPP small cell simulation document to model                              which uses different policy schemes named as
+our channel [16], [20]. The parameters are listed in detail in                          • Random scheme, where the MDs choose the device
+Table 2. The cell consists of two type of users: clustered users                          (either one of NES ESs or locally) to compute randomly.
+and uniformly distributed users. Clustered users typically                                The probability distribution of the selection follows a
+increase the overall latency of the network, as the users                                 uniform distribution.
+                                                                                                                            11
+
+  • Max     SINR scheme [21], where the MDs determines          scheme. The reason for the proposed scheme’s exceptional
+     which ES to associate based on the channel quality         performance is based on the simultaneous consideration of
+     between the ESs and the device. The channel quality        communication/computational latency and flexible offload-
+     is assessed based on the uplink SINR. Hence, following     ing policy. How the proposed scheme outperforms other
+     this scheme, the MDs will achieve low communication        baselines is better illustrated in Figs. 6 and 7.
+     delay.                                                         Figures 6 and 7 show the major latency component
+   • Max Compute scheme [22], [23], which enables MDs           of different network scenarios as the number of users in-
+     to determine the computing device depending on the         creases. Specifically, Fig. 6 illustrates the latency of users
+     computational load on the ESs. Computing delay is a        in a network with heavy communication load. As for the
+     major component of the overall latency of the system,      baseline schemes, the performance degrades severely as the
+     alongside communication delay. To devise a scheme          available number of ESs decreases from 8 to 4. However, the
+     that reduces the computational delay, we revise the        proposed scheme maintains similar latency for all scenarios,
+     approaches used in previous works [22], [23].              showing that the algorithm is comparatively invariant to the
+   • Combined scheme, which is a mixture of the max             amount of available resources. In a network with high com-
+     SINR scheme and the max compute scheme. The MDs            munication load, the communication latency term becomes
+     employing combined offloading scheme determine the         the dominating factor in the overall latency of equation (19).
+     computing device based on both the communication           Hence, the optimization process of the proposed method
+     channel information and the computing resource infor-      is focused on optimizing the communication latency. As a
+     mation.                                                    result, the proposed scheme achieves the lowest communi-
+For all schemes, we allow the the MDs to compute their task     cation latency. Our method achieves latency lower than the
+locally with probability ǫ. This allows for fair comparison     max SINR method, which can be regarded as a theoretical
+between the heuristic schemes and the proposed scheme,          short-term lower bound of the communication latency.
+as the proposed scheme is allowed to compute locally.               On the other hand, in a network experiencing heavy
+Enabling local computation also allows us to analyze the        computational load (Fig. 7), our scheme dynamically fo-
+effects of local computation ratio. In our simulation, we use   cuses on reducing the computational latency. Similar to the
+ǫ = 0.2, as it leads to approximately uniform offloading        communication-intensive network, this is due to the fact
+between the ESs and the local device.                           that computational delay is the dominating term of the
+                                                                latency formula.
+                                                                    Previously, we have observed how different method per-
+5.2 Evaluation Results
+                                                                forms as the number of MDs increases. Next, we investigate
+In this section, we conduct simulations to assess the effec-    the scalability of the method concerning the number of ESs.
+tiveness of our proposed model.                                 Figure 8 exhibits the latency of each method relative to
+                                                                the number of ESs. Starting from NES = 4, we gradually
+5.2.1 Latency Analysis                                          increase the number of ESs up to 20 to analyze how the
+A network employing distributed optimization, including         proposed method scales. The results indicate that as the
+the proposed method, is expected to show robustness with        number of ESs increases, the latency of all the methods grad-
+regard to the environment as scalability is crucial in dis-     ually decreases. More importantly, although necessities of
+tributed optimization. We test each scheme in different net-    optimization is decreased as more ESs can reduce load their
+work environments to investigate each scheme’s scalability.     individual load on computing/computation, the proposed
+Figure 5 illustrates the latency of the proposed and the ref-   method consistently outperforms the baseline methods. This
+erence schemes with respect to the number of MDs, which         demonstrates that the proposed method is robust to the
+ranges from 20 to 160. Our scheme is tested in three network    change of the number of ESs, showing good scalability
+scenarios: network with balanced load, communication-           property while achieving the lowest latency among the
+intensive network, and computational-intensive network.         schemes.
+The simulation results show that for all network scenarios,         The results indicate that the proposed scheme is able
+the proposed achieves the lowest latency. More specifically,    to achieve a low latency, regardless of the network envi-
+in a network with 160 MDs, the proposed scheme achieves         ronment. The proposed scheme outperforms other baseline
+55.3%, 81.1%, and 64.7% lower latency compared to the           schemes, even the schemes that specialized in specific net-
+best performing reference scheme in each of the network         work environments.
+scenario. From the figures, we can see that the proposed
+scheme achieves a latency that is almost constant compared      5.2.2 Energy Analysis
+to the baseline schemes, which grow linearly. From Fig. 5b,     Now, we analyze the energy consumption results of the
+which depicts the latency of the schemes in a network with      proposed scheme and the baseline schemes. The energy
+high communication load, we observe that the max SINR           consumption per task under different network scenar-
+scheme outperforms other baselines due to its performance       ios is shown in Table 4. The values indicate that our
+in dealing with communication delay. However, it does not       method achieves the lowest local energy consumption per
+excel the performance of the proposed scheme. Fig. 5c shows     task for both the communication-intensive network and
+the latency of the schemes in a computation-intensive net-      computation-intensive network. In each network environ-
+work. Similar to Fig. 5b, max compute scheme achieves the       ment, our method consumed up to 64.0% and 57.1% less en-
+lowest latency among the baseline schemes. Nonetheless,         ergy respectively compared to the best performing baseline
+it still does not exceed the performance of the proposed        model. The remarkable energy conservation performance
+                                                                                                                                                                                                                                                                                                                              12
+
+
+                        50        Random                                   Combined                                                                15     Random              Combined                                                                            70        Random              Combined
+                                  Max-SINR                                 Proposed                                                                       Max-SINR            Proposed                                                                                      Max-SINR            Proposed
+                                                                                                                                                                                                                                                                  60
+Average Latency [sec]
+
+
+
+
+                                                                                                                           Average Latency [sec]
+
+
+
+
+                                                                                                                                                                                                                                          Average Latency [sec]
+                                  Max-Compute                                                                                                             Max-Compute                                                                                                       Max-Compute
+                        40                                            8
+                                                                                                                                                                                                                                                                                           8
+                                                                                                                                                                                                                                                                  50
+                                                                      6                                                                            10                                                                                                                                      6
+                        30                                                                                                                                                                                                                                        40
+                                                                       4                                                                                                                                                                                                                    4
+                             20                                      40                                                                                                                                                                                                20                 40
+                        20                                                                                                                                                                                                                                        30
+                                                                                                              55.3%                                5                                                                                                                                                                     64.7%
+                                                                                                                                                                                                                               81.1%                              20
+                        10
+                                                                                                                                                                                                                                                                  10
+
+                         0                                                                                                                         0                                                                                                              0
+                          20              40                     60             80     100          120      140    160                             20      40      60           80      100   120                           140    160                            20         40      60           80      100   120    140    160
+                                                                           Number of MDs                                                                                      Number of MDs                                                                                                     Number of MDs
+                                                                                 (a)                                                                                              (b)                                                                                                               (c)
+Fig. 5. The system latency under different network scenarios of a MEC network where NES = 4 and α = 1: (a) Network with average communication
+and computational load; (b) High communication load network; (c) High computational load network.
+
+
+                                                                                                                                                                                                                       80      Random                                   Combined
+                                                           20        Random                  Combined                                                                                                                          Max-SINR                                 Proposed
+
+
+
+
+                                                                                                                                                                                               Average Latency [sec]
+                                                                     Max-SINR                Proposed                                                                                                                          Max-Compute
+                                   Average Latency [sec]
+
+
+
+
+                                                                     Max-Compute                                                                                                                                       60
+                                                           15                            1.8
+                                                                                         1.6
+                                                                                         1.4
+                                                                                         1.2
+                                                                                         1                                                                                                                             40
+                                                                                         0.8
+                                                           10   20                     40
+
+
+                                                                                                                                                                                                                       20
+                                                           5
+
+                                                                                                                                                                                                                       0
+                                                           0                                                                                                                                                            20         40                        60              80     100           120      140    160
+                                                            20             40         60           80      100      120                             140     160                                                                                                         Number of MDs
+                                                                                             Number of MDs
+                                                                                                                                                                                                                                                                              (a)
+                                                                                                    (a)
+                                                                                                                                                                                                                       50     Random                              Max-Compute        Proposed
+                                                           10        Random                  Combined                                                                                                                          Max-SINR       Combined
+                                                                                                                                                                                               Average Latency [sec]
+
+
+
+                                                                     Max-SINR                Proposed                                                                                                                  40   Proposed scheme outperforms baseline
+                                   Average Latency [sec]
+
+
+
+
+                                                                     Max-Compute                                                                                                                                            schemes in total latency due to much
+                                                           8
+                                                                                           0.8                                                                                                                              lower communication latency
+                                                                                                                                                                                                                       30
+                                                                                           0.6
+                                                           6
+                                                                                         0.4
+                                                                20                     40                                                                                                                              20
+                                                           4
+                                                                                                                                                                                                                       10
+                                                           2
+                                                                                                                                                                                                                       0
+                                                           0                                                                                                                                                            20         40                        60              80     100           120      140    160
+                                                            20             40         60           80      100      120                             140     160                                                                                                         Number of MDs
+                                                                                             Number of MDs
+                                                                                                                                                                                                                                                                              (b)
+                                                                                                    (b)
+                                                                                                                                                                                      Fig. 7. Computational latency of networks with high computation load,
+Fig. 6. Communication latency of networks with high communication                                                                                                                     where α = 1: (a) Computational latency of a network with NES = 4; (b)
+load, where α = 1: (a) Communication latency of a network with NES =                                                                                                                  Computational latency of a network with NES = 8.
+4; (b) Communication latency of a network with NES = 8.
+
+
+                                                                                                                                                                                      while achieving low latency lies in the strategic offloading
+                                TABLE 4                                                                                                                                               policy. As for the communication-intensive networks, since
+     Energy consumption per task of each scheme in different network                                                                                                                  tasks impose high communication load, increasing the local
+   environment with NES = 12. Local energy consumption is in mWh, and                                                                                                                 computation ratio proves to be a viable solution. Therefore,
+                    edge energy consumption is in Wh.
+                                                                                                                                                                                      the proposed scheme achieves an outstanding performance
+                                                                                                                                                                                      by modulating its offloading ratio accordingly. Conversely,
+                                                                                                   NMD =40           NMD =100                                NMD =160
+                         Network type                                      Scheme                                                                                                     in computation-intensive networks, where tasks have high
+                                                                                                 Local    Edge     Local                           Edge    Local    Edge              computation load with relatively low communication load,
+                                                                       Random                    0.280    24.6     0.231                           28.1    0.232    31.0              increasing the offloading ratio could lead to better per-
+                                                                      Max SINR                   0.172    19.5     0.128                           22.4    0.128    25.2
+                        Communication
+                                                                     Max Compute                 0.184    27.0     0.260                           29.0    0.303    30.8
+                                                                                                                                                                                      formance in both energy conservation and latency. Hence,
+                          -intensive
+                                                                      Combined                   0.177    23.6     0.183                           26.4    0.211    28.7              the proposed method achieves the best performance by
+                                                                      Proposed                   0.062    8.42     0.061                           8.97    0.077    9.44              adaptively regulating its offloading ratio.
+                                                                       Random                    0.311    132      0.361                           138     0.441        141
+                                                                      Max SINR                   0.301    126      0.324                           149     0.365        182
+                         Computation
+                          -intensive
+                                                                     Max Compute                 0.338    131      0.275                           167     0.272        199           5.2.3 Pareto Graph Analysis
+                                                                      Combined                   0.315    109      0.303                           138     0.332        166
+                                                                      Proposed                   0.129    89.9     0.182                           94.8    0.241        100           From Table 4, we analyzed how offloading ratio could effect
+                        * bold & underline: best performance                                                                                                                          the latency and the energy conservation performance. This
+                                                                                                                                                                                      leads to a question: Could the baseline schemes outperform the
+                                                                                                                                                                                13
+
+                                 7
+                                                                                                    Random           relationship between two or more values. We compare the
+                                                                                                    Max-SINR
+                                 6                                                                                   schemes’ performance by examining their locations on the
+
+         Average Latency [sec]
+                                                                                                    Max-Compute
+                                 5                                                                  Combined         Pareto graph. Since better latency and energy consumption
+                                                                                                    Proposed
+                                 4
+                                                                                                                     leads to larger reciprocals of their values, if the proposed
+                                                                                                                     scheme is located at the upper right of the baseline schemes,
+                                 3
+                                                                                                                     this indicates that the proposed scheme excels over the base-
+                                 2
+                                                                                                                     lines in both latency and energy consumption. Additionally,
+                                 1                                                                                   if the proposed scheme surpasses the baseline in all axes,
+                                 0                                                                                   it indicates that the proposed scheme Pareto-dominates the
+                                     4                 8                   12                  16               20
+                                                                  Number of ESs
+                                                                                                                     baseline, signifying its superiority in all aspects.
+                                                                                                                         To evaluate all possible cases of the baseline models,
+                                                                      (a)
+                                                                                                                     we simulate the network numerous times, while gradually
+                                 35
+                                                                                                    Random
+                                                                                                                     increasing the offloading ratio ǫ from 0.0 to 1.0, with an
+                                 30                                                                 Max-SINR         increment of 0.1. As for the proposed model, we used α = 1.
+        Average Latency [sec]
+
+
+
+
+                                                                                                    Max-Compute
+                                 25                                                                 Combined         As can be observed in Fig. 9a, in a system with heavy
+                                                                                                    Proposed
+                                                                                                                     communication load, the proposed scheme’s performance
+                                 20
+                                                                                                                     surpasses other baseline schemes in both latency and energy
+                                 15                                                                                  efficiency. In other words, our scheme Pareto-dominates all
+                                 10                                                                                  baseline schemes. More specifically, the proposed scheme
+                                 5                                                                                   achieved up to 1.62 times shorter latency compared to
+                                 0                                                                                   the best performing baseline models, while simultaneously
+                                      4                8                   12                  16               20   consuming 41.2% less energy. The result indicates that the
+                                                                   Number of ESs
+                                                                                                                     baseline schemes cannot outperform the proposed scheme,
+                                                                      (b)
+                                                                                                                     regardless of the offloading ratio. In Fig. 9b, some baseline
+Fig. 8. The system latency of networks where NMD = 60 and α = 1: (a)                                                 schemes outperformed our scheme in terms of energy effi-
+Network with high communication load; (b) Network with high computa-                                                 ciency. However, our scheme still outperformed the baseline
+tional load.                                                                                                         in latency, achieving up to 2.16 times shorter latency while
+                                                                                                                     using at most 10.9% more energy. We also remark that
+                           0.12
+                                                  Proposed scheme Pareto-dominates all baselines                     the proposed scheme can also achieve such good energy
+                                 0.1
+                                                                                                                     consumption by increasing α.
+                                                                   1.62x shorter latency
+                                                                                                                         We note that in Fig. 9, we only emphasized the points
+                                                                                                                     of the agent performance that is Pareto-efficient, i.e., we
+        1/Latency
+
+
+
+
+                           0.08
+                                                                                   41.2% less
+                                                                                   consumption                       only dramatized the best performances of each agent. The
+                           0.06
+                                                                                                                     dashed line segments are affected by other factors such as
+                           0.04                                                  Proposed         Max-Compute
+                                                                                                                     task overload delay, but is negligible since the change of
+                                                                                 Random
+                                                                                 Max-SINR
+                                                                                                  Combined           offloading ratio leads to better performance of both aspects
+                           0.02
+                              2000              4000       6000     8000        10000     12000     14000   16000
+                                                                                                                     of latency and energy efficiency.
+                                                              1/Energy Consumption
+
+                                                                      (a)                                            5.2.4 Effects of unit-changing parameter α
+                                                                                                                     In our problem formulation, we introduced a new variable
+                                           -3
+                                         10
+                            16
+                                         Proposed scheme Pareto-dominates all other baseline cases
+                                                                                                                     α that balances MD’s energy consumption and latency.
+                            14                                                                                       Using α as a unit conversion parameter, we were able to
+                            12                                                                                       jointly optimize energy usage and system latency. We now
+                            10                                                                                       investigate the influence of α on the system’s latency and
+         1/Latency
+
+
+
+
+                                                                     Lower energy consumption,
+                                 8                                   but much higher latency                         energy consumption.
+                                 6                                                                                       α is a weight that is multiplied to the energy penalty
+                                 4                                                                                   term of a device. The effect that the leftover energy has on
+                                 2                                               Proposed
+                                                                                 Random
+                                                                                                  Max-Compute
+                                                                                                  Combined
+                                                                                                                     the problem will increase as α increases. More intuitively,
+                                 0                                               Max-SINR                            the proposed scheme will choose to compute on an edge
+                                     0          1000        2000        3000            4000        5000     6000    device more often when α is large, in order to preserve
+                                                              1/Energy Consumption
+                                                                                                                     energy.
+                                                                      (b)                                                The effect of α on the system latency is depicted in Fig.
+Fig. 9. Pareto efficiency graphs of different networks with 80 MDs and 8                                             10a. As predicted, the lowest latency is achieved when α is
+ESs, as ǫ ranges from 0.0 to 1.0: (a) Network with high communication                                                at its minimum. In networks with small number of users,
+load; (b) Network with high computational load.                                                                      the effects of α is not as severe as in networks with large
+                                                                                                                     number of users, as can be seen from the small gap between
+                                                                                                                     the latency. This is because the users experience sufficient
+proposed scheme if they increase their local computation ratio?                                                      amount of communication and computational resources
+To answer this question, we plot a Pareto efficiency graph                                                           when NMD is small. Hence, the latency discrepancy between
+of the reciprocals of latency and energy consumption of                                                              the systems is marginal when NMD is small, and the gap
+the models. Pareto efficiency graph illustrates a trade-off                                                          grows as the number of MDs increases. Figure 10b visualizes
+                                                                                                                                                                                                                   14
+
+                                20                                                                                            5
+
+                                                                                                                              4
+
+        Average Latency [sec]
+                                15
+                                                                                                                              3
+
+
+
+
+                                                                                                                    1
+                                                                                                                              2
+                                10
+                                                                                                                              1                                                                  : 0.01
+                                                                                                                                                                                                 : 0.05
+                                                                                  =1          =60
+                                                                                                                                                                                                 : 0.001
+                                                                                  =20         =80
+                                5                                                                                             0
+                                                                                  =40         =100                                0           20         40                 60          80               100
+                                    20         40   60     80         100   120         140      160                                               Percentage Complete [%]
+                                                         Number of MDs
+                                                                                                                                                               (a)
+                                                                (a)
+                                                                                                                              10
+                                          -4
+                                     10
+                                8
+                                                                                  =1          =60                              8
+                                                                                  =20         =80
+                                7                                                 =40         =100
+        Energy Consumption
+
+
+
+
+                                                                                                                               6
+
+
+
+
+                                                                                                                    1
+                                6
+                                                                                                                               4
+                                5
+                                                                                                                               2                                                                 : 0.01
+                                4                                                                                                                                                                : 0.05
+                                                                                                                                                                                                 : 0.001
+                                3                                                                                              0
+                                                                                                                                   0          20          40                60           80              100
+                                2                                                                                                                   Percentage Complete [%]
+                                20             40   60     80         100   120         140      160                                                           (b)
+                                                         Number of MDs
+                                                                (b)                                    Fig. 11. Convergence graph of the Lagrangian multipliers µ and ν at
+                                                                                                       different step sizes, where the network consists of 80 MDs and 4 ESs:
+Fig. 10. Average latency and energy consumptions of the network for                                    (a) Lagrange multiplier µ1 for ES 1; (b) Lagrange multiplier ν1 for ES 1.
+various α (NES = 4): (a) Average latency for different α values. Latency
+rises with an increase of α due to the escalation of local computation; (b)
+Local energy consumption for different α values. Energy consumption                                                           200                              Primal ( : 0.01)
+                                                                                                                                                               Primal ( : 0.05)
+                                                                                                                                                                                   Dual ( : 0.01)
+                                                                                                                                                                                   Dual ( : 0.05)
+                                                                                                                                                                                                     200
+decreases as α rises, due to the increase of local computation.                                                                                                Primal ( : 0.001)   Dual ( : 0.001)
+                                                                                                                                  0                                                                  0
+
+                                                                                                                              -200                                                                   -200
+                                                                                                                Primal
+
+
+
+
+                                                                                                                                                                                                            Dual
+the relationship between the number of MDs and the local                                                                      -400                                                                   -400
+energy consumption. Since higher value of α decreases the                                                                     -600                                                                   -600
+                                                                                                                                                                     -320
+number of local computations, energy consumption natu-                                                                                                               -340          Gap: 10.0
+                                                                                                                              -800                                                                   -800
+rally decreases as α increases.
+                                                                                                                                      0       20         40            60          80           100
+    In both of the figures of Fig. 10, the inclination of the                                                                                      Percentage Complete [%]
+graphs tend to converge after a certain number of users. The
+                                                                                                                                                               (a)
+reason can be found from the convergence of the offloading
+ratio. As the number of MDs increases, the saturation rate                                                                    1200
+                                                                                                                                                                                                 : 0.01
+of the ESs rises as there are more tasks to compute. But if                                                                   1000
+                                                                                                                                                                                                 : 0.05
+                                                                                                                                                                                                 : 0.001
+the number of MDs is sufficiently large, the advantages of
+                                                                                                                Duality Gap
+
+
+
+
+                                                                                                                               800
+edge computing diminishes, as edge computing experiences
+bigger latency due to the overload of ES computation.                                                                          600
+
+Therefore, the offloading ratio converges for large MDs,                                                                       400
+leading to a saturation of both the average latency and
+                                                                                                                               200
+energy consumption of each MD.
+                                                                                                                                      0
+                                                                                                                                          0    20             40             60          80              100
+5.2.5 Effects of step size η on convergence                                                                                                          Percentage Complete [%]
+
+In Section 4.2, we have analyzed how the sub-gradient                                                                                                          (b)
+descent update step size η could affect the convergence of                                             Fig. 12. Convergence graph of the objective functions at different step
+the solution. More specifically, our analysis suggests that                                            sizes, where the network consists of 80 MDs and 4 ESs: (a) Primal and
+by choosing the optimal step size, the optimality gap will                                             dual function values of ES 1; (b) Duality gap of ES 1.
+monotonically decrease as the iteration T increases. Here,
+we experimentally visualize how different step sizes affect
+the update process of Lagrangian multipliers µ and ν .                                                 showed better convergence performance compared to other
+Finally, we validate that different step sizes could lead to                                           values. As for Fig. 11, η = 0.01 and η = 0.05 showed fast
+different convergence properties of the proposed scheme.                                               convergence compared to η = 0.001. Figure 12 exhibits the
+    Figure 11 illustrates the effect of different step sizes on                                        value of the primal and dual functions of the first ES, as the
+the convergence of the Lagrangian multipliers µ and ν .                                                Lagrangian multipliers µ1 and ν1 updates. Similar to the
+Although the experimented step sizes all lead to the gradual                                           simulation settings of Fig. 11, we compare the results using
+convergence of the Lagrangian multipliers, some step sizes                                             step sizes of 0.001. 0.01 and 0.05. These step sizes are ap-
+                                                                                                                                15
+
+plied to both η1 and η2 . Consistent with the previous results     and energy consumption. Some researchers took a differ-
+of Fig. 11, η = 0.01 and η = 0.05 demonstrated a good              ent approach and used Lyapunov optimization method to
+convergence speed. From Fig. 12a, it can be observed that          solve UARA problems in MEC system [3], [5], [13], [37].
+the primal and dual functions corresponding to η = 0.01 has        The authors of [38] used both Karush-Kuhn-Tucker (KKT)
+the smallest duality gap. It can be inferred that a step size      methods and Lyapunov optimization method to solve their
+of 0.01 approximates the optimum more closely, whereas a           problem. Growing number of researchers are implement-
+step size of 0.05 fails to achieve a similar level of precision.   ing deep learning techniques such as deep reinforcement
+The step size of 0.001 showed the slowest convergence,             learning (DRL) to optimize task offloading in MEC systems
+due to its small step size. The duality gap of 10 implies          [2], [10], [11], [39]–[44], due to DRL’s potential to calculate
+that one MD experienced approximately 10/80 = 0.125                optimal policies with comparably low computational load
+seconds of delay difference compared to the ideal latency.         compared to calculating heuristic solutions. Additionally,
+The difference is negligible, given that the average delay         DRL may provide an optimal solutions in cases where other
+of the network was approximately 10 seconds, as can be             optimization methods can only yield sub-optimal solutions.
+observed from Fig. 5a. Therefore, we conclude that different       In [5], researchers used DRL after applying conventional
+step sizes affect the rate at which the solution reaches its       solving methods to find the optimal solution.
+optimum.                                                               Properties unique to AI-native MEC systems include
+                                                                   energy constraints on MDs and full task offloading. Many
+                                                                   studies have considered energy of MDs as a constraint [3],
+6   R ELATED WORKS
+                                                                   [31]. The authors of [45] have shown the fundamental trade-
+Recent studies related to UARA optimization of MEC net-            off between the delay and resource used in computing. Few
+works are categorized into the following subsections, where        studies have regarded energy of MDs as their objective [5],
+key characteristics of some of these works are compared            [36], [44]. Full offloading of tasks has also been dealt with
+with our work in Table 1.                                          in previous research [3], [7], [39]. The authors of [36] pro-
+                                                                   posed a partial offloading design and compared the sum-
+6.1 Conventional Offloading          Approaches:      Pricing-     energy consumption performance with other full offloading
+    Based Approach                                                 schemes.
+Several studies [19], [24]–[28] have been proposed for ser-
+vice/load offloading in cellular networks, characterized by        6.3 Age-of-Information (AoI) minimization
+ultra-dense networks, massive MIMO networks, heteroge-
+                                                                   The concept of age-of-information (AoI) is a quantitative
+neous networks (HetNets), and cloud random access net-
+                                                                   metric for the freshness of data, defined as time elapsed
+works (C-RAN). In particular, in [1], the authors presented
+                                                                   since the data was generated. In Remark 3, we demonstrate
+an optimization-based approach to minimize delay in multi-
+                                                                   that the objective function in our proposed system model is
+cell MEC systems. Assuming divisible tasks, the solution
+                                                                   equivalent to AoI minimization. Because AoI is closely re-
+allocated portions to each ES to minimize delay while con-
+                                                                   lated to latency minimization, we here introduce the related
+sidering an energy constraint. In [29], the authors proposed
+                                                                   studies regarding AoI.
+a modern approach for network load balancing. The aim
+                                                                       In [46], a resource optimization problem for energy har-
+of the approach is distributed optimization of UARA in
+                                                                   vesting networks is addressed using a difference of convex
+HetNets. In the work, the concept of pricing-based load
+                                                                   method to minimize AoI. The study in [47] tackles a joint
+balancing has been proposed for the first time, which en-
+                                                                   user association and resource allocation (UARA) problem
+ables distributed network optimization without any addi-
+                                                                   by transforming a discrete user association variable into a
+tional information exchange between ESs. However, such
+                                                                   stochastic policy, aiming to maximize the sum-rate under an
+approach was limited to an objective function, specifically
+                                                                   AoI constraint. Similarly, the authors of [48] propose an AoI-
+proportional fairness, where an artistic formulation led to
+                                                                   based offloading method for single ES networks, where a
+a pricing framework. For instance, in [30], a pricing-based
+                                                                   stochastic policy is used to minimize AoI. Further, the study
+UARA optimization is further extended to backhaul-limited
+                                                                   in [49] optimizes single-ES task offloading for opportunistic
+cellular networks.
+                                                                   channel access. Multi-base station (BS) task offloading is
+    Following [29], recent works have solved general frame-
+                                                                   explored in [50] using a deep Q-network (DQN) approach
+work for various objective functions such as α-fairness
+                                                                   in a centralized setting. In [51], a multi-BS task offloading
+[19]. However, to the best of the authors’ knowledge, there
+                                                                   method is proposed, where a location-based pricing vector
+has been no previous study using pricing-based optimiza-
+                                                                   is used to minimize monetary cost under an AoI constraint,
+tion for average delay minimization as well as comput-
+ing/communication offloading in MEC scenarios.                     employing simulated annealing without resource optimiza-
+                                                                   tion.
+                                                                       Yet, none of the research have focused on jointly opti-
+6.2 Task Offloading in MEC                                         mizing UARA and energy consumption, while considering
+Task offloading studies in MEC systems have mainly fo-             full offloading scenario. Considering all of the factors is
+cused on interpreting the problem as a conventional offload-       a complicated problem, but is necessary for achieving a
+ing problem with additional constraints such as user mobil-        solution that can be implemented in real life. In this work,
+ity and limited battery. Typical solution methods include          we find a new solution to delay-minimizing UARA pricing
+solving optimization problems [4], [6], [7], [12], [15], [31]–     scheme for multi-cell, multi-user, and multi-resource MEC
+[36] to better optimize their objective, mainly task latency       networks.
+                                                                                                                                               16
+
+                                  TABLE 5                               [2]  F. Chai, Q. Zhang, H. Yao, X. Xin, R. Gao, and M. Guizani,
+            Interpretation of the Notations Used in this Paper               “Joint multi-task offloading and resource allocation for mobile
+                                                                             edge computing systems in satellite IoT,” IEEE Trans. Veh. Technol.,
+                                                                             vol. 72, no. 6, pp. 7783–7795, 2023.
+    Notation                         Description                        [3] H. Jiang, X. Dai, Z. Xiao, and A. Iyengar, “Joint task offloading
+                                                                             and resource allocation for energy-constrained mobile edge com-
+    M          Set of MDs                                                    puting,” IEEE Trans. Mobile Comput., vol. 22, no. 7, pp. 4000–4015,
+    E          Set of ESs                                                    2023.
+    NMD        Number of MDs                                            [4] A. Mohajer, M. Sam Daliri, A. Mirzaei, A. Ziaeddini, M. Nabipour,
+                                                                             and M. Bavaghar, “Heterogeneous computational resource alloca-
+    NES        Number of ESs                                                 tion for NOMA: Toward green mobile edge-computing systems,”
+    xij        Association indicator of MD i and ES j                        IEEE Trans. Serv. Comput., vol. 16, no. 2, pp. 1225–1238, 2023.
+    yij        Frequency resource allocation ratio between MD i         [5] L. T. Hoang, C. T. Nguyen, and A. T. Pham, “Deep reinforcement
+               and ES j                                                      learning-based online resource management for UAV-assisted
+                                                                             edge computing with dual connectivity,” IEEE/ACM Trans. Net-
+    zij        Computing resource allocation ratio between MD i              working, pp. 1–16, 2023.
+               and ES j                                                 [6] C. Deng, X. Fang, and X. Wang, “UAV-enabled mobile-edge com-
+    Rij        Achievable data rate between MD i and ES j                    puting for ai applications: Joint model decision, resource alloca-
+    di         Number of bits of the task generated by MD i                  tion, and trajectory optimization,” IEEE Internet Things J., vol. 10,
+                                                                             no. 7, pp. 5662–5675, 2023.
+    fi         Number of flops required by MD i’s task                  [7] W. He, Y. Zhang, Y. Huang, D. He, Y. Xu, Y. Guan, and W. Zhang,
+    ρi         Ratio of task by MD i dependent on core count                 “Integrated resource allocation and task scheduling for full-duplex
+    Bi         Remaining battery of MD i                                     mobile edge computing,” IEEE Trans. Veh. Technol., vol. 71, no. 6,
+                                                                             pp. 6488–6502, 2022.
+    DMD,i      Local computing delay of MD i
+                                                                        [8] T. Bahreini, H. Badri, and D. Grosu, “Mechanisms for resource
+    DES,i      Edge computing delay of MD i associated with ES j             allocation and pricing in mobile edge computing systems,” IEEE
+    Gi         Local computation penalty term of MD i                        Trans. Parallel Distrib. Syst., vol. 33, no. 3, pp. 667–682, 2022.
+                                                                        [9] X. Zhong, X. Wang, T. Yang, Y. Yang, Y. Qin, and X. Ma, “Potam:
+    α          Balance coefficient between MD energy preservation
+                                                                             A parallel optimal task allocation mechanism for large-scale delay
+               and average latency
+                                                                             sensitive mobile edge computing,” IEEE Trans. Commun., vol. 70,
+                                                                             no. 4, pp. 2499–2517, 2022.
+                                                                        [10] Y. Liu, J. Yan, and X. Zhao, “Deep reinforcement learning based
+7     C ONCLUSION                                                            latency minimization for mobile edge computing with virtualiza-
+                                                                             tion in maritime uav communication network,” IEEE Trans. Veh.
+Summary This paper investigates AI-native MEC systems                        Technol., vol. 71, no. 4, pp. 4225–4236, 2022.
+consisting of energy constrained users, and design a prob-              [11] Y. Chen, Z. Liu, Y. Zhang, Y. Wu, X. Chen, and L. Zhao, “Deep
+                                                                             reinforcement learning-based dynamic resource management for
+lem to optimize both the system latency and the user energy                  mobile edge computing in industrial internet of things,” IEEE
+usage. Due to the coupled variables, the problem is decom-                   Trans. Ind. Informat., vol. 17, no. 7, pp. 4925–4934, 2021.
+posed into NES sub-problems, which is solved to provide an              [12] M. Zhao, J.-J. Yu, W.-T. Li, D. Liu, S. Yao, W. Feng, C. She,
+optimal solution. Through simulations, we show that the                      and T. Q. S. Quek, “Energy-aware task offloading and resource
+                                                                             allocation for time-sensitive services in mobile edge computing
+proposed scheme outperforms other baseline methods in                        systems,” IEEE Trans. Veh. Technol., vol. 70, no. 10, pp. 10 925–
+terms of latency and energy usage. Our simulation results                    10 940, 2021.
+illustrate the relationship between the task loads of the MEC           [13] J. Feng, Q. Pei, F. R. Yu, X. Chu, J. Du, and L. Zhu, “Dynamic
+                                                                             network slicing and resource allocation in mobile edge computing
+network, offloading policy and the energy usage, giving
+                                                                             systems,” IEEE Trans. Veh. Technol., vol. 69, no. 7, pp. 7863–7878,
+valuable insights on the optimal offloading and resource                     2020.
+allocation methods. As a result, our method achieved a                  [14] Q. Ye, B. Rong, Y. Chen, M. Al-Shalash, C. Caramanis, and J. G.
+latency improvement of 1.62 times while reducing the en-                     Andrews, “User association for load balancing in heterogeneous
+                                                                             cellular networks,” IEEE Trans. Wireless Commun., vol. 12, no. 6,
+ergy consumption by 41.2%. Our best experiment in latency                    pp. 2706–2716, 2013.
+reduction exhibited a decrease in latency by 5.29 times. Also,          [15] P. Wang, Z. Zheng, B. Di, and L. Song, “Hetmec: Latency-optimal
+the best experiment in energy consumption reduced energy                     task assignment and resource allocation for heterogeneous multi-
+consumption by up to 64.0%.                                                  layer mobile edge computing,” IEEE Trans. Wireless Commun.,
+                                                                             vol. 18, no. 10, pp. 4942–4956, 2019.
+Limitations Although our method can cope with many                      [16] 3GPP, “Scenarios and requirements for small cell enhancements
+types of network scenario in the long term, the optimization                 for E-UTRA and E-UTRAN,” 3rd Generation Partnership Project
+of users with high mobility still remains unsolved. Mobile                   (3GPP), Technical Report (TR) 36.932, 07 2018, version 15.0.0.
+                                                                        [17] V. A. Korthikanti, J. Casper, S. Lym, L. McAfee, M. Andersch,
+device users in particular, may have high mobility which                     M. Shoeybi, and B. Catanzaro, “Reducing activation recomputa-
+could be put into consideration in order to better optimize                  tion in large transformer models,” Proceedings of Machine Learning
+the offloading policy and tackle the handover problems                       and Systems, vol. 5, 2023.
+between the ESs. In future works, minimizing energy usage,              [18] R. D. Yates, Y. Sun, D. R. Brown, S. K. Kaul, E. Modiano, and
+                                                                             S. Ulukus, “Age of information: An introduction and survey,”
+latency and the number of handovers between ESs in such                      IEEE J. Select. Areas Commun., vol. 39, no. 5, pp. 1183–1210, 2021.
+scenarios by jointly optimizing resource allocation and user            [19] J. Jang and H. J. Yang, “α-fairness-maximizing user association
+association could provide promising results.                                 in energy-constrained small cell networks,” IEEE Trans. Wireless
+                                                                             Commun., vol. 21, no. 9, pp. 7443–7459, 2022.
+                                                                        [20] 3GPP, “NR; Physical layer procedures for data,” 3rd Generation
+R EFERENCES                                                                  Partnership Project (3GPP), TS 38.214, Jun. 2021.
+                                                                        [21] ——, “Small cell enhancements for E-UTRA and E-UTRAN - phys-
+[1]   M. Diamanti, C. Pelekis, E. E. Tsiropoulou, and S. Papavas-            ical layer aspects,” 3rd Generation Partnership Project (3GPP), TR
+      siliou, “Delay minimization for rate-splitting multiple access-        36.872, Dec. 2013.
+      based multi-server MEC offloading,” IEEE/ACM Trans. Network-      [22] T. Liu, S. Ni, X. Li, Y. Zhu, L. Kong, and Y. Yang, “Deep reinforce-
+      ing, vol. 32, no. 2, pp. 1035–1047, 2024.                              ment learning based approach for online service placement and
+                                                                                                                                                       17
+
+     computation resource allocation in edge computing,” IEEE Trans.               ment learning approach,” IEEE Internet Things J., vol. 7, no. 7, pp.
+     Mobile Comput., vol. 22, no. 7, pp. 3870–3881, 2023.                          6214–6228, 2020.
+[23] X. Ma, A. Zhou, S. Zhang, Q. Li, A. X. Liu, and S. Wang, “Dynamic        [44] S. Nath, Y. Li, J. Wu, and P. Fan, “Multi-user multi-channel
+     task scheduling in cloud-assisted mobile edge computing,” IEEE                computation offloading and resource allocation for mobile edge
+     Trans. Mobile Comput., vol. 22, no. 4, pp. 2116–2130, 2023.                   computing,” in ICC 2020 - 2020 IEEE International Conference on
+[24] A. Khalili, S. Akhlaghi, H. Tabassum, and D. W. K. Ng, “Joint user            Communications (ICC), 2020, pp. 1–6.
+     association and resource allocation in the uplink of heterogeneous       [45] K. Wang, D. Niyato, W. Chen, and A. Nallanathan, “Task-oriented
+     networks,” IEEE Commun. Lett., vol. 9, no. 6, pp. 804–808, 2020.              delay-aware multi-tier computing in cell-free massive MIMO sys-
+[25] N. Trabelsi, C. S. Chen, R. El Azouzi, L. Roullet, and E. Altman,             tems,” IEEE J. Select. Areas Commun., vol. 41, no. 7, pp. 2000–2012,
+     “User association and resource allocation optimization in lte cellu-          2023.
+     lar networks,” IEEE Trans. Netw. Service Manag., vol. 14, no. 2, pp.     [46] Z. Fang, J. Wang, Y. Ren, Z. Han, H. V. Poor, and L. Hanzo, “Age
+     429–440, 2017.                                                                of information in energy harvesting aided massive multiple access
+[26] N. Zhao, Y.-C. Liang, D. Niyato, Y. Pei, M. Wu, and Y. Jiang,                 networks,” IEEE J. Select. Areas Commun., vol. 40, no. 5, pp. 1441–
+     “Deep reinforcement learning for user association and resource                1456, 2022.
+     allocation in heterogeneous cellular networks,” IEEE Trans. Wire-        [47] M. Li, C. Chen, H. Wu, X. Guan, and X. Shen, “Age-of-information
+     less Commun., vol. 18, no. 11, pp. 5141–5152, 2019.                           aware scheduling for edge-assisted industrial wireless networks,”
+[27] S. K. Singh, V. S. Borkar, and G. S. Kasbekar, “User association              IEEE Trans. Ind. Informat., vol. 17, no. 8, pp. 5562–5571, 2021.
+     in dense mmwave networks as restless bandits,” IEEE Trans. Veh.          [48] Y. Jiang, J. Liu, I. Humar, M. Chen, S. A. AlQahtani, and M. S.
+     Technol., vol. 71, no. 7, pp. 7919–7929, 2022.                                Hossain, “Age-of-information-based computation offloading and
+[28] X. Zhang, Z. Zhang, and L. Yang, “Learning-based resource allo-               transmission scheduling in mobile-edge-computing-enabled iot
+     cation in heterogeneous ultradense network,” IEEE Internet Things             networks,” IEEE Internet Things J., vol. 10, no. 22, pp. 19 782–19 794,
+     J., vol. 9, no. 20, pp. 20 229–20 242, 2022.                                  2023.
+[29] K. Shen and W. Yu, “Distributed pricing-based user association for       [49] L. Wang, R. Fan, H. Hu, G. Wang, and J. Cheng, “Age of informa-
+     downlink heterogeneous cellular networks,” IEEE J. Select. Areas              tion minimization for opportunistic channel access,” IEEE Trans.
+     Commun., vol. 32, no. 6, pp. 1100–1113, 2014.                                 Commun., pp. 1–1, 2024.
+[30] Q. Han, B. Yang, G. Miao, C. Chen, X. Wang, and X. Guan,                 [50] X. Chen, C. Wu, T. Chen, Z. Liu, H. Zhang, M. Bennis, H. Liu,
+     “Backhaul-aware user association and resource allocation for                  and Y. Ji, “Information freshness-aware task offloading in air-
+     energy-constrained hetnets,” IEEE Trans. Veh. Technol., vol. 66,              ground integrated edge computing systems,” IEEE J. Select. Areas
+     no. 1, pp. 580–593, 2017.                                                     Commun., vol. 40, no. 1, pp. 243–258, 2022.
+[31] M. Chen and Y. Hao, “Task offloading for mobile edge computing           [51] N. Modina, R. El-Azouzi, F. De Pellegrini, D. S. Menasche, and
+     in software defined ultra-dense network,” IEEE J. Select. Areas               R. Figueiredo, “Joint traffic offloading and aging control in 5g iot
+     Commun., vol. 36, no. 3, pp. 587–597, 2018.                                   networks,” IEEE Trans. Mobile Comput., vol. 22, no. 8, pp. 4714–
+                                                                                   4728, 2023.
+[32] M. Li, N. Cheng, J. Gao, Y. Wang, L. Zhao, and X. Shen, “Energy-
+     efficient UAV-assisted mobile edge computing: Resource alloca-
+     tion and trajectory optimization,” IEEE Trans. Veh. Technol., vol. 69,
+     no. 3, pp. 3424–3438, 2020.
+[33] J. Feng, F. R. Yu, Q. Pei, J. Du, and L. Zhu, “Joint optimization
+     of radio and computational resources allocation in blockchain-
+     enabled mobile edge computing systems,” IEEE Trans. Wireless
+     Commun., vol. 19, no. 6, pp. 4321–4334, 2020.
+[34] H. Xu, W. Huang, Y. Zhou, D. Yang, M. Li, and Z. Han, “Edge
+     computing resource allocation for unmanned aerial vehicle as-
+     sisted mobile network with blockchain applications,” IEEE Trans.
+     Wireless Commun., vol. 20, no. 5, pp. 3107–3121, 2021.
+[35] J. Zhao, Q. Li, Y. Gong, and K. Zhang, “Computation offloading
+     and resource allocation for cloud assisted mobile edge computing
+     in vehicular networks,” IEEE Trans. Veh. Technol., vol. 68, no. 8, pp.
+     7944–7956, 2019.
+[36] W. Wu, F. Zhou, R. Q. Hu, and B. Wang, “Energy-efficient resource
+     allocation for secure NOMA-enabled mobile edge computing net-
+     works,” IEEE Trans. Commun., vol. 68, no. 1, pp. 493–505, 2020.
+[37] Y. Deng, Z. Chen, X. Yao, S. Hassan, and A. M. A. Ibrahim, “Par-
+     allel offloading in green and sustainable mobile edge computing
+     for delay-constrained iot system,” IEEE Trans. Veh. Technol., vol. 68,
+     no. 12, pp. 12 202–12 214, 2019.
+[38] Q. Zhang, L. Gui, F. Hou, J. Chen, S. Zhu, and F. Tian, “Dynamic
+     task offloading and resource allocation for mobile-edge computing
+     in dense cloud RAN,” IEEE Internet Things J., vol. 7, no. 4, pp.
+     3282–3299, 2020.
+[39] L. Huang, S. Bi, and Y.-J. A. Zhang, “Deep reinforcement learning
+     for online computation offloading in wireless powered mobile-
+     edge computing networks,” IEEE Trans. Mobile Comput., vol. 19,
+     no. 11, pp. 2581–2593, 2020.
+[40] M. Tang and V. W. Wong, “Deep reinforcement learning for task
+     offloading in mobile edge computing systems,” IEEE Trans. Mobile
+     Comput., vol. 21, no. 6, pp. 1985–1997, 2022.
+[41] N. Kiran, C. Pan, S. Wang, and C. Yin, “Joint resource allocation
+     and computation offloading in mobile edge computing for sdn
+     based wireless networks,” J. Commun.Netw., vol. 22, no. 1, pp. 1–
+     11, 2020.
+[42] S. Wang, M. Chen, X. Liu, C. Yin, S. Cui, and H. Vincent Poor,
+     “A machine learning approach for task and resource allocation in
+     mobile-edge computing-based networks,” IEEE Internet Things J.,
+     vol. 8, no. 3, pp. 1358–1372, 2021.
+[43] J. Feng, F. Richard Yu, Q. Pei, X. Chu, J. Du, and L. Zhu,
+     “Cooperative computation offloading and resource allocation for
+     blockchain-enabled mobile-edge computing: A deep reinforce-
+                                                                                                                                                                1
+
+                  S UPPLEMENTAL M ATERIAL OF                                     From condition (S4a), we obtain a solution of yij , consist-
+  Distributed Task Offloading and Resource                                                                                     (3)
+                                                                              ing of the Lagrangian multipliers λ(1) and λi . We divide
+   Allocation for Latency Minimization in                                     the cases of possible yij according to the values of λ(1) , and
+     Mobile Edge Computing Networks                                           examine the cases to solve for the optimal yij .
+  Minwoo Kim, Jonggyu Jang, Member, IEEE , Youngchol                             1) Case 1 (λ(1) = 0; Invalid Case): In this case,
+                                                                                                         s          !
+      Choi, and Hyun Jong Yang, Member, IEEE                                                                di Rij
+                                                                                                 yij =          (3)
+                                                                                                                      /Rij .              (S5)
+                                                                                                            −λi
+A PPENDIX A
+                                                                              From equation (S5) and condition (S4h), there exists no
+O PTIMAL S OLUTION OF C OMMUNICATION / C OMPU -                               feasible solution yij .
+TATION R ESOURCE A LLOCATION                                                     2) Case 2 (λ(1) > 0; Valid Case): In this case, we have
+A.1 Optimal Solution of Communication Resource Al-
+                                                                                                      s                !
+                                                                                                            di Rij
+    location                                                                                  yij =                (3)
+                                                                                                                         /Rij .          (S6)
+                                                                                                         λ(1) − λi
+We first relax problem P1 by dividing it into NES sub-
+problems, each problem corresponding to an ES, where                                                  (3)
+                                                                              Because yij > 0, λi       = 0 by conditionq (S4e).yij has a
+                                                                                                                           di Rij
+   XX
+           (Dcm,ij + DES,i ) xij                                              feasible solution in this case, and yij =     λ(1)
+                                                                                                                                  /Rij .
+   i∈M j∈E                                                                                                  (1)
+                                                                            P Next, to solve for λ , we use the condition of yij , i.e.,
+                                                              Gi               i∈Mj yij − 1 = 0. Then, we have
+                       X            X                             
+                  +          1 −         xij  DMD,i + α              (S1)
+                                                              Bi                                            r     s      !
+                       i∈M          j∈E                                                   X          X         1     di
+       X X                                                                                    yij =                                  (S7)
+   =              (Dcm,ij + DES,i )                                                      i∈Mj       i∈Mj
+                                                                                                              λ(1) Rij
+       j∈E i∈Mj                                                                                     r           s
+                                                                                                      1 X        di
+                                             
+                                                        Gi
+                                                                                                 =     (1)
+                                                                                                                        = 1.         (S8)
+                                                                                                                  Rij
+                       X            X
+                  +          1 −       xij  DMD,i + α      (S2)                                     λ i∈M
+                       i∈M          j∈E
+                                                        Bi                                                                   j
+
+                                                                              Therefore,                                         2
+Here, Mj is a subset of M such that Mj = {i ∈ M|xij =
+                                                                                                                        s
+                                                                                                   (1)
+                                                                                                                  X          di 
+1}. In equation (S2), we select xij that belongs in the set                                       λ      =                         .                        (S9)
+Mj . Hence, the terms behind, which describes the latency                                                         i∈Mj
+                                                                                                                             Rij
+and the cost occurring when we compute locally, can be
+                                                                              Inserting the value above to equation (S6), we obtain the
+ignored when considering the users from set Mj . In other
+                                                                              optimal yij as follows:
+words, we’re looking at the cases of i such that xij = 1.
+   As mentioned above, ignoring the terms behind, we can                                                           
+choose one of NES sub-problems from equation (S2). Using
+                                                                                          q        .   X q
+the modified objective function (S2), we can formulate the                          yij =   di /Rij        dk /Rkj                                     (S10)
+                                                                                                                   k∈Mj
+Lagrangian as                                                                                                                                  !
+                                                                                          q        .              X q
+                X                                   X                                   =   di /Rij                              dk /Rkj xij       .     (S11)
+       L1 =            (Dcm,i + DES,i ) + λ(1) (           yij − 1)                                                k∈M
+               i∈Mj                                 i∈Mj
+                                             (3)      (4)                     A.2 Optimal Solution of Computation
+               X                    X
+         (2)
+     +λ               (zij − 1) −          (λi yij + λi zij ).         (S3)
+               i∈Mj                 i∈Mj                                      We use the Lagrangian (S3) derived from Appendix A.1.
+                                                                              After solving for zea , we divide the cases of λ(1) .
+    From the Lagrangian (S3), we derive the KKT conditions
+                                                                                 1) Case 1 (λ(1) = 0; Invalid Case): In this case,
+of the problem as follows:                                                                       s                   !
+    
+      ∂L1           di Rij                                                                           fi FES,j ZES,j ρ .
+    
+            =−
+                                                (3)
+                                  + λ(1) − λi = 0             (S4a)
+                                                                                         zij =                (3)
+                                                                                                                       FES,j ZES,j . (S12)
+    
+    
+    
+     ∂y ij       (R ij y  ij )2                                                                         −λi
+    
+      ∂L1           fi FES,j ZES,j                                            From equation (S12) and condition (S4h), there exists no
+    
+                                                        (3)
+    
+             =−                             ρ + λ(1) − λi = 0 (S4b)
+    
+    
+                                          2                                   feasible solution zij , as zij either becomes imaginary or
+    
+    
+    
+    
+     ∂z ij       (FES  ,j Z  ES ,j ze a )
+            X                                                                diverges.
+      λ(1) (      yij − 1) = 0                                (S4c)
+    
+    
+                                                                                 2) Case 2 (λ(1) > 0; Valid Case): As for this case, zij is
+    
+    
+    
+    
+           i∈Mj
+            X                                                                expressed as follows:
+      λ(2) (      zij − 1) = 0                                (S4d)                              r                   !
+                                                                                                     fi FES,j ZES,j ρ .
+    
+    
+            i∈M
+                                                                                         zij =                         FES,j ZES,j . (S13)
+    
+               j
+                                                                                                          λ(1)
+    
+    
+      (3)
+    
+    
+    
+     λi yij = 0                                              (S4e)
+      (4)                                                                                                                                             (3)
+      λi zij = 0                                                              Solving equation (S13) gives zij > 0, which leads to λi = 0
+    
+    
+    
+                                                              (S4f)
+                                                                              by condition  (S4f). No     contradiction   occurs in this case, and
+    
+       (1)
+    
+      λ ≥0                                                    (S4g)
+    
+                                                                                   q
+                                                                                                          .
+                                                                                       fi FES,j ZES,j ρ
+                                                                              zij =                          FES,j ZES,j .
+    
+     (3)
+                  (4)              (2)
+      λi ≥ 0, λi ≥ 0, λi ≥ 0 ∀i ∈ Mj .                        (S4h)                          λ(1)
+                                                                                                                                                             2
+
+
+P Next, we use the resource allocation condition of zij , i.e.,             objective function in P5 as fˆ∗ . Denoting the solution we
+ i∈Mj zij − 1 = 0. Then, we have the following condition:                   obtained as fˆ, the following inequality holds:
+                            s   r        !                                            d∗ = max min L(a, b, X, µ, ν)
+         X               1
+                         X        fi ρ                                                          µ,ν a,b,X
+           zij =                                                (S14)
+      i∈Mj       i∈Mj
+                        λ(1) FES,j ZES,j                                                    ≤ max min L(a, b, X, µ, ν)
+                                                                                                µ,ν a,b,X∈F
+                 r        s                                                                                                                  !2
+                    1 X        fi ρ                                                                        X        Xq
+               =    (1)
+                                        = 1.                    (S15)                       =       min               D̂ES(s),ij xij
+                   λ i∈M    FES,j ZES,j                                                         a,b,X∈F
+                                      j                                                                    j∈E      i∈M
+                                                                                                                         !2                              (S18)
+Therefore,                                                                                          X      Xq
+                                                                                                +            D̂cm,ij xij
+                                     s              2                                             j∈E    i∈M
+                   (1)
+                               X             fi ρ                                                   XX
+               λ         =                            .       (S16)                           +               cij xij
+                               i∈Mj
+                                          FES,j ZES,j                                               i∈M j∈E
+
+                                                                                            = fˆ∗ ≤ fˆ.
+Inserting the value above to equation (S6), we can obtain the
+optimal yij as follows:                                                     where F denotes a space where the constraints (P6 d) and
+                                                                            (P6 e) hold.
+                                                 
+       q                 .   X q
+ yij =   fi ρ/FES,j ZES,j        fk /FES,j ZES,j                          B.2 Duality Gap
+                                           k∈Mj
+                                                                    !       In the previous section, we show that the weak duality
+                                                                            condition still holds for the solution with recovered X. Then,
+       q                 .               X q
+     =   fi ρ/FES,j ZES,j                     fk /FES,j ZES,j xij       .   inspired by the inequality in (S18), we show the duality gap
+                                           k∈M
+                                                                            of the solution for recovered X. Let us represent the solution
+                                                                (S17)
+                                                                            fˆ as
+                                                                                                             !2
+                                                                                  X Xq
+A PPENDIX B                                                                  ˆ
+                                                                            f=                D̂ES(s),ij xij
+                                                                                  j∈E     i∈M
+P ROOF OF T HEOREM 1                                                                                                    !2
+                                                                                      X         Xq                               X X
+In the Lagrangian duality, the weak duality holds for all                         +               D̂cm,ij xij                +             cij xij       (S19)
+feasible solutions, i.e., d∗ ≤ f ∗ (minimization problem),                            j∈E       i∈M                              i∈M j∈E
+where d∗ and f ∗ denote the optimal dual function and opti-                       X √      (1)
+                                                                                                  X q      (2)
+                                                                                                                  XX
+                                                                              =    ( aj − ∆j )2 +  ( bj − ∆j )2 +    cij xij ,
+mal primal function, respectively. However, in the proposed
+                                                                                  j∈E                             j∈E                          i∈M j∈E
+method, the variable X recovered by the dual approach
+cannot meet the auxiliary constraints (P6 d) and (P6 e). Thus,
+                                                                                                                           
+                                                                                          √
+                                                                                                             q
+                                                                                    (1)                          P                 (2)
+there is a gap between the objective function of the primal                 where ∆j = aj −             i∈M    D̂ cm,ij xkj   and ∆j =
+problem P6 and the actual delay corresponding to X, which
+                                                                                         q               
+                                                                            p       P
+are denoted as:                                                              bj −     i∈M   D̂ES(s),ij xij . Then, we have the optimal-
+  • The  objective function  of the primal problem P6 :                     ity gap as below:
+    P                  P     P
+      j∈E (aj + bj ) +   i∈M   j∈E cij xij .                                    fˆ − fˆ∗                                                                 (S20)
+  • Actual delay with penalized energy consumption cor-
+    responding to X:                                                          ≤fˆ − d∗                                                                   (S21)
+                                                                                                                     2
+                                                                                               (1) 2
+                                                                                 X √                 X q      (2)
+     X       Xq
+                                      !2
+                                               X     Xq
+                                                                     !2       =          aj − ∆j     +     bj − ∆j                                       (S22)
+               D̂ES(s),ij xij              +           D̂cm,ij xij                j∈E
+                                                                                          X            X
+                                                                                                                   j∈E
+     j∈E
+          XX
+             i∈M                               j∈E   i∈M                              −         aj −       bj                                            (S23)
+     +             cij xij .                                                              j∈E         j∈E
+         i∈M j∈E
+                                                                                  X           (1)
+                                                                                                    2 
+                                                                                                                 (2) 2
+                                                                                                                            √    (1)
+                                                                                                                                       q
+                                                                                                                                            (2)
+                                                                                                                                                
+                                                                              ≤       ∆j                  + ∆j            − 2 aj ∆j − 2 bj ∆j     .
+    Here, we first show that the weak duality still holds                         j∈E
+
+for the actual delay if we use this instead of the objective                Finally, we confirm that the
+                                                                                                      optimality gap of the proposed
+function of the problem P6 .                                                                              (1) 2
+                                                                                                                
+                                                                                                                     (2) 2
+                                                                                                                        
+                                                                            scheme is bounded by O       ∆j     + ∆j         .
+
+B.1 Conservation of the Weak Duality Condition
+                                                                            A PPENDIX C
+Denoting the solution we obtained from Lagrangian dual
+problem P7 as µ∗ and ν ∗ , we can represent the maximum                     P ROOF OF P ROPOSITION 1
+value of the Lagrangian dual function as d∗ = g(µ∗ , ν ∗ ).                 Here, we prove the convergence of the proposed scheme. Let
+Here, we denote the global optimal solution minimizing the                  us define the optimal solution to Problem P7 as µ∗ and ν ∗ .
+                                                                          3
+
+To solve the problem P7 , we apply the sub-gradient ascent
+in (32). which is represented by
+      µ(t+1) = µ(t) + η1 ∇µ g(µ, ν), ∀t ∈ {0, 1, ...}
+                                                                  (S24)
+      ν (t+1) = ν (t) + η2 ∇ν g(µ, ν), ∀t ∈ {0, 1, ...}.
+     To show the convergence, we assume k∇µ g(µ, ν)k2 ≤
+δ1 , k∇ν g(µ, ν)k2 ≤ δ1 , kµ(0) − µ∗ k2 ≤ δ2 , and kν (0) −
+ν ∗ k2 ≤ δ2 . For brevity of the notation, we denote ∇µ g(µ, ν)
+and ∇ν g(µ, ν) as ∆µ and ∆ν , respectively. Then, we have
+                   kµ(t+1) − µ∗ k2 − kµ(t) − µ∗ k2                (S25)
+             = η12 k∆µ k2 − 2η1 (∆µ )T (µ∗ − µ(t) )
+and
+                   kν (t+1) − ν ∗ k2 − kν (t) − ν ∗ k2            (S26)
+             = η22 k∆ν k2 − 2η2 (∆ν )T (ν ∗ − ν (t) ),
+where the inequality holds due to the convexity. Let us
+define gmax,T = maxt=1,...,T g(µ, ν). By combining the in-
+equalities from t = 0 to T , we have
+      2(T + 1) (g ∗ − gmax,T )
+           T
+           X
+      ≤2       (g ∗ − g(µ, ν))
+           t=0
+           XT                                                
+      ≤2           (∇µ )T (µ∗ − µ(t) ) + (∇ν )T (ν ∗ − ν (t) )
+           t=0
+            XT                   T
+                                 X
+      = η1         k∆µ k2 + η2         k∆ν k2                     (S27)
+             t=0                 t=0
+          1                  1
+       +    kµ(0) − µ∗ k2 − kµ(t+1) − µ∗ k2
+         η1                 η1
+          1 (0)              1
+                      ∗
+       + kν − ν k2 − kν (t+1) − ν ∗ k2
+         η2                 η2
+                                 1    1
+                                        
+      ≤ (η1 + η2 )(T + 1)δ1 +       +      δ2 .
+                                 η1   η2
+Finally, the inequality in (S27) can be rewritten as
+                 (η1 + η2 )δ1        δ2          1    1
+                                                        
+ g ∗ − gmax,T ≤               +                    +       . (S28)
+                       2          2(T + 1) η1         η2
+                           q
+                                δ2
+By choosing η1 = η2 =        (T +1)δ1 , the following condition
+                                         q
+         ∗                                  δ1 δ2
+holds: g − gmax,T ≤ ǫ, where ǫ =           (T +1) . Thus, for any
+ǫ > 0, there exist η1 , η2 , and T ∈ O( ǫ12 ) satisfying g ∗ −
+gmax,T ≤ ǫ.
+

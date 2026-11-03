@@ -1,0 +1,1525 @@
+                                                                                                                                                                                          1
+
+
+
+
+                                               Joint User Scheduling and Computing Resource
+                                               Allocation Optimization in Asynchronous Mobile
+                                                          Edge Computing Networks
+                                                                                      Yihan Cang, Ming Chen, Yijin Pan, Zhaohui Yang,
+                                                                                          Ye Hu, Haijian Sun, and Mingzhe Chen
+                                              Abstract—In this paper, the problem of joint user scheduling                 investigated MEC systems from the perspective of resource
+                                           and computing resource allocation in asynchronous mobile edge                   allocation. In [3], computing offloading and service caching
+                                           computing (MEC) networks is studied. In such networks, edge                     are jointly optimized in MEC-enabled smart grid to minimize
+                                           devices will offload their computational tasks to an MEC server,
+                                                                                                                           system cost. Work [4] proposed a reverse auction-based of-
+arXiv:2401.11377v1 [eess.SP] 21 Jan 2024
+
+
+
+
+                                           using the energy they harvest from this server. To get their tasks
+                                           processed on time using the harvested energy, edge devices will                 floading and resource allocation scheme in MEC. With the
+                                           strategically schedule their task offloading, and compete for the               aid of machine learning, a multi-agent deep deterministic
+                                           computational resource at the MEC server. Then, the MEC server                  policy gradient (MADDPG) algorithm is designed to maxi-
+                                           will execute these tasks asynchronously based on the arrival of the             mize energy efficiency in [5]. However, deploying computing
+                                           tasks. This joint user scheduling, time and computation resource
+                                           allocation problem is posed as an optimization framework whose                  resources at edge servers of a wireless network faces several
+                                           goal is to find the optimal scheduling and allocation strategy                  challenges. First, due to limited energy of edge servers, they
+                                           that minimizes the energy consumption of these mobile comput-                   may not be able to provide sufficient computation resource
+                                           ing tasks. To solve this mixed-integer non-linear programming                   according to devices’ requirements [6], [7]. Second, executing
+                                           problem, the general benders decomposition method is adopted                    all offloading tasks synchronously requires edge servers to wait
+                                           which decomposes the original problem into a primal problem
+                                           and a master problem. Specifically, the primal problem is related               the arrival of the task with maximum transmission delay which
+                                           to computation resource and time slot allocation, of which the                  may not be efficient. Meanwhile, task scheduling sequence is
+                                           optimal closed-form solution is obtained. The master problem                    nonnegligible in synchronous task offloading, which will also
+                                           regarding discrete user scheduling variables is constructed by                  impact the network loads and task completion [8].
+                                           adding optimality cuts or feasibility cuts according to whether                    To address the first challenge, wireless power transfer
+                                           the primal problem is feasible, which is a standard mixed-integer
+                                           linear programming problem and can be efficiently solved. By                    (WPT) technology that exploits energy carried by radio fre-
+                                           iteratively solving the primal problem and master problem, the                  quency (RF) signals emerges [9]. Instead of using solar and
+                                           optimal scheduling and resource allocation scheme is obtained.                  wind sources, ambient RF signals can be a viable new source
+                                           Simulation results demonstrate that the proposed asynchronous                   for energy scavenging. Harvesting energy from the environ-
+                                           computing framework reduces 87.17% energy consumption com-                      ment provides perpetual energy supplies to wireless devices
+                                           pared with conventional synchronous computing counterpart.
+                                                                                                                           for tasks offloading [10]. Thus, WPT has been regarded
+                                              Index Terms—Mobile edge computing, asynchronous comput-                      as a promising paradigm for MEC scenarios. Combining
+                                           ing, user scheduling, wireless power transfer.
+                                                                                                                           WPT with MEC, the authors in [11] proposed a multi-user
+                                                                                                                           wireless-powered MEC framework aiming at minimizing the
+                                                               I. I NTRODUCTION                                            total energy consumption under latency constraints. In [12],
+                                             Mobile edge computing (MEC) provides powerful comput-                         considering binary computation offloading, the weighted sum
+                                           ing ability to edge devices [1], [2]. Numerous works have                       computation rate of all wireless devices was maximized by
+                                                                                                                           optimizing computation mode selection and transmission time
+                                              The work of Ming Chen was supported by the National Natural Science
+                                           Foundation of China (NSFC) under grant 61871128, 61960206005 and                allocation. The work in [13] proposed a multiple intelligent
+                                           61960206006, by the National Key Research and Development Program under         reflecting surfaces (IRSs) assisted wireless powered MEC sys-
+                                           grant 2018YFB1801905, and by Fundamental Research on Foreword Leading           tem, where the IRSs are deployed to assist both the downlink
+                                           Technology of Jiangsu Province under grant BK20192002. The work of Y.
+                                           Pan was supported by Chongqing Natural Science Joint Fund Project under         WPT from the access point (AP) to the wireless devices and
+                                           Grant No. CSTB2023NSCQ-LZX0121. (Corresponding author: Ming Chen).              the uplink computation offloading. However, the above works
+                                              Y. Cang, Ming Chen and Y. Pan are with the National Mobile Communica-        [11]–[17] assumed that all computational tasks offloaded by
+                                           tions Research Laboratory, Southeast University, Nanjing 210096, China (e-
+                                           mails: yhcang@seu.edu.cn, chenming@seu.edu.cn, panyj@seu.edu.cn). Ming          users will arrive at the server at the same time and then
+                                           Chen is also with the Purple Mountain Laboratories, Nanjing 211100, China.      the server starts to process all tasks simultaneously, which
+                                              Z. Yang is with College of Information Science and Electronic Engineering,   is not efficient and even impractical due to users’ dynamic
+                                           Zhejiang University, Hangzhou 310027, China, and with International Joint
+                                           Innovation Center, Zhejiang University, Haining 314400, China, and also         computational task processing requests [18].
+                                           with Zhejiang Provincial Key Laboratory of Info. Proc., Commun. & Netw.            Currently, only a few existing works [18]–[23] optimized
+                                           (IPCAN), Hangzhou 310027, China (e-mail: yang zhaohui@zju.edu.cn).              MEC networks under dynamic computation requests. The
+                                              Y. Hu is with the Department of Industrial and System Engineering,
+                                           University of Miami, Coral Gables, FL, 33146, (e-mail: yehu@miami.edu).         work in [18] designed a Whittle index based offloading al-
+                                              H. Sun is with the School of Electrical and Computer Engineering, The        gorithm to maximize the long-term reward for asynchronous
+                                           University of Georgia, Athens, GA 30602 USA (e-mail: hsun@uga.edu).             MEC networks where computational tasks arrive randomly. In
+                                              M. Chen is with the Department of Electrical and Computer Engineering
+                                           and Institute for Data Science and Computing, University of Miami, Coral        [19], the authors studied the co-channel interference caused by
+                                           Gables, FL, 33146, USA (e-mail: mingzhe.chen@miami.edu).                        asynchronous task uploading in NOMA MEC systems. The
+                                                                                                                                    2
+
+
+
+work in [20] investigated the energy efficient asynchronous
+task offloading for a MEC system where computational tasks
+with various latency requirements arrive at different time
+slots. Task scheduling problem for MEC systems with task
+interruptions and insertions was studied in [21]. However,
+the above works [18]–[21] that focused on the asynchronous
+task offloading neglected how the asynchronous task arrival
+affects the computation at the MEC server. The authors in
+[22] used a sequential computation method to solve the energy
+consumption minimization problem under asynchronous task
+arrivals. The work in [23] designed a computation strategy that     Fig. 1: An illustration about the flow chart of the ordered
+only allows a task to be executed after the completion of the       TDMA system with asynchronous computing.
+previous tasks. Yet, works in [22] and [23] are still constrained
+by their limited usage of the server computation capacity, and           tably, all tasks experience a simultaneous decrease, the
+cannot act as resource efficient asynchronous task offloading            time of which is given in a closed form, in terms of their
+solutions.                                                               required central processing unit (CPU) cycles. Leveraging
+   The sequential computation strategy [24] has shown to have            these identified properties, we introduce a computation
+the potential to improve the computation resource efficiency             resource allocation algorithm that offers a low-complexity
+and task execution punctuality in an asynchronous MEC                    solution.
+network. However, since the computation resource allocation
+                                                                    Simulation results demonstrate that the proposed asynchronous
+at the server depends on the arrival of the offloaded tasks, the
+                                                                    computing framework reduces 87.87% energy consumption
+sequential scheduling of the tasks will inevitably affect system
+                                                                    compared with conventional synchronous computing coun-
+performance, which is a fact that has been wildly ignored [22],
+                                                                    terpart. Moreover, computational complexity of the proposed
+[25], [26].
+                                                                    computation resource allocation algorithm is reduced by 100
+   The main contribution of this paper is a novel asynchronous
+                                                                    times compared with conventional interior point method.
+MEC framework that jointly schedules tasks and allocates
+                                                                       The rest of this paper is structured as follows. Section II
+computation resource with optimized system energy efficiency.
+                                                                    elaborates system model and problem formulation. In Section
+In brief, our key contributions include:
+                                                                    III, we investigate the properties of asynchronous frequency
+   • We develop a novel framework to manage computation
+                                                                    allocation with given time allocation and user scheduling. The
+      resource for the sequential computation in asynchronous
+                                                                    joint optimization of user scheduling, time allocation, and
+      MEC networks. In particular, we consider a MEC net-
+                                                                    computation resource allocation is rendered in Section IV.
+      work in which the edge devices sequentially harvest
+                                                                    Simulation results are presented in Section V. Finally, Section
+      energy for transmission, offload their computational tasks
+                                                                    VI draws the conclusions.
+      to a MEC server, and then compete for computation
+      source at the server to get their tasks accomplished. To
+      achieve the high energy efficient task execution, a policy        II. S YSTEM M ODEL AND P ROBLEM F ORMULATION
+      needs to be designed for determining the optimal task            Consider a MEC network consisting of one MEC server,
+      scheduling sequence, time and computational resource          and a set K = {1, 2, · · · , K} of energy harvesting enabled
+      allocation. We pose this joint scheduling and resource        edge devices. Within this network, each device k ∈ K needs
+      allocation problem in an optimization framework and           to execute an Ak bits computational task, and will offload its
+      seek to find the strategy which minimizes the energy          computational task to the MEC server. As shown in Fig. 1, the
+      consumption of the tasks.                                     devices need to first harvest energy from the server to enable
+   • Then, a general benders decomposition (GBD) based              such offloading. Then, using the time division multi-access
+      algorithm is proposed to solve the formulated mixed-          (TDMA) technique, the devices need to schedule their offload-
+      integer non-linear programming (MINLP) problem which          ing toward the MEC server. In other words, the computational
+      is decomposed into a primal problem that allocates com-       tasks offloaded by devices will arrive at the MEC server
+      putation resource and time, and a master problem that         asynchronously. To this end, the MEC server will process
+      schedules user tasks. By iteratively solving the primal       each device’s computational task in an asynchronous manner.
+      problem and master problem, the optimal scheduling and        In particular, the server will process devices’ computational
+      resource allocation scheme is obtained.                       tasks according to the time that it receives each of these
+   • To show the effectiveness of the proposed algorithm,           computational tasks.
+      we prove that the optimal energy efficient scheduling            The server and edge devices must complete their com-
+      and resource allocation scheme also optimizes the task        putational tasks within a time period T which is divided
+      punctuality. Our analytical results also show that the        into (K + 2) time slots. The duration of each time slot
+      optimal allocation scheme for a given offloading task         n ∈ {0, · · · , N +1} is represented by ∆tn , with N = K. Each
+      follows a specific pattern: the computation frequency         device uses one time slot to offload its computational task.
+      allocated to each task remains constant initially, then       Let ak,n be the index to indicate whether device k offloads
+      gradually decreases before eventually reaching zero. No-      its task to the server at time slot tn . In particular, if device
+                                                                                                                                            3
+
+
+
+k uses time slot tn to offload its computational task, we have
+ak,n = 1; otherwise, ak,n = 0. Since each device uses only
+one time slot and eachPKtime slot can only be allocated to
+one device, we have k=1 ak,n = 1, ∀n ∈ {1, · · · , N }, and
+PN
+   n=1 ak,n = 1, ∀k ∈ K. Meanwhile, when ak,n = 1, device
+k will harvest energy from time slot t0 to tn−1 . Once task
+k arrives at the MEC server, i.e., at time slot slot tn+1 , the
+server will process this computational task.
+   The task computation process of the server and a device
+jointly completing a computational task k consists of three
+stages: 1) energy harvesting, 2) task offloading, and 3) remote
+computing. Next, we first introduce the process of the energy             Fig. 2: Asynchronous computation resource allocation.
+harvesting, task offloading, and remote computing stages.
+Then, the problem formulation is given.
+                                                                      occupy the whole computation capacity of the server before
+A. Energy Harvesting Model                                            the second offloading task arrives, while all the tasks compete
+                                                       ℓ            for computation resource at time slot tN +1 . At an arbitrary
+   The path loss model is given by h̄k = A 4πfcc dk , where           time slot m ∈ {2, · · · , N + 1}, fn,m , ∀n ∈ {1, · · · , m − 1} is
+A represents antenna gain, c denotes the speed of light, fc           set to be the computation resource allocated to the task that
+is the carrier frequency, ℓ denotes the path-loss factor, and         arrives at the server at time slot tn . Given these definitions,
+                                                                                 Pm−1
+dk represents the distance between device k and the server            we have       n=1 fn,m ≤ Fmax (∀m = 2, · · · , N + 1),
+[27]. The instant channel gain between device k and server            where Fmax represents the maximum computation capacity
+denoted by hk , follows an i.i.d. Rician distribution with line-      of the MEC server. To P     complete  the task computation for
+of-sight (LoS) link gain equal to γ h̄k , where γ is Rician factor.                                N    PN +1
+                                                                      each device k, we have n=1 m=n+1 ak,n fn,m ∆tm ≥ Fk
+If device k offloads its task at time slot tnP(i.e., ak,n = 1),       (∀k ∈ K), where Fk = Ak Ik represents the computation
+                                                  n−1
+the harvested energy of device k is EkH = i=0 ∆ti hk ηP0 ,            cycles of device k. Besides, the energy consumption of the
+where η is the energy harvesting efficiency of each device,           MEC serverPfor all    tasks computation can be formulated by
+                                                                                     N   PN    +1      3
+which is assumed to be equal for all devices [28]. P0 denotes         EM EC = n=1 m=n+1 κfn,m             ∆tm , where κ denotes the
+the transmit power of the server. Since each device has only          energy coefficient of the MEC server.
+a single time slot for task offloading (i.e., there exists only
+one n ∈ N such that ak,n = 1 for a certain device k), the
+energy harvested by device k can be reformulated by EkH =             D. Problem Formulation
+PK Pn−1
+   n=1    i=0 ak,n ∆ti hk ηP0 (∀k ∈ K).                                  Our goal is to minimize the MEC server’s energy consump-
+                                                                      tion of completing the tasks offloaded by all devices, which
+B. Tasks Offloading Model                                             is formulated as an optimization problem as
+   Based on the monomial offloading power model [20], [29],                      N N +1
+the transmit power of device k at its offloading time slot tn is
+                                                                                 X X
+                                                                                                  3
+                                                                       min                      κfn,m ∆tm ,                               (2)
+                  3            3                                      ∆t ,A ,f
+        λ(rk,n )    λ(Ak )                                                       n=1 m=n+1
+ pk,n =          =            , ∀k ∈ K, ∀n ∈ {1, · · · , N },                    N                          N n−1
+           hk      hk (∆tn )3                                                    X             λ(Ak )3     X   X
+                                                            (1)           s.t.         ak,n            2
+                                                                                                         ≤         ak,n ∆ti hk ηP0 , ∀k ∈ K,
+                                                                                 n=1
+                                                                                              hk (∆tn )    n=1 i=0
+where rk,n = Ak /∆tn is the transmission rate, λ > 0 is                                                                                  (2a)
+the energy coefficient related to the bandwidth and the noise                    m−1
+                                                                                 X
+power, and the order 3 is the monomial order associated with                         fn,m ≤ Fmax ,         ∀m = 2, · · · , N + 1,       (2b)
+coding scheme. Since the transmit  Ppower    of devices comes                    n=1
+                                      N                    H
+from harvested energy, we have        n=1 ak,n ∆tn pk,n ≤ Ek                     XN   N
+                                                                                      X +1
+(∀k ∈ K).                                                                                       ak,n fn,m ∆tm ≥ Ak Ik ,      ∀k ∈ K,    (2c)
+                                                                                 n=1 m=n+1
+                                                                                 N +1
+C. Computing Model                                                               X
+                                                                                        ∆ti ≤ T,                                        (2d)
+   The MEC server is equipped with multiple CPUs such                            i=0
+that the computational tasks offloaded from different devices                    XK
+can be executed in parallel [30]. Let Ik be the computation                            ak,n = 1,     ∀n ∈ {1, · · · , N },              (2e)
+intensity of task k in terms of CPU cycles per bit. As shown                     k=1
+in Fig. 2, to sufficiently utilize asynchronous computing, the                   XN
+computation resource of the server will be reallocated to the                          ak,n = 1,     ∀k ∈ K,                             (2f)
+computational tasks offloaded from devices at each time slot                     n=1
+from t2 to tN +1 . Intuitively, the first uploading task can                     ak,n ∈ {0, 1},      ∀k ∈ K, ∀n ∈ {1, · · · , N },      (2g)
+                                                                                                                                                      4
+
+
+
+where      ∆t         =      [∆t0 , · · · , ∆tN +1 ]T , f   =                       constraints (3a), task computation completion constraints (3b)
+(fn,m )∀n∈{1,··· ,N },m∈{n+1,··· ,N +1} , and A = (ak,n )K×N .                      and non-negative frequency constraints (3c), respectively. The
+In (2), (2a) is energy consumption causality constraint; (2b)                       optimal computation resource allocation is given by the fol-
+represents a computational resource allocation constraint;                          lowing proposition.
+(2c) ensures the completion of task computing; (2d) implies                                                               ∗
+                                                                                    Proposition 2. Given the optimal {αm    }, {βn∗ }, the optimal
+that the execution time of all devices should be less than T ;
+                                                                                    solution of problem (3) is given by
+(2e)-(2g) are user scheduling constraints. Since the discrete                               s
+user scheduling variables ak,n and continuous resource                                          βn∗      ∗
+                                                                                                        αm
+                                                                                                              +
+                                                                                     ∗
+allocation variables ∆ti , fn,m are highly coupled, problem                         fn,m  =         −            , ∀n ∈ K, ∀m ∈ {2, · · · , K + 1}.
+                                                                                                3κ 3κ∆tm
+(2) is a standard MINLP problem which is difficult to solve.
+                                                                                                                                                (4)
+To handle this issue, we first analyze the optimal computation
+resource allocation with given user scheduling and time                             Proof. Since (4) can be effectively obtained by solving
+allocation in Section III, based on which an efficient low-                         Karush-Kuhn-Tucker (KKT) and Slater conditions, the proofs
+complexity computation frequency optimization algorithm is                          is omitted here.
+proposed. Finally, in Section IV, we propose a GBD-based                               According to Propostion 2, we can use the sub-gradient
+algorithm to jointly optimize user scheduling and resource                          method to obtain the optimal {αm     ∗
+                                                                                                                            } and {βn∗ } so as to
+allocation so as to solve problem (2). 1                                            acquire the optimal computation resource allocation. To further
+                                                                                    reduce the computational complexity and provide some design
+     III. A NALYSIS AND A LGORITHM OF THE O PTIMAL                                  insights, the properties of the optimal solution of problem (3)
+          C OMPUTATION R ESOURCE A LLOCATION                                        are summarized in the following theorem.
+   In this section, we first analyze the properties of the optimal                                                 Pi−2                  PK
+                                                                                                                                                Fn
+computation resource allocation, and then a low-complexity                          Theorem 3. Denote 𭟋(i) = n=1 PK+1Fn ∆t + Pn=i−1        K+1
+                                                                                                                                               ∆t
+                                                                                                                             m=n+1    m      m=i    m
+computation resource allocation algorithm is accordingly pro-                       (2 ≤ i ≤ K + 1). The optimal computation resource has the
+posed. For ease of notation, we use Fn (∀n ∈ {1, · · · , N })                       following properties:
+to represent the computation cycles to complete the task                                                                                      ∗
+                                                                                     1) The optimal solution of problem (3) satisfies fn,n+1         =
+that arrives at the server with order n. With given time slot                                     ∗               ∗             ∗
+                                                                                         · · · = fn,i > · · · > fn,j = · · · = fn,K+1 = 0, (n + 1 ≤
+allocation vector ∆tt and user scheduling matrix A, problem                              i < j ≤ K +1), where ti is referred as     “transition point”.
+(2) is simplified as follows:                                                                                ∗                   α∗              α∗
+                                                                                     2) The optimal {αm        } satisfies 0 = ∆t22 = · · · = ∆tii <
+          N N +1                                                                         α∗            α∗
+                                                                                         ∆ti+1 · · · < ∆tK+1 .
+                                                                                          i+1           K+1
+          X X
+                          3
+ min                    κfn,m ∆tm ,                                          (3)     3) The transition point is ti (3 ≤ i ≤ K + 1) if and only if
+{fn,m }
+          n=1 m=n+1
+                                                                                        𭟋(i − 1) ≤ Fmax < 𭟋(i).
+          m−1
+          X
+  s.t.         fn,m ≤ Fmax ,           ∀m = 2, · · · , N + 1,              (3a)     Proof. The proofs of 1), 2) and 3) are provided in Appendix
+          n=1                                                                       B, C, D, respectively.
+           N +1
+           X
+                   fn,m ∆tm ≥ Fn ,          ∀n ∈ {1, · · · , N },          (3b)         According to property 1) in Theorem 3, the optimal fre-
+          m=n+1
+                                                                                    quency allocation scheme for a certain offloading task always
+                                                                                    follows a specific pattern: the frequency allocated to each
+          fn,m ≥ 0, ∀n ∈ {1, · · · , N }, ∀m = n + 1, · · · , N + 1.
+                                                                                    device remains constant initially, then gradually decreases
+                                                                (3c)
+                                                                                    and eventually reaches zero. This property motivates us to
+Before solving problem (3), we provide the feasibility condi-                                                 ∗         ∗
+                                                                                    deduce the condition fn,i      > fn,i+1  . The property 2) in
+tion as follows.                                                                    Theorem 3 implies that the computation resource of the server
+Proposition 1. Problem    (3) is feasible if and only if Fmax ≥                     is redundant at time slots from t2 to ti , while the maximum
+                  PN
+                     i=n Fi
+                                                                                    computation resource Fmax is utilized at slots from ti+1 to
+maxn∈{1,··· ,N } PN +1 ∆t .
+                       i=n+1     i+1                                                tK+1 .
+                                                                                                                                             ∗
+Proof. Please refer to Appendix A.                                                      According to property 1) in Theorem 3, unless fn,n+1       =
+                                                                                             ∗
+                                                                                    · · · = fn,K+1 (∀n ∈ K), there always exists a special time
+  Denote {αm }, {βn }, and {γn,m } as the non-negative La-                                                                            ∗
+                                                                                    slot tκ we called “transition point” such that fn,n+1    = ··· =
+grangian multipliers associated with the maximum frequency                             ∗           ∗                 ∗
+                                                                                    fn,κ−1 > fn,κ ≥ · · · ≥ fn,K+1 (3 ≤ κ ≤ K + 1).
+   1 For multi-server edge computing systems, new indicator variables can be
+                                                                                    The transition point indicates the number of time slots that
+introduced to denote the association between tasks and servers. Then the en-        the computation resource remains the same. The computation
+ergy minimization problem can be formulated as a MINLP problem containing           resource decreases for all tasks at the transition point. The
+two kinds of binary optimization variables for task-server association and          method to find out the transition point when it exists is given
+scheduling sequence, respectively. Despite being more complex, the problem
+can be solved efficiently using conventional MINLP methods such as convex           by property 3) in Theorem 3.
+relaxation and branch-and-bound, or latest approach using machine learning              Property 3) in Theorem 3 also shows that the transition point
+(see e.g., [27]). It is worth noting that with given task-server association, the   is impacted by the computation ability of the server. We can
+proposed algorithm in this work is still applicable to scheduling and resource
+allocation optimization for each server. The detailed transmission protocol and     directly determine the transition point tκ utilizing property 3)
+algorithm procedure are left for future works.                                      in Theorem 3 without the need of solving problem (3). After
+                                                                                                                                                       5
+
+
+
+                                                                      Algorithm 1: Optimal Computation Frequency Allo-
+                                                                      cation Algorithm
+                                                                                                                    PK
+                                                                                                                          Fi
+                                                                     1    If Fmax ≥ maxn∈{1,··· ,K} PK+1i=n                    , go to Step 2;
+                                                                                                                i=n+1 ∆ti+1
+                                                                           otherwise, problem (3) is infeasible.
+                                                                     2    According to Theorem 3, if there is no transition point, the
+                                                                           optimal solution is given by
+                                                                            ∗                ∗
+                                                                           fn,n+1 = · · · = fn,K+1  = PK+1Fn         for
+                                                                                                                    m=n+1 ∆tm
+                                                                            n = 1, · · · , K; otherwise, obtain transition point tκ and let
+                                                                             ∗
+                                                                            αm = 0 for m= 2, · · · , κ −  1.
+                                                                                                                     2
+                                                                                                    F
+Fig. 3: Properties of the optimal computation resource alloca-       3    Initialize βn =        PK+1 n                  for n = 1, · · · , K and
+                                                                                                   m=n+1 ∆tm
+tion.                                                                   required precision ϵ0 .
+                                                                     4 repeat
+                                                                     5     for m = κ, · · · , K + 1 do
+                                                                                           αlb      α                 αub
+                                           ∗                          6              Let ∆tmm = ∆tm−1 and ∆tmm = maxn=1,··· ,m−1 βn .
+determining the transition point, we have αm = 0 (2 ≤ m ≤                                         m−1
+                                                                                             αub        αlb
+κ − 1) according to property 2) in Theorem 3.                         7              while ∆tmm − ∆tmm > ϵ0 do
+                                                                                               αm             αlb        αub
+   Fig. 3 depicts an illustration of properties in the optimal        8                    Set ∆tm
+                                                                                                    ← ( ∆tmm + ∆tmm )/2.
+                                                                                                            rh
+computation resource allocation. As can be seen, before the                                                    βn      αm
+                                                                                                                            i+
+                                      ∗              ∗                9                    Calculate fn,m =        − 3κ∆t      .
+transition point tκ , the optimal αm     = 0 and fn,m      keeps                                               3κ         m
+                                                                                                                      αlb
+unchanged as m = 2, · · · , κ − 1. Based on Theorem 3,
+                                                                                             Pm−1                            αm
+                                                                     10                    If n=1 fn,m > Fmax , let tm ← ∆tm ;
+                                                                                                                       m
+
+a low-complexity algorithm is proposed in Algorithm 1.                                                      m
+                                                                                            otherwise, let tm
+                                                                                                               αub
+                                                                                                                αm
+                                                                                                              ← ∆t  .
+                                                                                                                  m
+First, we check the feasibility of problem (3) according to          11              end
+Proposition 1. Then, we determine the transition point tκ            12        end
+                                                                                                                              i+
+based on property 3) in Theorem 3. If there is no transition
+                                                                                             h        
+                                                                            Update βn ← βn + ϕn Fn − K+1
+                                                                                                              P
+                                                                     13                                        m=n+1 fn,m ∆tm
+points, which means that the computation resource of server                   for n = 1, · · · , K.
+is abundant, we can directly obtain the optimal solution             14 until the objective of (3) converges;
+  ∗
+fn,n+1               ∗
+         = · · · = fn,K+1   = PK+1Fn ∆t for n = 1, · · · , K;                                     ∗
+                                                                     15 Output the optimal {fn,m }.
+                                 m=n+1   m
+                                                          ∗
+otherwise, we obtain the transition point tκ and have αm      =0
+for m = 2, · · · , κ − 1. Hence, we only need to find out the
+           ∗
+optimal αm     (m = κ, · · · , K + 1) and βn∗ (n = 1, · · · , K).    icantly reduced. Moreover, when κ is large, the complexity
+Note that with given βn∗ (n = 1, · · · , K), we can obtain the                                                     ∗
+                                                                     can be further reduced since more numbers of αm  are zeros.
+           ∗
+optimal αm     by solving the following (K − κ + 2) equalities
+
+                     m−1
+                            s               +                                IV. J OINT U SER S CHEDULING AND R ESOURCE
+                     X           βn   αm                                                 A LLOCATION A LGORITHM
+       G(m, αm ) ≜                  −             = Fmax ,
+                      n=1
+                                 3κ 3κ∆tm                               In this section, we employ the GBD method to solve
+                                  (m = κ, · · · , K + 1),      (5)   problem (2). The core idea of GBD method is decomposing
+                                                                     the original MINLP problem into a primal problem related to
+since the maximum frequency is utilized at time slots from           continuous variables and a master problem associated with in-
+tκ to tK+1 . Since G(m, αm ) decreases with respect to αm ,          teger variables, which are iteratively solved2 . Specifically, for
+the bisection method is adopted. It should be noticed   that         problem (2), the primal problem is a joint communication and
+                                          Pm−1 q βn                  computation resource optimization problem with fixed user
+G(m, αm ) achieves the maximum value of n=1       3κ when
+                                                   αm                scheduling. The master problem optimizes user scheduling by
+αm = 0 and the minimum value of 0 when ∆t                 ≥
+                                                    αm               utilizing the optimal solutions and dual variables of the primal
+maxn=1,··· ,m−1 βn . Therefore, the upper bound of ∆t m
+                                                          is
+          αub
+                                                      m              problem. Next, we describe the detailed procedures.
+set as ∆tmm = maxn=1,··· ,m−1 βn . For the lower bound, we
+    αlb        αm−1
+set ∆tmm = ∆t    m−1
+                      according to property 2) in Theorem 3.         A. Primal Problem
+After obtaining αm for m = κ, · · · , K + 1, βn is updated
+by a sub-gradient method [31], where ϕn is the dynamically             With given user scheduling A , problem (2) is reduced to
+chosen step-size. Through repeating Steps 5 to 13 until the          the following optimization problem:
+                                                       ∗
+objective of (3) converges, we can obtain the optimal αm for                          K
+                                                                                      X K+1
+                                                                                        X
+                           ∗                                                                           3
+m = 2, · · · , K + 1 and βn for n = 1, · ·· , K.                            min                     κfn,m ∆tm ,                                     (6)
+                                            (K+2−κ)
+                                                                            ∆t ,f
+  The complexity of Algorithm 1 is O          √
+                                               ϵ1   log2 ( ϵ10 ) ,                    n=1 m=n+1
+                                                                                                    n−1
+where ϵ0 denotes the accuracy of the bisection method and                              λ(Aπn )3     X
+                                                                             s.t.                 ≤     ∆ti hπn ηP0 ,                ∀n ∈ K,        (6a)
+ϵ1 is the accuracy of the objective of problem   (3). Compared                       hπn (∆tn )2
+                               2
+                                      3.5                                                         i=0
+with the complexity of O K + K               by the interior point
+method, the complexity of the proposed algorithm is signif-               2 Interested readers may refer to [29], [32]–[34] for details.
+                                                                                                                                                    6
+
+
+              K+1                                                                   K
+                                                                           ∂L      X      (xn,K+1 )3          ∗
+                                                                                                     + ξ ∗ − ωK+1
+              X
+                      fn,m ∆tm ≥ Aπn Iπn ,         ∀n ∈ K,    (6b)          ∗
+                                                                                =−     2κ                         Fmax = 0.                      (13)
+                                                                         ∂∆tK+1    n=1
+                                                                                          (∆t∗K+1 )3
+             m=n+1
+            (2b), (2d),                                       (6c)
+                                                                         Through solving above equations, the optimal ∆t∗i (∀i) is
+where πn denotes the index of the n-th offloading device, i.e.,          obtained in the following proposition.
+we have πn = k if ak,n = 1. Since the user scheduling scheme
+A is known, the value of πn , (∀n ∈ K) can be deduced and                Proposition 4. The optimal ∆t ∗ is given by
+substituted into problem (2). Since problem (6) is non-convex                                  K+1
+due to the constraints (6a), (6b) and the objective, we introduce
+                                                                                               X
+                                                                           ∆t∗0 = T −                 ∆t∗i ,                                     (14)
+xn,m = fn,m ∆tm (∀n = 1, · · · , K, ∀m = n + 1, · · · , K + 1)                                 i=1
+to represent computation amounts of the n-th offloading task                    v
+                                                                                                      Pi−1
+                                                                                                 2κhπi n=1 (xn,i )3 + 2ρ∗i λ(Aπi )3
+                                                                                u
+at time slot m. Hence, problem (6) is equivalent to                          ∗
+                                                                                u
+                                                                                3
+                                                                           ∆t = t
+                                                                               i                      K
+                                                                                                                                         ,
+                                                                                          ξ ∗ hπi − n=i+1 ρ∗n (hπn )2 ηP0 − ωi∗ hπi Fmax
+                                                                                                   P
+           K K+1
+           X X         (xn,m )3
+   min               κ          ,                              (7)
+   ∆t ,x               (∆tm )2                                                                (∀i ∈ {2, · · · , K − 1}),                         (15)
+           n=1 m=n+1                                                                      s
+           m−1
+                                                                                           PK−1          3       ∗       3
+                                                                                  3 2κhπK    n=1 (xn,K ) + 2ρK λ(AπK )
+                                                                           ∆t∗K =
+           X
+   s.t.           xn,m ≤ Fmax ∆tm , ∀m = 2, · · · , K + 1,    (7a)                          ∗         ∗                    ,                     (16)
+                                                                                           ξ hπK − ωK hπK Fmax
+           n=1                                                                      s P
+                                                                                           K             3
+                                                                                    3 2κ   n=1 (xn,K+1 )
+            K+1
+                                                                             ∗
+                                                                           ∆tK+1 =                          ,                                    (17)
+            X
+                    xn,m ≥ Aπn Iπn ,     ∀n ∈ K,              (7b)                       ∗    ∗
+                                                                                       ξ − ωK+1 Fmax
+           m=n+1
+           (2d), (6a),                                        (7c)       and ∆t∗1 is the null point of Ψ(x), where
+                                                                                         PK+1
+where x = (xn,m )∀n∈K,m∈{n+1,··· ,K+1} is the collections of             Ψ(x)     =   T − i=1 ∆ti x2 (hπ1 )2 ηP0 − λ(Aπ1 )3 ,
+                                                                                    PK+1    i
+xn,m . It can be proved that problem (7) is convex utilizing the         x ∈ 0, 23 T − i=2 ∆ti .
+tricks of perspective function [35]. To further provide useful
+insights and reduce computation complexity, we utilize the               Proof. The proof of Proposition 4 is provided in Appendix H.
+block coordinate decent (BCD) method to iteratively optimize
+time allocation and computation resource. Since the low-
+complexity computation resource allocation algorithm with                   Through iteratively optimizing time allocation and compu-
+given time allocation has been provided in Algorithm 1, next             tation resource allocation, we can obtain the optimal solution
+we propose time allocation algorithm with fixed computation              of primal problem (7). However, if problem (7) is infeasible,
+resource allocation.                                                     we formulate the corresponding ℓ1 -minimization problem as
+   The Lagrangian function of problem (7) with respect to ∆t             follows:
+is given by                                                                                   K
+                                                                                              X
+    K K+1                 K                     n−1
+                                                                     !         min                   (ζk + ιk ) ,                                (18)
+    X X       (xn,m )3 X          λ(Aπn )3      X                         ∆t ,x ,ζ >0,ι >0
+                                                                                              k=1
+L=          κ        2
+                       +     ρ n            2
+                                              −     ∆ti hπn ηP0
+              (∆tm )             hπn (∆tn )                                                    K                               K n−1
+   n=1 m=n+1             n=1                    i=0                                           X              λ(Ak )3          X   X
+        K+1
+                     ! K+1         m−1
+                                                            !                      s.t.              ak,n              ≤ ζk +         ak,n ∆ti hk ηP0 ,
+        X                 X         X                                                                       hk (∆tn )2
+   +ξ       ∆ti − T +          ωm       xn,m − Fmax ∆tm ,                                     n=1                             n=1 i=0
+            i=0                 m=2      n=1                                                                                      ∀k ∈ K,       (18a)
+                                                                (8)
+                                                                                                     K
+                                                                                                     X      K+1
+                                                                                                            X
+where ρn , ωm and ξ are dual variables related to constraints                                 ιk +                  ak,n xn,m ≥ Ak Ik , ∀k ∈ K, (18b)
+(6a), (7a) and (2d), respectively. Taking the derivative with                                        n=1 m=n+1
+
+respect to ∆t , we have                                                                       (2d), (7a).                                       (18c)
+
+             K                                                           Since problem (18) is convex and always feasible, we can use
+    ∂L      X
+       ∗
+         =−     ρ∗n hπn ηP0 + ξ ∗ = 0,                          (9)      the interior point method to obtain the optimal solution and
+   ∂∆t0     n=1                                                          corresponding dual variables.
+                              K
+    ∂L          2λ(Aπ1 )3    X                                              Furthermore, we can observe that the solution of primal
+       ∗
+         = −ρ∗1        ∗ 3
+                           −     ρ∗n hπn ηP0 + ξ ∗ = 0,       (10)
+   ∂∆t1         hπ1 (∆t1 )   n=2
+                                                                         problem always provides a performance upper bound for
+             i−1                             3     K                     problem (2) since user scheduling is fixed. Then the upper
+    ∂L       X      (xn,i )3     ∗ 2λ(Aπi )
+                                                  X
+         = −     2κ          − ρ i             −       ρ∗n hπn ηP0       bound is updated as U B (j) ← min{U B (j−1) , f (j) }, where
+   ∂∆t∗i            (∆t ∗ 3
+                          )        h       ∗ 3
+                                     πi (∆ti )
+             n=1        i                        n=i+1                   f (j) denotes the objective value of primal problem (6). As can
+              + ξ ∗ − ωi∗ Fmax = 0,    (2 ≤ i ≤ K − 1),       (11)       be seen, the upper bound is always non-increasing as iteration
+              K−1           3                  3                         proceeds. Subsequently, we construct master problem using
+   ∂L         X  (xn,K )       2λ(AπK )
+        =−    2κ         −ρ∗K                    ∗
+                                          +ξ ∗ −ωK Fmax = 0,             the solutions and dual variables of primal problem (7) and
+  ∂∆t∗K   n=1
+                 (∆t ∗ 3
+                     K )      h       ∗ 3
+                                πK (∆tK )
+                                                        (12)             feasibility problem (18).
+                                                                                                                                                                             7
+
+
+
+B. Master Problem                                                                                       Algorithm 2: Joint User Scheduling and Resource
+   At each iteration, optimality cut or feasibility cut are added                                       Allocation Algorithm
+to master problem depending on whether the primal problem                                              1  Initialize arbitrary feasible user scheduling A (j) , and set
+is feasible. Denote J1 and J2 as the set of iteration indexes                                             j = 1, U B = +∞, LB = −∞, J1 = J2 = ∅;
+                                                                                                        2 repeat
+indicating the primal problem is feasible and infeasible, re-
+                                                                                                        3      if problem (7) is feasible then
+spectively. Specifically, the optimality cut for each j ∈ J1 of                                         4           repeat
+feasible iterations is defined as                                                                       5               Obtain the optimal computation resource f (j)
+                                                                                                                                              (j)
+                                                                    3                                                   and dual variable βk according to
+                                                               (j)                                                        Algorithm 1;
+                                    K K+1                    xn,m
+                                                                                                                        Obtain the optimal time allcation ∆t (j) and dual
+                                    X X
+θ(A , ρ (j) , β (j) ) =                             κ      2                                          6
+                                                        (j)                                                                         (j)
+                                    n=1 m=n+1         ∆tm                                                                 variable ρk ;
+                                                                                                      7           until the objective of (7) converges;
+     K              K                                 K n−1                                             8           Update U B and J1 ;
+     X        (j) 
+                    X                  λ(Ak )3       X    X         (j)
+ +           ρk      ak,n                    2 −          ak,n ∆ti hk ηP0 
+                                                                                                       9      else
+                                           (j)
+     k=1                     n=1     hk ∆tn          n=1 i=0                                           10           Solve feasibility problem (18) and update J2 ;
+     K                               K   K+1
+                                                          !                                            11           Obtain the corresponding optimal solution x̂ (j) and
+     X            (j)
+                                     X X                                                                                (j)                            (j)        (j)
+                                                      (j)                                                            ∆t̂ as well as dual variables ρ̂k and β̂K ;
+ +           βk              Ak Ik −            ak,n xn,m ,                (19)
+     k=1                                   n=1 m=n+1                                                   12      end
+                                                                                                       13      Solve master problem (21) by adding optimality cuts
+       (j)                     (j)                                                                               (19) and feasibility cuts (20);
+where ρk                  and βk
+                        represent the dual variables related to
+                                         (j)          (j)                                              14      Set j ← j + 1;
+primal problem at the j-th iteration, xn,m and ∆tm denote                                              15      Update A (j) and LB;
+the solution of primal problem at the j-th iteration. The terms                                        16 until U B and LB are sufficiently close;
+irrelavant to A are omitted based on complementary slackness                                                                      ∗     ∗
+                                                                                                       17 Output the optimal f , ∆t and A .
+                                                                                                                                                 ∗
+
+theorem [31]. Similarly, the feasibility cut for each j ∈ J2 of
+infeasible iterations is defined as
+
+                                    K                            K K+1
+                                                                                           !           bound obtained by primal problem and the performance lower
+θ̂(A , ρ̂   (j)
+                  , β̂
+                         (j)
+                               )=
+                                    X        (j)
+                                           β̂k     Ak Ik −
+                                                                 X X                 (j)
+                                                                              ak,n x̂n,m               bound obtained by the master problem are non-increasing
+                                    k=1                          n=1 m=n+1                             and non-decreasing w.r.t. the iteration index, respectively. As
+                                                                                                     a result, the performance upper bound and the performance
+     K                     K                         3               K n−1
+     X        (j) 
+                           X                λ(Ak )                   X X (j)                           lower bound go to converge [29]. Therefore, through iteratively
++           ρ̂k                 ak,n               2 −         ak,n ∆t̂i hk ηP0  ,
+                                                                                  
+                                            
+     k=1                   n=1
+                                                (j)
+                                          hk ∆t̂n        n=1 i=0                                       solving primal problem and master problem, we can obtain
+                                                                                 (20)                  the optimal solution when the upper bound and lower bound
+                                                                                                       are sufficiently close [33], [36]. The detailed algorithm is
+              (j)                    (j)                                                               summarized in Algorithm 2.
+where ρ̂k and β̂k represent the dual variables related to
+                                                (j)           (j)
+feasibility problem at the j-th iteration, x̂n,m and ∆t̂m
+denote the solution of feasibility problem at the j-th iteration.                                      C. Complexity Analysis
+Therefore, master problem is formulated as                                                                The complexity of solving problem (2) by Algorithm 2
+                         min ψ,                                                                 (21)   lies in solving the primal problem, feasibility problem, and
+                         A ,ψ                                                                          master problem at each iteration. For primal problem, where
+                          s.t.      θ(A , ρ (j) , β (j) ) ≤ ψ,            ∀j ∈ J1 ,            (21a)   we iteratively update time allocation variables and frequency
+                                                         (j)                                           variables. The frequency optimization     method is given in
+                                    θ̂(A , ρ̂ (j) , β̂         ) ≤ 0,     ∀j ∈ J2 ,            (21b)   Algorithm 1, whose complexity is O K+2−κ      √       log2 (1/ϵ0 ) as
+                                                                                                                                                       ϵ1
+                                    (2e) − (6g).                                               (21c)   analyzed in Section III. The time allocation optimization is
+In particular, (21a) and (21b) denote the set of hyperplanes                                           according to Proposition 4, whose complexity is estimated
+spanned by the optimality cut and feasibility cut from the                                             as O (K log2 (T )). Therefore,
+                                                                                                                                         the total complexity of solv-     
+                                                                                                                                     K+2−κ
+first to the j-th iteration, respectively. The two different types                                     ing primal problem is O          √
+                                                                                                                                          ϵ1  log 2 (1/ϵ  0 )K log 2 (T )L1  ,
+of cuts are exploited to reduce the search region for the                                              where L1 denotes the iteration number in the primal prob-
+global optimal solution [36]. Master problem (21) is a standard                                            For the feasibility problem,
+                                                                                                       lems.                                the complexity is given by
+                                                                                                                                   3.5
+mixed-integer linear programming (MILP) problem, which                                                 O      (K+1)K
+                                                                                                                      + 3K + 1            by the interior point method.
+                                                                                                                 2
+can be solved by numerical solvers such as Gurobi [37] and
+Mosek [38]. Since master problem is the relaxing problem                                               For the master problem, the computational complexity is
+of MINLP problem (2), solving master problem provides a                                                O 2K by the Branch and Bound (BnB) method [39].
+performance lower bound for problem (2). The lower bound is
+given by LB (j) ← ψ. Since at each iteration, an additional cut                                                                 V. S IMULATIONS
+(optimality cut or feasibility cut) is added to master problem                                           In this section, we perform simulations to validate the
+which narrows the feasible zone, the lower bound is always                                             proposed scheme and algorithm. There are K = 10 devices
+non-decreasing. As a consequence, the performance upper                                                around the server. The task size Ak and computation intensity
+                                                                                                                                         8
+
+
+
+obey uniform distribution on [10, 50] Kbits and [500, 1500]
+                                                                            0.03
+cycles/bit, respectively. The transmit power of BS is P0 = 3 W.
+The energy coefficient of the MEC server and energy conver-
+                                                                           0.025
+sion factor of devices are set as κ = 10−26 and η = 0.51.
+We set the energy constant of transmission λ = 10−25 .
+                                                                            0.02
+Furthermore, the maximum computation resource is Fmax = 1
+GHz and the allowable delay is T = 1 second. In channel
+                                                                           0.015
+model, we set antenna gain A = 3, carrier frequency fc = 915
+MHz, path-loss factor ℓ = 3, speed of light c = 3 × 108 m/s,
+                                                                            0.01
+and the Rician factor is γ = 0.3. The following benchmarking
+schemes are provided:
+                                                                           0.005
+
+  • JSORA [26]: The joint sensing-and-offloading resource
+    allocation algorithm, where the allocated frequency for                   0
+                                                                                   4    5     6      7     8    9     10    11     12
+    each device keeps unchanged during its computation
+    duration, i.e., fn,n+1 = · · · = fn,K+1 (∀n ∈ K).
+  • JCCRM-Sync [11]–[17]: The joint communication and
+                                                                        Fig. 4: Energy consumption versus number of devices.
+    computation resource management algorithm, where the                   0.045
+    computing of server will not begin until all tasks are
+                                                                            0.04
+    received, which is adopted by most of the literature.
+  • Random scheduling scheme [22], [25]: We randomly set                   0.035
+    the user scheduling for offloading.
+                                                                            0.03
+  • Exhaustive search: We randomly choose multiple initial
+    points for Algorithm 2 and select the smallest result as               0.025
+    output. The results of exhaustive search method can be
+                                                                            0.02
+    regarded as global optimal solutions.
+Besides, all accuracies used in the simulations are set as 10−5            0.015
+
+for fairness.                                                               0.01
+
+   Fig. 4 demonstrates the energy consumption performance
+                                                                           0.005
+comparisons between different schemes under different num-                     0.8     0.85   0.9   0.95   1   1.05   1.1   1.15   1.2
+
+bers of devices. We can observe that the energy consump-
+tion of the proposed scheme as well as benchmark schemes                 Fig. 5: Energy consumption versus maximum delay.
+increases with the number of devices getting large. This is
+because that devices have to compete for fixed communi-
+cation and computation resource. As the number of devices            can be seen, the energy consumption of all schemes decreases
+increases, the average transmission time and computation             as the maximum delay becomes large. This is because as delay
+time of each device get small, thus average computation              gets large, the server has more time to finish tasks. Thus,
+resource becomes large. Therefore, larger energy consumption         the fewer computation resource is allowable. Hence, energy
+of server is required in order to finish devices’ tasks within       consumption can be reduced. From Fig. 5, it can be veri-
+the required delay. Moreover, as can be seen in Fig. 4, the gap      fied that the proposed algorithm outperforms benchmarking
+between the proposed algorithm and exhaustive search scheme          schemes in terms of energy consumption in the considered
+is small. This indicates that the proposed algorithm achieves        region of delay, especially in resource-scarce scenarios. This
+close-to-optimal solutions. Compared with JSORA scheme,              phenomenon can be observed in Fig. 4 and Fig. 5 that
+random scheduling scheme and JCCRM-Sync scheme, the                  the difference in energy consumption between the proposed
+proposed scheme achieves 30.88%, 19.51%, 87.87% energy               algorithm and benchmark schemes gets small when resource
+reductions, respectively. This can be explained by that the          is abundant. This is because the flaws of benchmark schemes
+proposed algorithm can take full advantage of the flexibility        compared with the proposed algorithm can be appropriately
+of asynchronous computing and user scheduling. Particularly,         compensated by utilizing additional sources. Furthermore, it
+compared with the proposed scheme, JCCRM-Sync scheme                 should be noticed that JSORA scheme is equivalent to the
+wastes the idle computation resource from time slots t2 to           proposed scheme when computation resource is abundant
+tK . Similarly, JSORA scheme can not make full use of                according to Theorem 3.
+computation resource from time slots t2 to tK . Hence, its              Fig. 6 illustrates a specific case of the allocated frequency of
+performance is better than JCCRM-Sync but worse than the             each device at each computation slot under different maximum
+proposed scheme. Additionally, random scheduling, as most of         computation frequencies when K = 5. It can be seen that as
+the existing literature does, can not utilize the heterogeneity of   the maximum frequency Fmax becomes large, the transition
+tasks size and computation intensity well in MEC networks.           point is gradually postponed, and finally no transition point
+   In Fig. 5, we depict the energy consumption curves of             exists when computation resource is sufficiently large which is
+different schemes versus the maximum allowable delay. As             in accordance with Theorem 3. Specifically, for each subfigure,
+                                                                                                                                                 9
+
+
+
+
+                                                                             0.018
+
+
+
+                                                                             0.016
+
+
+
+                                                                             0.014
+
+
+
+                                                                             0.012
+
+
+      (a) Transition point: t3           (b) Transition point: t5             0.01
+
+
+
+                                                                             0.008
+
+
+
+                                                                             0.006
+                                                                                     1      2     3   4         5   6    7    8    9   10
+
+
+
+                                                                          Fig. 8: Energy consumption versus minimum task size.
+                                                                          To test the compatibility of the proposed algorithm under
+      (c) Transition point: t6           (d) No transition point       different task scale differences, the energy consumption versus
+                                                                       minimum task size Amin is shown in Fig. 8, where task
+Fig. 6: Illustrations of different transition points under different   size obeys uniform distribution on [Amin , Amax ] with fixed
+maximum frequencies.                                                   mean value Amin +A  2
+                                                                                              max
+                                                                                                   = 30 Kbits. With a large Amin ,
+                                                                       the task scale difference is small. In Fig. 8, the proposed
+       108                                                             scheme and exhaustive search scheme achieve nearly the same
+                                                                       performance, and outperform other schemes. One can observe
+                                                                       that the energy consumption increases as task scale difference
+       107
+                                                                       gets large. This can be explained by that the resources have
+                                                                       to be tilted towards the devices with large task sizes, thus
+       106                                                             resulting in more energy consumption.
+
+                                                                                              VI. C ONCLUSION
+       105
+                                                                          In this paper, we have investigated a joint user scheduling
+                                                                       and resource optimization framework for MEC networks with
+       104
+                                                                       asynchronous computing. An optimization problem of joint
+                                                                       user scheduling, communication and computation resource
+       103
+             2   3    4      5   6   7     8     9     10    11
+                                                                       management has been solved aiming to minimize the energy
+                                                                       consumption of server under the delay constraint. Simulations
+                                                                       verified that the proposed algorithm yields significant perfor-
+Fig. 7: Comparisons of computational complexity with K =
+                                                                       mance gains compared with benchmark schemes. This work
+10.
+                                                                       establishes a new principle of asynchronous computing and
+we can find that before the transition point, the allocated            verifies the superiority over its synchronous counterpart. For
+frequency for each device being computed remains unchanged             future works, we will generalize the proposed asynchronous
+and the maximum frequency constraints do not work. From                computing framework to heterogeneous task deadlines scenar-
+the transition point to the end, the allocated frequency for           ios so as to further activate its potential. As another direction,
+each device becomes small and the maximum frequency of                 the extension to online algorithm design and accommodate
+the server is used. This verifies Theorem 3.                           new coming devices deserve further investigation.
+   Fig. 7 depicts the computational complexity comparisons                                     A PPENDIX A
+between the proposed Algorithm 1 and the interior point                                 P ROOF OF P ROPOSITION 1
+method under different transition points. As can be seen,
+the computational complexity of Algorithm 1 is significantly             The feasibility problem of (3) can be constructed as
+reduced compared with the interior point method, by more                                                  m−1
+                                                                                                          X
+than 100 times on average. As the transition point becomes                 min                  max             fn,m ,                       (A.1)
+                                                                           fn,m          m∈{2,··· ,K+1}
+larger, the complexity further decreases. For example, when                                               n=1
+                                                                                          K+1
+the transition point κ = 11, the complexity of Algorithm 1 is                             X
+reduced by 1000 times. This is because the proposed computa-                s.t.                 fn,m ∆tm ≥ Fn ,         ∀n ∈ K,            (A.1a)
+                                                                                         m=n+1
+tion resource allocation algorithm fully utilizes the properties
+in Theorem 3 to reduce algorithm complexity, especially when                             fn,m ≥ 0,    ∀n ∈ K, ∀m = n + 1, · · · , K + 1.
+the computation resource of the server is abundant.                                                                                  (A.1b)
+                                                                                                                                                        10
+
+
+
+                                                                           ∗         ∗                 αi       αi+1         αi       αi+1
+If the optimal objective of problem (A.1) is less than or equal         fn,i   = fn,i+1  . We have ∆t    i
+                                                                                                           = ∆t   i+1
+                                                                                                                      . If ∆t  i
+                                                                                                                                  = ∆t       > 0,
+to Fmax , problem (3) is feasible; otherwise, it is infeasible.                                                                    Pi−1i+1
+                                                                        i.e., αi > 0 and αi+1 > 0, we should have                         f
+                                                                                                                                      n=1 n,i =
+Subsequently, we analyze the optimal solution of problem                Pi
+                                                                                  f       =  F       according   to  (B.2).  Furthermore,      due
+                                                                             n=1 n,i+1         max
+(A.1). First, when K = 1, i.e., there exists only one task, the         to fn,m > 0 (∀n ∈ K, ∀m ∈= n + 1, · · · , K + 1),
+optimal objective of problem (A.1) is ∆tFK+1   K
+                                                    . When K = 2,       the computation cycles fn,i ∆ti + fn,i+1 ∆ti+1 > 0 (∀n ∈
+                                     F1         F2
+we consider two cases: 1) If ∆t2 ≤ ∆t             3
+                                                    , this indicates    1, · · · , i−1). According to Corollary 6, we have fn,i = fn,i+1
+that the optimal scheme is computing task 2 after task 1                (n = 1, · · · , i − 1). Hence, it can be derived that fi,i+1 = 0
+                                                                  F1
+is finished. Therefore, the optimal solution is f1,2 = ∆t           2
+                                                                        which contradicts that fi,i+1 is positive. Therefore, we have
+              F2                                          F2                                           αi        αi+1                      α2
+and f2,3 = ∆t3 . Hence, the optimal objective is ∆t3 . 2) If            αi = αi+1 = 0, i.e., ∆t          i
+                                                                                                           = ∆t     i+1
+                                                                                                                         = 0. Since ∆t       2
+                                                                                                                                                ≤
+ F1      F2                                                                        αi
+∆t2 > ∆t3 , this implies that part of task 1 can be processed
+                                                                        · · · ≤ ∆ti and α2 , · · · , αi−1 ≥ 0, we can further obtain that
+in parallel with task 2. Hence, the optimal solution is given           α2 = · · · = αi+1 = 0. This indicates that if there exists a
+                             F1 +F2            F1 +F2       F2                                                    ∗        ∗
+by f1,2 = f1,3 + f2,3 = ∆t           . Since ∆t          > ∆t   , the   certain i ∈ {3, · · · , K} such that fn,i     = fn,i+1     > 0, we have
+                              2 +∆t3             2 +∆t3       3
+                                                                           ∗           ∗                 ∗
+                       F1 +F2
+optimal objective is ∆t2 +∆t3 . In conclusion, when K = 2, the          fn,n+1     = fn,n+2  = · · · = fn,i+1 .
+optimal objective is max{ ∆t  F1 +F2
+                                       , F2 }. Similarly, by recur-         Additionally, if there exists a certain i < j ≤ K + 1 such
+                                2 +∆t3 ∆t3                                       ∗                                    ∗          ∗
+sion, we can deduce that when there exist K TD, the optimal             that fn,j     = 0, we can deduce that fn,j        = fn,j+1      = ··· =
+                                                                           ∗                    ∗       ∗                   ∗
+                      1 +···+FK
+solution is max{ ∆tF2 +···+∆t      , F2 +···+FK , · · · , ∆tFK+1
+                                                               K
+                                                                   }.   fn,K+1      = 0 since fn,j  ≥ fn,j+1   ≥ · · · ≥ fn,K+1     .
+                              K+1 ∆t3 +···+∆tK+1
+That completes the proof.                                          ■        Combing the above two cases, we complete the proof. ■
+
+                        A PPENDIX B                                                              A PPENDIX C
+           P ROOF OF P ROPERTY 1) IN T HEOREM 3                                     P ROOF OF P ROPERTY 2) IN T HEOREM 3
+   Before that, we give the following two corollaries to facil-             According to Appendix B, we can obtain that α2∗ =
+itate the proof.                                                        · · · = αi∗ = 0. Moreover, since q∗
+                                                                                                         fn−1,n     ∗
+                                                                                                                > fn−1,n+1  ≥
+                                                                                                                 βn−1    n−1,n  n    γ       −α
+Corollary 5. [Row property] The optimal computation re-                 0 (i ≤ n ≤ K), we have                    3κ +    3κ∆tn     >
+                                                                        q
+                                                                          βn −1    γn−1,n+1 −αn+1
+source of each task is non-increasing during its computation               3κ +       3κ∆tn+1        according to (B.6). Due to that
+               ∗        ∗                ∗
+period, i.e., fn,n+1 ≥ fn,n+2 ≥ · · · ≥ fn,K+1 (∀n ∈ K).                γn−1,n = 0 and γn−1,n+1 > 0, we can deduce that − ∆t    αn
+                                                                                                                                    >
+                                                                                                                                  n
+                                                                        γn−1,n+1 −αn+1       αn+1           αn     αn+1
+Proof. Please refer to Appendix E.                                          ∆tn+1      >  −  ∆tn+1 ,  i.e., ∆tn < ∆tn+1 (i ≤  n ≤ K).
+                                                                                                                        α∗                     α∗
+Corollary 6. [Column property] Denote the sum computation               Overall, we can conclude that 0 = ∆t22 = · · · = ∆tii <
+                                                                        α∗            α∗
+                                                                        ∆ti+1 · · · < ∆tK+1 .
+                                                                         i+1           K+1
+cycles of the n-th offloading device in time slots tm and                                                                                               ■
+tm+1 by Fn for m = 3, · · · , K and n = 1, · · · , m − 1. If
+Fn > 0 holds for all n = 1, · · · , m − 1, the optimal frequency                                 A PPENDIX D
+              ∗
+shifts δn∗ ≜ fn,m      ∗
+                   − fn,m+1    (n = 1, · · · , m − 1) are either all                P ROOF OF P ROPERTY 3) IN T HEOREM 3
+zeros or all positive, i.e., have the coincident zero or positive
+                                                                          We first prove the “only if” part. According to property
+characteristics.
+                                                                        1) in Theorem 3, if ti is the transition point, we have
+                                                                         ∗                     ∗            ∗           ∗
+Proof. Please refer to Appendix F.                                      fn,n+1  = · · · = fn,i−1      > fn,i  · · · > fn,j    = ··· =
+                                                                         ∗
+                                                                                                                        Pm−1
+  First, applying the KKT conditions gives                              fn,K+1 = 0 (n + 1 ≤ i < j ≤ K + 1) and n=1 fn,m =
+                                                                                                                PK+1        ∗
+                                                                        Fmax (i ≤ m ≤ K + 1). Since                 m=n+1 fn,m  ∆tm =
+          ∗
+      3κ(fn,m )2 ∆tm + αm − βn ∆tm − γn,m = 0,                 (B.1)                              PK+1 ∗                 Fn ( K+1
+                                                                                                                             P
+                                                                                                                               m=i ∆tm )
+                           !                                            Fn , we can obtain that      m=i fn,m ∆tm < PK+1           ∆t
+           m−1
+            X
+                  ∗
+                                                                                                                   PK+1 m=n+1 m
+      αm        fn,m − Fmax = 0,                               (B.2)    (1 ≤ n ≤ i − 2). Thus, we have ( m=i ∆tm )Fmax =
+                                                                        Pi−2 PK+1 ∗                   PK       PK+1       ∗
+             n=1                                                           n=1   m=i   fn,m ∆tm +       n=i−1      m=n+1 fn,m ∆tm      <
+                    K+1
+                                      !                                 Pi−2 Fn ( K+1
+                                                                                  P
+                                                                                         ∆tm )   P  K
+                    X
+                            ∗                                              n=1 PK+1
+                                                                                    m=i
+                                                                                               + n=i−1 Fn , i.e., Fmax < 𭟋(i).
+      βn    Fn −           fn,m ∆tm       = 0,                 (B.3)             m=n+1 ∆tm
+
+                   m=n+1                                                  Similarly, if ti−1 is the transition point, we have   F
+                                                                                                                           PK max
+                                                                                                                                       <
+            ∗                                                                                                   Fi−2          n=i−1 Fn
+      γn,m fn,m = 0,      ∀n ∈ K,                              (B.4)    𭟋(i−1). Since 𭟋(i)−𭟋(i−1) = PK+1 ∆t + PK+1 ∆t −
+                                                                                                                                 m                  m
+                                                                        PK                  PK                PK m=i−1                   m=i
+      αm ≥ 0, βn ≥ 0, γn,m ≥ 0.                                (B.5)      n=i−2 Fn
+                                                                        PK+1            = Pn=i−1
+                                                                                                     Fn
+                                                                                                          − PK+1
+                                                                                                              n=i−1 Fn
+                                                                                                                                 > 0, we should
+                                                                                           K+1
+                                                                         m=i−1 ∆tm             ∆t
+                                                                                               m=i    m            ∆t
+                                                                                                                m=i−1        m
+Based on (B.1), we obtain that                                          have 𭟋(i − 1) ≤ Fmax < 𭟋(i).
+                       r                                                  For the “if” part, if Fmax < P 𭟋(i), we can deduce that
+                ∗        βn    γn,m − αm                                                        Pi−2 Fn ( K+1
+                                                                                                           m=i ∆tm )
+               fn,m =        +           .                     (B.6)     PK+1                                           PK
+                          3κ     3κ∆tm                                  ( m=i ∆tm )Fmax <        n=1 PK+1      ∆t
+                                                                                                                     + n=i−1 Fn .
+                                                                                                                  m
+                                                                                         Pi−2 PK+1 ∗m=n+1            PK
+   In case of fn,m > 0 (∀n ∈ K, ∀m = n + 1, · · · , K + 1),             Moreover, since     n=1   m=i  fn,m ∆tm + n=i−1 Fn ≤
+                                                                         PK+1                            Pi−2 PK+1 ∗
+we have γn,m = 0 according to (B.4). Furthermore, βn > 0 is             ( m=i ∆tm )Fmax , we have          n=1     m=i fn,m ∆tm +
+                                                                        PK                         P K+1
+                                                                                         Pi−2 Fn ( m=i ∆tm )       PK
+derived from (B.6). According to Corollary 5, the optimal so-
+                                                        αm+1              n=i−1 Fn <        n=1  P K+1         +     n=i−1 Fn , i.e.,
+                  ∗
+lution satisfies fn,m    ∗
+                      ≥ fn,m+1 . Thus, we have ∆t αm
+                                                      ≤ ∆t     .                                   m=n+1 ∆tm
+                                                    m      m+1          Pi−2 PK+1 ∗                    Pi−2 Fn (PK+1m=i ∆tm )
+Assume that there exists a certain i ∈ {3, · · · , K} such that           n=1    m=i fn,m ∆tm    <       n=1 PK+1       ∆t
+                                                                                                                              . Since
+                                                                                                                                         m
+                                                                                                                             m=n+1
+                                                                                                                                          11
+
+
+
+ ∗
+fn,n+1            ∗
+       ≥ · · · ≥ fn,i−1            ∗
+                        ≥ · · · ≥ fn,K+1 (n + 1 ≤                    deduce that f1,3 > ∆t2F+∆t    1
+                                                                                                      3
+                                                                                                        . Therefore, we have f1,3 +
+                                  PK+1 ∗                                          F1
+i < K + 1), we can obtain that     m=i n,m ∆tm ≤
+                                       f                             f2,3 > ∆t2 +∆t3 + f2,3 > Fmax which violates the maximum
+Fn ( K+1                                                             frequency constraint. As a consequence, the optimal solution is
+    P
+      m=i ∆tm )
+ PK+1           (1 ≤        n ≤ i − 2). Therefore, to let              ∗       ∗
+    m=n+1 ∆tm                                                        f1,2 > f1,3   . According to Lemma 7, the energy consumption
+Pi−2 PK+1 ∗                   Pi−2 Fn (PK+1
+                                        m=i ∆tm )
+  n=1     m=i fn,m ∆tm      <  n=1 PK+1           hold, we           E increases with δ1 = f1,2 −f1,3 in the considered region 0 <
+                                            ∆t
+                                         m=n+1     m
+                                    Fn ( K+1
+                                        P                            δ1 ≤ F1 /∆t2 . Therefore, in order to achieve the fewest energy
+                                          m=i ∆tm )
+              PK+1     ∗
+should have       m=i fn,m ∆tm  < P     K+1         (1 ≤ n ≤         consumption, we should let δ1 as small as possible. ∗Hence, we
+                                        m=n+1 ∆tm
+                                         PK+1       ∗                                    ∗                        ∗     F1 −f1,3 ∆t3
+i − 2). Further, it can be deduced that m=i−1 fn,m     ∆tm <         can obtain that f1,3   = Fmax −f2,3 and f1,2    =       ∆t2     . The
+    PK+1
+Fn ( m=i−1 ∆tm )                                                                                ∗    F1 −(Fmax −f2,3 )(∆t2 +∆t3 )
+  PK+1             (1 ≤ n ≤ i − 3).                                  corresponding optimal δ1 =                  ∆t2              .
+    m=n+1 ∆tm
+                                                                        Summarizing the above two cases, we can obtain that
+  Additionally,     since     𭟋(i   − 1)       ≤        Fmax ,         ∗         ∗
+                                    Pi−3 Fn (PK+1
+                                              m=i−1 ∆tm )
+                                                                     f1,2 ≥ f1,3     . Subsequently, we prove that in tm and tm+1
+we     can     deduce         that   n=1   PK+1
+                                                  ∆t
+                                                           +         (m = 3, · · · , K), we always have fn,m    ∗          ∗
+                                                                                                                      ≥ fn,m+1      for all
+                                                m=n+1   m
+PK
+           Fn       ≤
+                              PK+1
+                            ( m=i−1 ∆tm )Fmax . Thus, we             n = 1, · · · , m − 1.
+    n=i−2P
+             i−3 PK+1          ∗
+                                             PK                         Denote the sum computation cycles of the n-th offloading
+have         n=1     m=i−1 fn,m ∆tm      +      n=i−2 Fn      <
+Pi−3 Fn ( K+1P
+               m=i−1 ∆tm )
+                                        PK                           device in time slots tm and tm+1 by Fn , i.e.,
+    n=1    PK+1
+                    ∆t
+                                 +        n=i−2 Fn            ≤            
+ PK+1 m=n+1 m                                                               f1,m ∆tm + f1,m+1 ∆tm+1 = F1 ,
+( m=i−1 ∆tm )Fmax , which indicates that the computation                   
+                                                                           
+                                                                                            ···
+                                                                           
+                                                                           
+resource is abundant from ti−1 to tK+1 . Therefore, we can                 
+                                                                           
+                 ∗                 ∗                                        fn,m ∆tm + fn,m+1 ∆tm+1 = Fn ,                             (E.2)
+deduce that fn,n+1     = · · · = fn,i−1 (n ≤ i − 2). Assume that
+                                                                           
+tĩ (ĩ > i) is the transition point. We have 𭟋(ĩ − 1) ≤ Fmax .           
+                                                                           
+                                                                           
+                                                                                      ···
+Since 𭟋(ĩ − 1) − 𭟋(i) ≥ 0, Fmax is infeasible, which breaks               
+                                                                           
+                                                                            fm−1,m ∆tm + fm−1,m+1 ∆tm+1 = Fm−1 .
+the assumption. Therefore, we can conclude that ti is the
+                                                                                                                           Fn
+transition point.                                                    According to Lemma 7, when fn,m = fn,m+1 = ∆tm +∆t       m+1
+    Combining the proofs of “if” and “only if” part, we com-         for all n = 1, · · · , m − 1, the minimum energy consumption
+plete the proof.                                              ■      of the n-th offloading device can be achieved, thus the total
+                                                                     energy consumption is minimum. Moreover, the following
+                         A PPENDIX E                                 constraints should be satisfied:
+                   P ROOF OF C OROLLARY 5                                    m−1
+                                                                             X                        m
+                                                                                                      X
+   To find out the optimal computation resource allocation                         fn,m ≤ Fmax ,            fn,m+1 ≤ Fmax .            (E.3)
+scheme, we first investigate the property of the most energy-                n=1                      n=1
+
+efficient scheme without the maximum frequency restriction           We consider    Ptwo
+                                                                                      m−1
+                                                                                            cases.
+                                                                                                 Fn
+in Lemma 7, whose proof is provided in Appendix G.                      Case 1: n=1 ∆tm +∆t              +fm,m+1 ≤ Fmax . In this case,
+                                                                                                     m+1
+                                                                                                                           Fn
+Lemma 7. Regardless of ∆tm , ∆tm+1 and with given                    we can deduce that fn,m = fn,m+1 = ∆tm +∆t                m+1
+                                                                                                                                      for all
+computation cycles Fn in time slots tm and tm+1 , scheme             n = 1, · · · , m − 1 satisfies (E.3). Thus, the optimal solution
+                                                                                           ∗         ∗              Fn
+ ∗
+fn,m       ∗
+       = fn,m+1    consumes the least energy among all the           in this case is fn,m       = fn,m+1     = ∆tm +∆t   m+1
+                                                                                                                              for all n =
+solutions satisfying fn,m ∆tm + fn,m+1 ∆tm+1 = Fn .                  1, · · · , m − 1.
+                                                                                     Pm−1           Fn
+                                             ∗      ∗
+                                                                        Case 2:         n=1 ∆tm +∆tm+1 + fm,m+1 > Fmax . Ob-
+   For Corollary 5, we first prove that f1,2    ≥ f1,3 with given                                                    Fn
+                                                                     viously, fn,m = fn,m+1 = ∆tm +∆t                          is infeasi-
+computation cycle F1 and f2,3 . Denote the sum computation                                                               m+1
+                                                                                                                         Pm−1 ∗
+cycles in t2 and t3 of the first offloading device as F1 . Through   ble in this case. We then prove that
+                                                                     Pm−1 ∗                                                 n=1 fn,m       >
+relaxing the maximum computation resource constraint, the               n=1 fn,m+1 by contradiction.
+                                                                                                 Pm−1
+                                                                                                           By summing all the equalities
+                                                                                                                         Pm−1
+energy consumption is the least when f1,2 = f1,3 = ∆t2F+∆t     1
+                                                                 3
+                                                                     in (E.2), we have ∆tm n=1 fn,m +∆tm+1 n=1 fn,m+1 =
+                                                                     Pm−1                    Pm−1
+according to Lemma 7. Since constraint (3a) should be satis-                    Fn . Thus,           fn,m is negatively correlated with
+                                                                     Pn=1
+                                                                        m−1                   Pn=1
+                                                                                                m−1            Pm−1
+fied, we have                                                                   f
+                                                                        n=1 n,m+1      .  If         f     <           f       , it can be
+                                                                                      Pm−1 n=1 n,m Pm−1n=1 n,m+1         Fn
+                                                                     inferred that             f
+                                                                                          n=1 n,m+1     >     n=1 ∆tm +∆tm+1 . We can
+             f1,2 ≤ Fmax ,    f1,3 + f2,3 ≤ Fmax .          (E.1)                    Pm−1                          Pm−1           Fn
+                                                                     further have n=1 fn,m+1 +fm,m+1 > n=1 ∆tm +∆t                     m+1
+                                                                                                                                           +
+We consider the following two cases; otherwise, f1,2 and f1,3        fm,m+1 P     > Fmax which         violates  constraint  (E.3).    Simi-
+have no feasible solution with the given F1 .                                       m−1              Pm−1
+                                                                     larly, if      n=1 Pfn,m =        n=1 fPn,m+1 , we can obtain that
+   Case 1: ∆t2F+∆t 1
+                        + f2,3 ≤ Fmax . In this case, we can         Pm−1
+                                                                                f     =
+                                                                                             m−1
+                                                                                                 f       =
+                                                                                                                m−1       Fn
+                      3                                                 n=1 n,m                    n,m+1        n=1 ∆tm +∆tm+1 . Hence,
+deduce that f1,2 = f1,3 = ∆t2F+∆t      1
+                                            satisfies (E.1). Since                Pm−1 n=1                         Pm−1          Fn
+                     F1
+                                          3                          we have         n=1 fn,m+1 + fm,m+1 =            n=1 ∆tm +∆tm+1 +
+f1,2 = f1,3 = ∆t2 +∆t3 is the most energy efficient solution,        fm,m+1 > Fmax which breaks constraint (E.3). As a
+the optimal solution in this case is f1,2∗      ∗
+                                            = f1,3  = ∆t2F+∆t
+                                                           1
+                                                              3
+                                                                .    consequence,       the   optimal solution in this case satisfies
+                  F1                                                 Pm−1 ∗              Pm−1      ∗
+   Case 2: ∆t2 +∆t3 + f2,3 > Fmax . Obviously, f1,2 =                   n=1 n,m f     >     n=1 fn,m+1 .
+f1,3 = ∆t2F+∆t
+            1
+                3
+                   is infeasible in this case. We then prove that                                  ∗
+                                                                        Next, we prove that fn,m ≥ fn,m+1  ∗
+                                                                                                                  for all n = 1, · · · , m −
+f1,2 < f1,3 is also impossible. Since f1,2 ∆t2 + f1,3 ∆t3 = F1 ,     1. With given ∆tm and ∆tm+1 , we denote the energy con-
+f1,2 increases as f1,3 decreases. If f1,2 < f1,3 , we can            sumption of the n-th offloading device by En (Fn , δn ), where
+                                                                                                                                                  12
+
+
+
+δn = fn,m − fn,m+1 . According to (G.2), En (Fn , δn ) is                       We can infer that the second derivative of En (Fn , δn ) is
+expressed by                                                                    always positive in the considered region −Fn /∆tm+1 ≤ δn ≤
+                  (Fn + δn ∆tm+1 )3                                             Fn /∆tm , no matter ∆tm is larger than or smaller than, or
+  En (Fn , δn ) = κ                 ∆tm                                         equal to ∆tm+1 . Hence, En (Fn , δn ) is convex with respect
+                  (∆tm + ∆tm+1 )3
+                                                                                to δn . Thus, problem (F.1) is convex. The partial Lagrangian
+       (Fn − δn ∆tm )3
+  +κ                    ∆tm+1 , (n = 1, · · · , m − 1), (E.4)                   function of this problem is expressed as
+      (∆tm + ∆tm+1 )3
+which decreases when −Fn /∆tm+1 ≤ δn ≤ 0 while increases                                  m−1
+                                                                                          X                          m−1
+                                                                                                                     X
+                                                                                                                                  !
+when 0 < δn ≤ Fn /∆tP  m.                                                          min          En (Fn , δn ) + Υ          δn − Ω ,           (F.3)
+                        m−1                                                         δ
+  Furthermore, since n=1 fn,m+1 ≤ Fmax − fm,m+1 , we                                      n=1                        n=1
+have                                                                                s.t. 0 ≤ δn ≤ Fn /∆tm ,         ∀n = 1, · · · , m − 1,   (F.3a)
+  m−1
+  X           m−1
+              X
+      fn,m −       fn,m+1
+                                                                                where Υ is the dual variable with respect to constraint (F.1a).
+  n=1              n=1
+      Pm−1                        Pm−1                   m−1
+                                                                                Problem (F.3) can be decomposed into a series of (m − 1)
+           n=1 Fn − ∆tm+1             n=1 fn,m+1                                parallel problems:
+                                                         X
+  ≥                                                  −         fn,m+1
+                          ∆tm                            n=1
+      Pm−1
+                                                                                                  min En (Fn , δn ) + Υδn ,                   (F.4)
+           n=1 Fn − (∆tm + ∆tm+1 ) (Fmax − fm,m+1 )
+  ≥                                                                 . (E.5)                        δn
+                                    ∆tm                                                            s.t. 0 ≤ δn ≤ Fn /∆tm ,                   (F.4a)
+                                             Pm−1
+According       to       (E.5),       we
+                                    have       n=1 δn           ≥
+P  m−1
+   n=1 Fn −(∆tm +∆tm+1 )(Fmax −fm,m+1 )
+                   ∆tm                  ≜ Ω. Next, we utilize                   Denote the objective of (F.4) by Jn . Taking the derivative of
+contradiction to prove that δn∗ ≥ 0 for all n = 1, · · · , m − 1.               Jn with respect to δn , we have
+Assume in the optimal solution δn∗ there exists a certain
+δn < 0. We can suitably decrease other positivePδn∗ and                            dJn   dEn (Fn , δn )
+increase the negative δn < 0 to zero while keeping n=1 δn
+                                                           m−1                         =                + Υ,
+                                                                                   dδn       dδn
+unchanged. In this case, the total energy consumption is                               3κ∆tm ∆tm+1
+effectively reduced, which contradicts the optimality. That                        =                    δn (δn (∆tm+1 −∆tm )+2Fn )+Υ.
+                                                                                      (∆tm + ∆tm+1 )2
+                                        ∗
+completes the proof of δn∗ ≥ 0, i.e., fn,m       ∗
+                                             ≥ fn,m+1      for all                                                                 (F.5)
+n = 1, · · · , m − 1.
+                                        ∗      ∗            ∗
+   In summary, since we have proven f1,2    ≥ f1,3 and fn,m     ≥
+  ∗
+fn,m+1 for m = 3, · · · , K and n = 1, · · · , m − 1, we can                    It can be deduced that dEndδ   (Fn ,δn )
+                                                                                                                 n
+                                                                                                                         is non-negative when
+deduce Corollary 5.                                             ■               0 ≤ δn ≤ Fn /∆tm . If Υ ≥ 0, we have dJ             dδn >= 0.
+                                                                                                                                      n
+
+
+                                                                                Thus, the optimal solution is achieved when δn = 0 for
+                          A PPENDIX F                                           all n = 1, · · · , m − 1, which contradicts (F.1a). Hence, we
+                    P ROOF OF C OROLLARY 6                                      should have Υ < 0. Due to d(δ    d2 Jn       d 2 En
+                                                                                                                       2 = d(δ )2 > 0 in the
+                Pm−1         Fn                                                                                     n)           n
+   In case of      n=1 ∆tm +∆tm+1 + fm,m+1 ≤ Fmax , the                         region of [0, Fn /∆tm ], we can obtain that dJ
+                                                                                                                             dδn monotonously
+                                                                                                                                 n
+
+optimal δn∗ (n = 1, · · · , m − 1) are all zeros according                                                     dJn
+                                                                                increases. Moreover, we have dδn |δn =0 = Υ < 0. Therefore,
+    Pm−1 5.FTherefore,
+to Corollary                  we only need to justify the case                  we consider the following two cases.
+of     n=1 ∆tm +∆tm+1 + fm,m+1 > Fmax . In this case, we
+                  n
+                                                                                                                                   3κ∆t      F2
+                              Pm−1                                                Case 1: dJ                                        m+1 n
+                                                                                           dδn |δn =Fn /∆tm ≤ 0, i.e., Υ ≤ − (∆tm +∆tm+1 )∆tm .
+                                                                                              n
+
+first prove that the optimal n=1 δn∗ = Ω. Assume that the                                     dJn
+         Pm−1 ∗                                                                 In this case, dδn <= 0 in the region of 0 ≤ δn ≤ Fn /∆tm .
+optimal n=1 δn > Ω. We can suitably reduce the positive
+                                                                                Therefore, the optimal solution is δn∗ = Fn /∆tm .
+δn∗ such that the energy consumption is further reduced, which                                                                     3κ∆t      F2
+contradicts the optimality. Therefore, we can construct the                       Case 2: dJ                                         m+1 n
+                                                                                            dδn |δn =Fn /∆tm > 0, i.e., Υ > − (∆tm +∆tm+1 )∆tm .
+                                                                                              n
+
+
+following energy consumption minimization problem:                              In this case, dJ
+                                                                                               dδn has a null point in the region of 0 ≤ δn ≤
+                                                                                                 n
+
+
+            m−1                                                                 Fn /∆tm . Thus, Jn decreases first and then increases. Through
+                                                                                solving dJ
+            X
+                                                                                         dδn = 0, we obtain that
+                                                                                           n
+   min             En (Fn , δn ),                                       (F.1)
+      δ
+            n=1
+            m−1                                                                              p
+            X                                                                          −Fn + Fn2 − ΥΞ(∆tm+1 − ∆tm )
+    s.t.           δn = Ω,                                           (F.1a)                                         , if ∆tm < ∆tm+1
+                                                                                     
+                                                                                     
+                                                                                                ∆tm+1 − ∆tm
+                                                                                     
+                                                                                     
+                                                                                     
+             n=1                                                                 ∗
+                                                                                δn =                                 or ∆tm > ∆tm+1 ,
+            0 ≤ δn ≤ Fn /∆tm ,             ∀n = 1, · · · , m − 1,    (F.1b)          
+                                                                                         ΥΞ
+                                                                                     
+                                                                                     
+                                                                                     −
+                                                                                     
+                                                                                             ,                        if ∆tm = ∆tm+1 ,
+                                  T
+where δ = [δ1 , · · · , δm−1 ] .                                                         2Fn
+   Based on (G.3), the second derivative of En (Fn , δn ) with                                                                    (F.6)
+respect to δn is given by
+                                                                                                          2
+d2 En (Fn , δn )    6κ∆tm ∆tm+1                                                 where Ξ = (∆t   m +∆tm+1 )                              ∗
+                                                                                              3κ∆tm ∆tm+1 . Meanwhile, the optimal Υ should
+                 =                 [δn (∆tm+1 −∆tm )+Fn ] .
+    d(δn )2        (∆tm + ∆tm+1 )2                                              satisfy constraint (F.1a). Obviously, both the above two cases
+                                                     (F.2)                      satisfy δn∗ > 0 (n = 1, · · · , m − 1), completing the proof. ■
+                                                                                                                                                    13
+
+
+
+                                                                                            2Fn
+                                                                    we can prove that ∆tm −∆t   m+1
+                                                                                                    < −Fn /∆tm+1 , the minimum
+                                                                    energy consumption is obtained when δn = 0.
+                                                                       Case 3: ∆tm = ∆tm+1 . In this case, two null points coin-
+                                                                                    2Fn
+                                                                    cide, i.e., ∆tm −∆t m+1
+                                                                                            = 0. Therefore, the energy consumption
+                                                                    decreases when δn < 0 while increases when δn ≥ 0, as
+                                                                    shown in Fig. 9(c). δn = 0 is the solution that minimizes
+                                                                    energy consumption.
+                                                                                                                           ∗
+                                                                       In summary, the energy consumption when fn,m             =
+                                                                      ∗               Fn
+                                                                    fn,m+1 = ∆tm +∆tm+1 is the most energy efficient solution.
+                       (a) ∆tm > ∆tm+1                              ■
+
+                                                                                                         A PPENDIX H
+                                                                                                   P ROOF OF P ROPOSITION 4
+                                                                       According to Theorem 3, we have xi−1,i > 0 (∀i ∈
+                                                                    {2, · · · , K + 1}). Hence, according to (11), we have
+                                                                             PK                            Pi−1     (xn,i )3
+                                                                    ξ ∗ − n=i+1 ρ∗n hπn ηP0 − ωi∗ Fmax =     n=1 2κ (∆t∗ )3 +                  i
+                                                                         2λ(A      )3
+                                                                    ρ∗i hπ (∆t
+                                                                             πi
+                                                                               ∗ )3          >          0. Therefore, it can be derived that
+                                                                           i    i       r                 Pi−1
+                                                                                                    2κhπi      (xn,i )3 +2ρ∗
+                                                                                                                           i λ(Aπi )
+                                                                                                                                    3
+                                                                    ∆t∗i       =        3
+                                                                                             ξ ∗ hπi −
+                                                                                                      PK n=1 ∗          2       ∗             (∀i   ∈
+                                                                                                        n=i+1 ρn (hπn ) ηP0 −ωi hπi Fmax
+        (b) ∆tm < ∆tm+1                  (c) ∆tm = ∆tm+1
+                                                                                 − 1}). Similarly, based on (12) and (13), we have
+                                                                    {2, · · · , Kr
+                                                                                                    PK−1              3   ∗         3
+                                                                                        2κhπK              n=1 (xn,K ) +2ρK λ(AπK )
+Fig. 9: Illustrations of three cases for the analysis of energy     ∆t∗K =          3
+                                                                                                        ξ ∗ hπK −ωK∗ h
+                                                                                                                      πK Fmax
+                                                                                                                                        and ∆t∗K+1 =
+consumption in Appendix G.                                          r P
+                                                                     3   2κ K  n=1 (xn,K+1 )
+                                                                                            3
+
+                         A PPENDIX G
+                                                                                 ∗
+                                                                           ξ ∗ −ωK+1  Fmax .
+
+                     P ROOF OF L EMMA 7                             Besides, according to (13), we have ξ ∗                         =
+                                                                 PK        (xn,K+1 )3           ∗
+   Denote δn = fn,m − fn,m+1 . Since fn,m and fn,m+1 Pn=1 2κ (∆t∗K+1 )3 + ωK+1 Fmax                             >         0      since
+                                                                    K              3                   3                  3
+should be larger than or equal to zero, we can deduce that          n=1 (xn,K+1 )     > (xK,K+1 ) = (AπK IπK ) > 0.
+                                                                                                   PK+1
+−Fn /∆tm+1 ≤ δn ≤ Fn /∆tm . Hence, we can obtain that            Therefore, we can obtain that i=0 ∆t∗i = T . Furthermore,
+                                                                                                   PK
+          Fn + δn ∆tm+1                  Fn − δn ∆tm             based on (10), we have ξ ∗ = n=1 ρ∗n hπn ηP0 . Due to that
+  fn,m =                    , fn,m+1 =                  . (G.1) ξ ∗ is positive, there exists at least an n ∈ K such that ρ∗ > 0.
+           ∆tm + ∆tm+1                  ∆tm + ∆tm+1                                                                            n
+                                                                 This indicates that for energy causality constraints (6a), at least
+Therefore, the energy consumption in time slot tm and tm+1 a device is run out of energy after offloading, i.e., this device
+can be given by                                                  uses all the harvested energy for transmission. Substituting
+         3               3                                                                    2λ(Aπ1 )3
+En = κfn,m   ∆tm + κfn,m+1     ∆tm+1 ,                           (9) into (10), we have ρ∗1 hπ (∆t           ∗                ∗
+                                                                                                     ∗ )3 = ρ1 hπ1 ηP0 . If ρ1 > 0,
+                                                                                                q1   1
+                           3                          3
+        (Fn + δn ∆tm+1 )               (Fn − δn ∆tm )                                     ∗             2λ
+                                                         ∆tm+1 . we can deduce that ∆t1 = (hπ1 )2 ηP0 Aπ1 q      . Moreover, since
+                                                                                                 3
+    =κ                     3
+                             ∆tm + κ                   3
+        (∆tm + ∆tm+1 )               (∆tm + ∆tm+1 )               λ(Aπ1 )3
+                                                                                                           ∗             λ
+                                                          (G.2) hπ1 (∆t1 )2 = ∆t0 hπ1 ηP0 , we have ∆t0 =           4(hπ1 )2 ηP0 Aπ1 .
+                                                                                                                  3
+
+                                                                     ∗          dL
+Taking the first derivative of E with respect to δ , we have If ρ1 = 0, d∆t∗ = 0 can be guaranteed for arbitrary ∆t1
+                                 n                   n                                         1
+                                                                                   π1   λ(A        )3
+ dEn    3κ∆tm ∆tm+1                                                 satisfying hπ (∆t 1)
+                                                                                         2 ≤ ∆t0 hπ1 ηP0 . That means any pairs
+     =                 δn (δn (∆tm+1 − ∆tm ) + 2Fn ) .                                   1
+                                                                                                                     λ(A    )3
+ dδn   (∆tm + ∆tm+1 )2                                              of ∆t0 and ∆t1 satisfying hπ (∆t   π1
+                                                                                                           2   ≤ ∆t0 hπ1 ηP0 and
+                                                 (G.3)                                       PK+1 ∗1 1 )
+                                                                    ∆t0 + ∆t1 = T − i=2 ∆ti are the optimal solutions.
+                                                2Fn                                                               PK+1
+Equation (G.3) has two null points: 0 and ∆tm −∆t   m+1
+                                                        . We        Hence, according to ∆t0 + ∆t1 = T − i=2 ∆ti , we
+consider the following three cases.                                                λ(Aπ1 )3           PK+1
+                                                                    should have hπ (∆t     )2 ≤   T − i=2 ∆ti − ∆t1 hπ1 ηP0 ,
+                                                                                         1
+  Case 1: ∆tm > ∆tm+1 . In this case, we have 0 <                                   1       PK+1            
+    2Fn                                                             i.e., Ψ(∆t1 ) ≜ T − i=2 ∆ti − ∆t1 (∆t1 )2 (hπ1 )2 ηP0 −
+∆tm −∆tm+1 . The energy consumption decreases when δn < 0
+and δn > ∆tm −∆t 2Fn
+                          while increases when 0 ≤ δn ≤             λ(Aπ1 )3 ≥ 0. Taking  the derivative    of Ψ(∆t1 ), we have
+                     m+1                                                                          PK+1
+                                                                       ′
+    2Fn
+            , as  shown  in  Fig. 9(a). Since we can easily         Ψ (∆t1 ) = ∆t1 2T − 2 i=2 ∆ti − 3∆t1 (hπ1 )2 ηP0 ,
+∆tm −∆tm+1
+                 2Fn
+prove that ∆tm −∆tm+1 > Fn /∆tm , the minimum energy                which has two null points           ∆t1      =      0 and
+                                                                                       PK+1
+                                             ∗
+consumption is obtained when δn = 0, i.e., fn,m      ∗
+                                                 = fn,m+1  .        ∆t1 = 32 T − i=2 ∆ti . Thus, Ψ(∆t1 ) increases in
+                                                                                                          i
+  Case 2: ∆tm < ∆tm+1 . In this case, we have                                                   PK+1
+                                                                    the region of 0, 23 T − i=2 ∆ti             and decreases in
+    2Fn
+∆tm −∆tm+1 < 0. The energy consumption increases when
+                                                                           PK+1                PK+1       
+                                                                      2
+δn < ∆tm −∆t 2Fn
+                      and δn > 0 while decreases when                 3 T −      i=2 ∆ti , T −
+                                                                                                    i=2 P
+                                                                                                          ∆ti .      Additionally,
+                 m+1                                                                                                
+    2Fn                                                                                                      K+1
+∆tm −∆tm+1 ≤ δn ≤ 0, as shown in Fig. 9(b). Similarly, since
+                                                                    we can obtain that Ψ(0) = Ψ T − i=2 ∆ti . Therefore,
+                                                                                                                                                         14
+
+
+
+we can choose ∆t∗1 as the
+                         unique        i of Ψ(∆t1 ) in
+                                 null point                                    [21] Y. Hu, M. Chen, Y. Wang, Z. Li, M. Pei, and Y. Cang, “Discrete-Time
+                             PK+1                                                   Joint Scheduling of Uploading and Computation for Deterministic MEC
+the range of ∆t1 ∈ 0, 23 T − i=2 ∆ti        without loss of                         Systems Allowing for Task Interruptions and Insertions,” IEEE Wirel.
+generality.                                              ■                          Commun. Letters, vol. 12, no. 1, pp. 21–25, Jan. 2023.
+                                                                               [22] S. Eom, H. Lee, J. Park, and I. Lee, “Asynchronous Protocol Designs
+                                                                                    for Energy Efficient Mobile Edge Computing Systems,” IEEE Trans.
+                             R EFERENCES                                            Veh. Techn., vol. 70, no. 1, pp. 1013–1018, Jan. 2021.
+                                                                               [23] K. Guo and T. Q. S. Quek, “On the Asynchrony of Computation Of-
+ [1] Q.-V. Pham, F. Fang, V. N. Ha, M. J. Piran, M. Le, L. B. Le, W.-J.             floading in Multi-User MEC Systems,” IEEE Trans. Commun., vol. 68,
+     Hwang, and Z. Ding, “A Survey of Multi-Access Edge Computing in                no. 12, pp. 7746–7761, Dec. 2020.
+     5G and Beyond: Fundamentals, Technology Integration, and State-of-        [24] Z. Kuang, L. Li, J. Gao, L. Zhao, and A. Liu, “Partial Offloading
+     the-Art,” IEEE Access, vol. 8, pp. 116 974–117 017, June 2020.                 Scheduling and Power Allocation for Mobile Edge Computing Systems,”
+ [2] Y. Mao, C. You, J. Zhang, K. Huang, and K. B. Letaief, “A Survey               IEEE Internet Things J., vol. 6, no. 4, pp. 6774–6785, Aug. 2019.
+     on Mobile Edge Computing: The Communication Perspective,” IEEE            [25] P. Cai, F. Yang, J. Wang, X. Wu, Y. Yang, and X. Luo, “JOTE: Joint
+     Commun. Surv. Tutor., vol. 19, no. 4, pp. 2322–2358, Fourthquarter             Offloading of Tasks and Energy in Fog-Enabled IoT Networks,” IEEE
+     2017.                                                                          Internet of Things Journal, vol. 7, no. 4, pp. 3067–3082, April 2020.
+ [3] H. Zhou, Z. Zhang, D. Li, and Z. Su, “Joint Optimization of Computing     [26] Z. Liang, H. Chen, Y. Liu, and F. Chen, “Data Sensing and Offloading
+     Offloading and Service Caching in Edge Computing-Based Smart Grid,”            in Edge Computing Networks: TDMA or NOMA?” IEEE Trans. Wirel.
+     IEEE Trans. Cloud Comp., vol. 11, no. 2, pp. 1122–1132, Apr. 2023.             Commun., vol. 21, no. 6, pp. 4497–4508, June 2022.
+ [4] X. Li, H. Zhang, H. Zhou, N. Wang, K. Long, S. Al-Rubaye, and G. K.       [27] S. Bi, L. Huang, H. Wang, and Y.-J. A. Zhang, “Lyapunov-Guided
+     Karagiannidis, “Multi-Agent DRL for Resource Allocation and Cache              Deep Reinforcement Learning for Stable Online Computation Offloading
+     Design in Terrestrial-Satellite Networks,” IEEE Trans. Wirel. Commun.,         in Mobile-Edge Computing Networks,” IEEE Trans. Wirel. Commun.,
+     vol. 22, no. 8, pp. 5031–5042, Aug. 2023.                                      vol. 20, no. 11, pp. 7519–7537, Nov. 2021.
+ [5] H. Zhou, T. Wu, X. Chen, S. He, D. Guo, and J. Wu, “Reverse Auction-      [28] F. Wang, J. Xu, and S. Cui, “Optimal Energy Allocation and Task Of-
+     Based Computation Offloading and Resource Allocation in Mobile                 floading Policy for Wireless Powered Mobile Edge Computing Systems,”
+     Cloud-Edge Computing,” IEEE Trans. Mobile Comp., vol. 22, no. 10,              IEEE Trans. Wireless Commun., vol. 19, no. 4, pp. 2443–2459, Apr.
+     pp. 6144–6159, Oct. 2023.                                                      2020.
+ [6] X. Cao, F. Wang, J. Xu, R. Zhang, and S. Cui, “Joint Computation          [29] J. Liu, K. Xiong, D. W. K. Ng, P. Fan, Z. Zhong, and K. B. Letaief,
+     and Communication Cooperation for Energy-Efficient Mobile Edge                 “Max-Min Energy Balance in Wireless-Powered Hierarchical Fog-Cloud
+     Computing,” IEEE Int. Things J., vol. 6, no. 3, pp. 4188–4200, June            Computing Networks,” IEEE Trans. Wirel. Commun., vol. 19, no. 11,
+     2019.                                                                          pp. 7064–7080, Nov. 2020.
+ [7] Y. Pan, M. Chen, Z. Yang, N. Huang, and M. Shikh-Bahaei, “Energy-         [30] M. Li, N. Cheng, J. Gao, Y. Wang, L. Zhao, and X. Shen, “Energy-
+     Efficient NOMA-Based Mobile Edge Computing Offloading,” IEEE                   Efficient UAV-Assisted Mobile Edge Computing: Resource Allocation
+     Commun. Letters, vol. 23, no. 2, pp. 310–313, Feb. 2019.                       and Trajectory Optimization,” IEEE Trans. Veh. Techn., vol. 69, no. 3,
+ [8] Z. Yu, Y. Tang, L. Zhang, and H. Zeng, “Deep Reinforcement Learning            pp. 3424–3438, Mar. 2020.
+     Based Computing Offloading Decision and Task Scheduling in Internet       [31] D. P. Bertsekas, Convex optimization Theory.           Athena Scientific
+     of Vehicles,” in Proc. IEEE/CIC Int. Conf. Commun. China (ICCC),               Belmont, 2009.
+     Xiamen, China, July 2021, pp. 1166–1171.                                  [32] Y. Yu, X. Bu, K. Yang, H. Yang, X. Gao, and Z. Han, “UAV-Aided
+ [9] X. Lu, P. Wang, D. Niyato, D. I. Kim, and Z. Han, “Wireless networks           Low Latency Multi-Access Edge Computing,” IEEE Trans. Veh. Techn.,
+     with RF energy harvesting: A contemporary survey,” IEEE Commun.                vol. 70, no. 5, pp. 4955–4967, May 2021.
+     Surv. Tutor., vol. 17, no. 2, pp. 757–789, 2014.                          [33] A. Ibrahim, O. A. Dobre, T. M. N. Ngatched, and A. G. Armada,
+[10] Z. Zhang, H. Pang, A. Georgiadis, and C. Cecati, “Wireless Power               “Bender’s Decomposition for Optimization Design Problems in Com-
+     Transfer—An Overview,” IEEE Trans. Industrial Electron., vol. 66,              munication Networks,” IEEE Netw., vol. 34, no. 3, pp. 232–239, May
+     no. 2, pp. 1044–1058, Feb. 2019.                                               2020.
+[11] F. Wang, J. Xu, X. Wang, and S. Cui, “Joint Offloading and Computing      [34] D. W. K. Ng, Y. Wu, and R. Schober, “Power Efficient Resource
+     Optimization in Wireless Powered Mobile-Edge Computing Systems,”               Allocation for Full-Duplex Radio Distributed Antenna Networks,” IEEE
+     IEEE Trans. Wirel. Commun., vol. 17, no. 3, pp. 1784–1797, Mar. 2018.          Trans. Wirel. Commun., vol. 15, no. 4, pp. 2896–2911, Apr. 2016.
+[12] S. Bi and Y. J. Zhang, “Computation Rate Maximization for Wireless        [35] S. Boyd, S. P. Boyd, and L. Vandenberghe, Convex optimization.
+     Powered Mobile-Edge Computing With Binary Computation Offload-                 Cambridge university press, 2004.
+     ing,” IEEE Trans. Wirel. Commun., vol. 17, no. 6, pp. 4177–4190, June     [36] D. W. K. Ng and R. Schober, “Secure and Green SWIPT in Distributed
+     2018.                                                                          Antenna Networks With Limited Backhaul Capacity,” IEEE Trans. Wirel.
+[13] P. Chen, B. Lyu, Y. Liu, H. Guo, and Z. Yang, “Multi-IRS Assisted              Commun., vol. 14, no. 9, pp. 5082–5097, Sep. 2015.
+     Wireless-Powered Mobile Edge Computing for Internet of Things,”           [37] “GUROBI Optimization, State-of-the-Art Mathematical Programming
+     IEEE Trans. Green Commun. Netw., pp. 1–1, Sep. 2022.                           Solver, v5.6”. Apr. 2014. [Online]. Available: http://www.gurobi.com/
+[14] X. Hu, K.-K. Wong, and K. Yang, “Wireless Powered Cooperation-            [38] “MOSEK ApS: Software for Large-Scale Mathematical Optimization
+     Assisted Mobile Edge Computing,” IEEE Trans. Wirel. Commun.,                   Problems, Version 7.0.0.111”. Apr. 2014. [Online]. Available: http:
+     vol. 17, no. 4, pp. 2375–2388, Apr. 2018.                                      //www.mosek.com/
+[15] K. Zhang, Y. Mao, S. Leng, S. Maharjan, and Y. Zhang, “Optimal delay      [39] Y. Mezentsev, “Binary cut-and-branch method for solving mixed integer
+     constrained offloading for vehicular edge computing networks,” in Proc.        programming problems,” in Proc. Construct. Nonsmooth Analy. Related
+     IEEE Int. Conf. Commun. (ICC), Paris, France, July 2017, pp. 1–6.              Topics (CNSA), St. Petersburg, Russia, May 2017, pp. 1–3.
+[16] Z. Zhu, J. Peng, X. Gu, H. Li, K. Liu, Z. Zhou, and W. Liu, “Fair
+     Resource Allocation for System Throughput Maximization in Mobile
+     Edge Computing,” IEEE Access, vol. 6, pp. 5332–5340, Jan. 2018.
+[17] F. Zhou and R. Q. Hu, “Computation Efficiency Maximization in
+     Wireless-Powered Mobile Edge Computing Networks,” IEEE Trans.
+     Wirel. Commun., vol. 19, no. 5, pp. 3170–3184, Feb. 2020.
+[18] Y. Xu, P. Cheng, Z. Chen, M. Ding, Y. Li, and B. Vucetic, “Task
+     offloading for large-scale asynchronous mobile edge computing: An
+     index policy approach,” IEEE Trans. Signal Proc., vol. 69, pp. 401–
+     416, Dec. 2020.
+[19] Y. Dai, M. Sheng, J. Liu, N. Cheng, and X. Shen, “Delay-efficient
+     offloading for NOMA-MEC with asynchronous uploading completion
+     awareness,” in Proc. IEEE Global Commun. Conf. (GLOBECOM).
+     Waikoloa, HI, USA: IEEE, Feb. 2019, pp. 1–6.
+[20] C. You, Y. Zeng, R. Zhang, and K. Huang, “Asynchronous Mobile-
+     Edge Computation Offloading: Energy-Efficient Resource Management,”
+     IEEE Trans. Wirel. Commun., vol. 17, no. 11, pp. 7590–7605, Nov. 2018.
+

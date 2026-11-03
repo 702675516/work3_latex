@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.8.11)  20 OCT 2026 14:33
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.8.11)  23 OCT 2026 20:07
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -876,42 +876,59 @@ TeX and DVIPDFMx (CTEX)
 {c:/texlive/2026/texmf-var/fonts/map/pdftex/updmap/pdftex.map}{UGBK.sfd}{Unicod
 e.sfd}) [1
 
-] [2] [3] [4] [5] [6] [7] [8]
-<images/algorithm_framework.pdf, id=240, 963.6pt x 542.025pt>
+] [2] [3] [4]
+Overfull \hbox (51.2363pt too wide) in paragraph at lines 170--171
+\C70/rm/m/n/10.95/52 6 \C70/rm/m/n/10.95/7b V \C70/rm/m/n/10.95/75 e|\C70/rm/m/
+n/10.95/ff ^^L| \C70/rm/m/n/10.95/54 ^^D \C70/rm/m/n/10.95/79 û \C70/rm/m/n/10.
+95/52 ¨ \C70/rm/m/n/10.95/75 ( \C70/rm/m/n/10.95/62 7 \C70/rm/m/n/10.95/52 ^^Y 
+\C70/rm/m/n/10.95/57 ú \C70/rm/m/n/10.95/4e Ž \C70/rm/m/n/10.95/5c @ \C70/rm/m/
+n/10.95/90 è \C70/rm/m/n/10.95/4f á \C70/rm/m/n/10.95/60 o \C70/rm/m/n/10.95/5b
+ f \C70/rm/m/n/10.95/4e ` 
+ \C70/rm/m/n/10.95/62 ¥ \C70/rm/m/n/10.95/7b V \C70/rm/m/n/10.95/75 e|\C70/rm/m
+/n/10.95/30 ^^B| \C70/rm/m/n/10.95/8b å \C70/rm/m/n/10.95/53 Z \C70/rm/m/n/10.9
+5/5f ^^H \C70/rm/m/n/10.95/8b ° \C70/rm/m/n/10.95/4e : $\OML/cmm/m/it/10.95 G \
+OT1/cmr/m/n/10.95 = \OMS/cmsy/m/n/10.95 h\OML/cmm/m/it/10.95 I; S; \OMS/cmsy/m/
+n/10.95 f\OML/cmm/m/it/10.95 Z[]\OMS/cmsy/m/n/10.95 g[]\OML/cmm/m/it/10.95 ; \O
+MS/cmsy/m/n/10.95 f\OML/cmm/m/it/10.95 A[]\OMS/cmsy/m/n/10.95 g[]\OML/cmm/m/it/
+10.95 ; P; \OMS/cmsy/m/n/10.95 f\OML/cmm/m/it/10.95 r[]\OMS/cmsy/m/n/10.95 g[]\
+OML/cmm/m/it/10.95 ; ^^M\OMS/cmsy/m/n/10.95 i$|\C70/rm/m/n/10.95/ff ^^L|
+ []
+
+[5] [6] [7] [8]
+<images/algorithm_framework.pdf, id=242, 963.6pt x 542.025pt>
 File: images/algorithm_framework.pdf Graphic file (type pdf)
 <use images/algorithm_framework.pdf>
-Package pdftex.def Info: images/algorithm_framework.pdf  used on input line 330
+Package pdftex.def Info: images/algorithm_framework.pdf  used on input line 331
 .
 (pdftex.def)             Requested size: 452.96826pt x 171.16164pt.
- [9 <./images/algorithm_framework.pdf>]
-[10]
+ [9 <./images/algorithm_framework.pdf>] [10]
 <images/training_reward.png, id=296, 867.24pt x 505.89pt>
 File: images/training_reward.png Graphic file (type png)
 <use images/training_reward.png>
-Package pdftex.def Info: images/training_reward.png  used on input line 386.
+Package pdftex.def Info: images/training_reward.png  used on input line 387.
 (pdftex.def)             Requested size: 452.96826pt x 264.2299pt.
  [11 <./images/training_reward.png>]
 <images/utility_heatmap.png, id=305, 536.36385pt x 450.2421pt>
 File: images/utility_heatmap.png Graphic file (type png)
 <use images/utility_heatmap.png>
-Package pdftex.def Info: images/utility_heatmap.png  used on input line 394.
+Package pdftex.def Info: images/utility_heatmap.png  used on input line 395.
 (pdftex.def)             Requested size: 353.31468pt x 296.59047pt.
 <images/reporting_error_curve.png, id=306, 709.9323pt x 370.986pt>
 File: images/reporting_error_curve.png Graphic file (type png)
 <use images/reporting_error_curve.png>
 Package pdftex.def Info: images/reporting_error_curve.png  used on input line 4
-05.
+06.
 (pdftex.def)             Requested size: 353.31468pt x 184.6321pt.
 <images/reporting_error.png, id=307, 710.655pt x 341.8371pt>
 File: images/reporting_error.png Graphic file (type png)
 <use images/reporting_error.png>
-Package pdftex.def Info: images/reporting_error.png  used on input line 413.
+Package pdftex.def Info: images/reporting_error.png  used on input line 414.
 (pdftex.def)             Requested size: 353.31468pt x 169.95316pt.
- [12 <./images/utility_heatmap.png>]
-[13 <./images/reporting_error_curve.png> <./images/reporting_error.png>]
-(C:/Users/ME/PycharmProjects/work3_latex/out/main.bbl) [14
+ [12 <./images/utility_heatmap.png>] [13 <./images/reporting_error_curve.png> <
+./images/reporting_error.png>]
+(C:/Users/ME/PycharmProjects/work3_latex/out/main.bbl [14
 
-]
+]) [15]
 (C:/Users/ME/PycharmProjects/work3_latex/out/main.aux)
  ***********
 LaTeX2e <2025-11-01>
@@ -919,13 +936,13 @@ L3 programming layer <2022/07/14>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 11745 strings out of 467525
- 214701 string characters out of 5423209
- 623830 words of memory out of 5000000
- 40080 multiletter control sequences out of 15000+600000
- 714384 words of font info for 357 fonts, out of 8000000 for 9000
+ 11740 strings out of 467525
+ 214617 string characters out of 5423209
+ 622834 words of memory out of 5000000
+ 40078 multiletter control sequences out of 15000+600000
+ 713574 words of font info for 354 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 78i,10n,92p,1429b,599s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 78i,10n,92p,1372b,599s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/s
 imsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows
 /Fonts/simsun.ttc><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simsun.ttc><c:
@@ -933,12 +950,12 @@ imsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows
 .ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Font
 s/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Wind
 ows/Fonts/simsun.ttc><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf>
-<c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/sim
-hei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/F
-onts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/W
-indows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simsun.t
-tc><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/
-simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simhei.ttf><c:/Window
+<c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/sim
+sun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/F
+onts/simsun.ttc><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/W
+indows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.t
+tf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/
+simsun.ttc><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Window
 s/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c
 :/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simsu
 n.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fon
@@ -950,10 +967,10 @@ Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simsun.ttc><c:/
 Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.
 ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts
 /simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windo
-ws/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simhei.ttf><
+ws/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><
 c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simh
 ei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fo
-nts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Wi
+nts/simhei.ttf><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Wi
 ndows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.tt
 c><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/s
 imsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows
@@ -994,11 +1011,11 @@ blic/amsfonts/cm/cmsy6.pfb><c:/texlive/2026/texmf-dist/fonts/type1/public/amsfo
 nts/cm/cmsy7.pfb><c:/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cms
 y8.pfb><c:/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb><c
 :/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on C:/Users/ME/PycharmProjects/work3_latex/out/main.pdf (14 page
-s, 3077667 bytes).
+Output written on C:/Users/ME/PycharmProjects/work3_latex/out/main.pdf (15 page
+s, 3078439 bytes).
 PDF statistics:
- 827 PDF objects out of 1000 (max. 8388607)
- 534 compressed objects within 6 object streams
+ 830 PDF objects out of 1000 (max. 8388607)
+ 536 compressed objects within 6 object streams
  0 named destinations out of 1000 (max. 500000)
  344 words of extra memory for PDF output out of 10000 (max. 10000000)
 
