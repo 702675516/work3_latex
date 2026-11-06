@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999998 (TeX Live 2026) (preloaded format=xelatex 2026.8.11)  3 NOV 2026 14:13
+This is XeTeX, Version 3.141592653-2.6-0.999998 (TeX Live 2026) (preloaded format=xelatex 2026.8.11)  6 NOV 2026 23:49
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -851,30 +851,28 @@ LaTeX Font Info:    Font shape `TU/SimSun(0)/m/sl' in size <10.95> not availabl
 e
 (Font)              Font shape `TU/SimSun(0)/m/it' tried instead on input line 
 84.
- [2] [3] [4]
-[5] [6] [7]
-Overfull \hbox (1.37946pt too wide) in paragraph at lines 307--309
-\TU/SimSun(0)/m/n/10.95 后 续 系 统 演 化 的 影 响。|  为 避 免 显 式 求 解 延 续 社 会 福 利，|  本 文 在
- 反 事 实 环 境 中 以 $\OML/cmm/m/it/10.95 W[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 
-a[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 t\OT1/cmr/m/n/10.95 )\OML/cmm/m/it/1
-0.95 ; [][]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 t\OT1/cmr/m/n/10.95 ))$
+ [2] [3]
+Overfull \hbox (5.04675pt too wide) in paragraph at lines 127--128
+[]\TU/SimSun(0)/m/n/10.95 本 文 考 虑 用 户 策 略 性 报 告 私 有 类 型 的 动 态 资 源 分 配 问 题。|  用 
+户 $\OML/cmm/m/it/10.95 n$ \TU/SimSun(0)/m/n/10.95 的 真 实 时 延 敏 感 度 为 $\OML/cmm/m
+/it/10.95 ^^R[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 t\OT1/cmr/m/n/10.95 ) \O
+MS/cmsy/m/n/10.95 2
  []
 
-[8]
+[4] [5] [6] [7]
 File: images/algorithm_framework.pdf Graphic file (type pdf)
 <use images/algorithm_framework.pdf>
- [9] [10]
+ [8] [9]
 File: images/training_reward.png Graphic file (type bmp)
 <images/training_reward.png>
- [11]
+ [10]
 File: images/utility_heatmap.png Graphic file (type bmp)
 <images/utility_heatmap.png>
- [12]
 File: images/reporting_error_curve.png Graphic file (type bmp)
 <images/reporting_error_curve.png>
 File: images/reporting_error.png Graphic file (type bmp)
 <images/reporting_error.png>
- [13] [14] (build/revision-posg/main.bbl) [15
+ [11] [12] (build/revision-posg/main.bbl) [13
 
 ]
 (build/revision-posg/main.aux)
@@ -884,12 +882,12 @@ L3 programming layer <2022/07/14>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 12092 strings out of 468168
- 300250 string characters out of 5436524
- 715286 words of memory out of 5000000
- 40621 multiletter control sequences out of 15000+600000
+ 12104 strings out of 468168
+ 301014 string characters out of 5436524
+ 715285 words of memory out of 5000000
+ 40633 multiletter control sequences out of 15000+600000
  643097 words of font info for 132 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
  93i,10n,111p,577b,563s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on build/revision-posg/main.xdv (15 pages, 207796 bytes).
+Output written on build/revision-posg/main.xdv (13 pages, 176116 bytes).
