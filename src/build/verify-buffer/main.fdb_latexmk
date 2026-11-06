@@ -1,27 +1,25 @@
 # Fdb version 4
-["bibtex build/verify-buffer/main"] 1793992084.40304 "build/verify-buffer/main.aux" "build/verify-buffer/main.bbl" "build/verify-buffer/main" 1793994874.05611 0
+["bibtex build/verify-buffer/main"] 1793996043.69214 "build/verify-buffer/main.aux" "build/verify-buffer/main.bbl" "build/verify-buffer/main" 1793996461.01249 0
   "./main.bib" 1792747125 7611 7c47c246f19f721a2b0fefbbe710f783 ""
-  "build/verify-buffer/main.aux" 1793994866 4830 a517faf72fe92c15b34a8e12802deba2 "xelatex"
+  "build/verify-buffer/main.aux" 1793996453 4828 6c92305d262fa20c92951555bf23227d "xelatex"
   "c:/texlive/2026/texmf-dist/bibtex/bst/base/unsrt.bst" 1786356490 18030 1376b4b231b50c66211e47e42eda2875 ""
   (generated)
   "build/verify-buffer/main.bbl"
   "build/verify-buffer/main.blg"
   (rewritten before read)
-["xdvipdfmx"] 1793994867.25083 "build/verify-buffer/main.xdv" "build/verify-buffer/main.pdf" "build/verify-buffer/main" 1793994874.06798 0
-  "build/verify-buffer/main.xdv" 1793994866 188660 d6ee241d66ddf8631e75b58c9e7c2e09 "xelatex"
+["xdvipdfmx"] 1793996454.22031 "build/verify-buffer/main.xdv" "build/verify-buffer/main.pdf" "build/verify-buffer/main" 1793996461.02381 0
+  "build/verify-buffer/main.xdv" 1793996453 182928 dcc1d3533add5e5764286a99f399232c "xelatex"
   (generated)
   "build/verify-buffer/main.pdf"
   (rewritten before read)
-["xelatex"] 1793994863.41666 "main.tex" "build/verify-buffer/main.xdv" "main" 1793994874.05681 0
-  "build/verify-buffer/main.aux" 1793994866 4830 a517faf72fe92c15b34a8e12802deba2 "xelatex"
-  "build/verify-buffer/main.bbl" 1793992084 3166 d4541638006aa130c33ba4c4dc775a3d "bibtex build/verify-buffer/main"
+["xelatex"] 1793996450.38626 "main.tex" "build/verify-buffer/main.xdv" "main" 1793996461.01314 0
+  "build/verify-buffer/main.aux" 1793996453 4828 6c92305d262fa20c92951555bf23227d "xelatex"
+  "build/verify-buffer/main.bbl" 1793996044 3166 d4541638006aa130c33ba4c4dc775a3d "bibtex build/verify-buffer/main"
   "c:/Windows/Fonts/msyh.ttc" 1777512000 19704352 1e10e74402e59d54499af795caf0b135 ""
   "c:/texlive/2026/texmf-dist/fonts/map/fontname/texfonts.map" 1786408412 3524 cb3e574dea2d1052e39280babc910dc8 ""
-  "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmbsy5.tfm" 1786356374 1120 1e8878807317373affa7f7bba4cf2f6a ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmbsy7.tfm" 1786356374 1120 7f9f170e8aa57527ad6c49feafd45d54 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1786356374 1004 54797486969f23fa377b128694d548df ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1786356374 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
-  "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmmib5.tfm" 1786356374 1496 c79f6914c6d39ffb3759967363d1be79 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmmib7.tfm" 1786356374 1508 6e807ff901c35a5f1fde0ca275533df8 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm" 1786356374 916 f87d7c45f9c908e672703b83b72241a3 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam5.tfm" 1786356374 924 9904cf1d39e9767e7a3622f2a125a565 ""
@@ -31,9 +29,7 @@
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm7.tfm" 1786356374 940 228d6584342e91276bf566bcf9716b83 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmbsy10.tfm" 1786408137 1116 4e6ba9d7914baa6482fd69f67d126380 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmbx10.tfm" 1786408137 1328 c834bbb027764024c09d3d2bf908b5f0 ""
-  "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmbx5.tfm" 1786408137 1332 f817c21a1ba54560425663374f1b651a ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmbx6.tfm" 1786408137 1344 8a0be4fe4d376203000810ad4dc81558 ""
-  "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmbx7.tfm" 1786408137 1336 3125ccb448c1a09074e3aa4a9832f130 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmbx8.tfm" 1786408137 1332 1fde11373e221473104d6cc5993f046e ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmex10.tfm" 1786408137 992 662f679a0b3d2d53c1b94050fdaa3f50 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm" 1786408137 1528 abec98dbc43e172678c11b3b9031252a ""
@@ -116,7 +112,7 @@
   "images/reporting_error_curve.png" 1788152760 243108 f6df99a69bbe90773ea59ad0e26dbd2e ""
   "images/training_reward.png" 1788146463 1454989 6df46dfcf1841fbc6f670ae56eb26996 ""
   "images/utility_heatmap.png" 1788146088 257728 ac6b5e5774970e762ed82078da0c5d40 ""
-  "main.tex" 1793994837 35445 d879bfa588de9004af503e28efb90fe3 ""
+  "main.tex" 1793996438 33856 7622ec4e54a9e549d0df4c6d296f6ec1 ""
   (generated)
   "build/verify-buffer/main.aux"
   "build/verify-buffer/main.log"

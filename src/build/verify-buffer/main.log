@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999998 (TeX Live 2026) (preloaded format=xelatex 2026.8.11)  7 NOV 2026 03:54
+This is XeTeX, Version 3.141592653-2.6-0.999998 (TeX Live 2026) (preloaded format=xelatex 2026.8.11)  7 NOV 2026 04:20
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -862,18 +862,19 @@ MS/cmsy/m/n/10.95 2
 [4] [5] [6] [7]
 File: images/algorithm_framework.pdf Graphic file (type pdf)
 <use images/algorithm_framework.pdf>
- [8] [9] [10]
+ [8] [9]
 File: images/training_reward.png Graphic file (type bmp)
 <images/training_reward.png>
- [11]
+ [10]
 File: images/utility_heatmap.png Graphic file (type bmp)
 <images/utility_heatmap.png>
- [12]
+ [11]
 File: images/reporting_error_curve.png Graphic file (type bmp)
 <images/reporting_error_curve.png>
 File: images/reporting_error.png Graphic file (type bmp)
 <images/reporting_error.png>
- [13] [14] (build/verify-buffer/main.bbl) [15
+ [12] [13] (build/verify-buffer/main.bbl)
+[14
 
 ] (build/verify-buffer/main.aux)
  ***********
@@ -882,12 +883,12 @@ L3 programming layer <2022/07/14>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 12092 strings out of 468168
- 300250 string characters out of 5436524
- 715286 words of memory out of 5000000
- 40621 multiletter control sequences out of 15000+600000
- 643097 words of font info for 132 fonts, out of 8000000 for 9000
+ 12060 strings out of 468168
+ 299197 string characters out of 5436524
+ 715285 words of memory out of 5000000
+ 40596 multiletter control sequences out of 15000+600000
+ 640316 words of font info for 120 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
- 93i,10n,111p,673b,563s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 93i,10n,111p,683b,563s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on build/verify-buffer/main.xdv (15 pages, 188660 bytes).
+Output written on build/verify-buffer/main.xdv (14 pages, 182928 bytes).

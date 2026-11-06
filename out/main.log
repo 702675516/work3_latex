@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.8.11)  7 NOV 2026 04:06
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.8.11)  7 NOV 2026 04:23
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -900,33 +900,33 @@ File: images/algorithm_framework.pdf Graphic file (type pdf)
 Package pdftex.def Info: images/algorithm_framework.pdf  used on input line 318
 .
 (pdftex.def)             Requested size: 452.96826pt x 171.16164pt.
- [8] [9 <./images/algorithm_framework.pdf>] [10]
-<images/training_reward.png, id=288, 867.24pt x 505.89pt>
+ [8] [9 <./images/algorithm_framework.pdf>]
+<images/training_reward.png, id=285, 867.24pt x 505.89pt>
 File: images/training_reward.png Graphic file (type png)
 <use images/training_reward.png>
-Package pdftex.def Info: images/training_reward.png  used on input line 382.
+Package pdftex.def Info: images/training_reward.png  used on input line 374.
 (pdftex.def)             Requested size: 452.96826pt x 264.2299pt.
- [11]
-<images/utility_heatmap.png, id=301, 536.36385pt x 450.2421pt>
+ [10]
+<images/utility_heatmap.png, id=298, 536.36385pt x 450.2421pt>
 File: images/utility_heatmap.png Graphic file (type png)
 <use images/utility_heatmap.png>
-Package pdftex.def Info: images/utility_heatmap.png  used on input line 390.
+Package pdftex.def Info: images/utility_heatmap.png  used on input line 382.
 (pdftex.def)             Requested size: 353.31468pt x 296.59047pt.
- [12 <./images/training_reward.png>]
-<images/reporting_error_curve.png, id=307, 709.9323pt x 370.986pt>
+ [11 <./images/training_reward.png>]
+<images/reporting_error_curve.png, id=304, 709.9323pt x 370.986pt>
 File: images/reporting_error_curve.png Graphic file (type png)
 <use images/reporting_error_curve.png>
-Package pdftex.def Info: images/reporting_error_curve.png  used on input line 4
-01.
+Package pdftex.def Info: images/reporting_error_curve.png  used on input line 3
+93.
 (pdftex.def)             Requested size: 353.31468pt x 184.6321pt.
-<images/reporting_error.png, id=308, 710.655pt x 341.8371pt>
+<images/reporting_error.png, id=305, 710.655pt x 341.8371pt>
 File: images/reporting_error.png Graphic file (type png)
 <use images/reporting_error.png>
-Package pdftex.def Info: images/reporting_error.png  used on input line 409.
+Package pdftex.def Info: images/reporting_error.png  used on input line 401.
 (pdftex.def)             Requested size: 353.31468pt x 169.95316pt.
- [13 <./images/utility_heatmap.png>] [14 <./images/reporting_error_curve.png> <
+ [12 <./images/utility_heatmap.png>] [13 <./images/reporting_error_curve.png> <
 ./images/reporting_error.png>]
-(C:/Users/ME/PycharmProjects/work3_latex/out/main.bbl) [15
+(C:/Users/ME/PycharmProjects/work3_latex/out/main.bbl) [14
 
 ]
 (C:/Users/ME/PycharmProjects/work3_latex/out/main.aux)
@@ -936,11 +936,11 @@ L3 programming layer <2022/07/14>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 11723 strings out of 467525
- 214335 string characters out of 5423209
- 622854 words of memory out of 5000000
- 40064 multiletter control sequences out of 15000+600000
- 713034 words of font info for 352 fonts, out of 8000000 for 9000
+ 11702 strings out of 467525
+ 214047 string characters out of 5423209
+ 622853 words of memory out of 5000000
+ 40050 multiletter control sequences out of 15000+600000
+ 709775 words of font info for 341 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  78i,10n,92p,1376b,599s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/s
@@ -1011,11 +1011,11 @@ y10.pfb><c:/texlive/2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb><c
 2026/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb><c:/texlive/2026/texmf
 -dist/fonts/type1/public/amsfonts/cm/cmti10.pfb><c:/texlive/2026/texmf-dist/fon
 ts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on C:/Users/ME/PycharmProjects/work3_latex/out/main.pdf (15 page
-s, 3071041 bytes).
+Output written on C:/Users/ME/PycharmProjects/work3_latex/out/main.pdf (14 page
+s, 3068591 bytes).
 PDF statistics:
- 825 PDF objects out of 1000 (max. 8388607)
- 533 compressed objects within 6 object streams
+ 822 PDF objects out of 1000 (max. 8388607)
+ 531 compressed objects within 6 object streams
  0 named destinations out of 1000 (max. 500000)
  340 words of extra memory for PDF output out of 10000 (max. 10000000)
 

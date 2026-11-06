@@ -281,7 +281,7 @@ L\left(\alpha _{m}\right)=E_{o_{m}\left(t\right)\sim D_{m}, a_{m}\left(t\right)\
 \begin{equation}
 r_{0}^{-n}(t,a_{0})=-\beta E_{0}(a_{0})-\sum_{k\in N\setminus \{n\}}\theta _{k}(t)\tau _{k}(a_{0}).
 \end{equation}
-其中，$E_0(a_0)$ 为 UAV 能耗，$\tau_k(a_0)$ 为用户 $k$ 的任务时延。记 $o_{0}^{-n}(t)$ 为屏蔽完整观测 $o_0(t)$ 中用户 $n$ 报告后得到的反事实观测。为标记环境分支，将分支索引的独热编码加入 UAV 策略网络输入，定义 $\tilde{o}_0(t)=(o_0(t),\operatorname{onehot}(0))$ 和 $\tilde{o}_0^{-n}(t)=(o_0^{-n}(t),\operatorname{onehot}(n))$，分别表示完整分支和用户 $n$ 缺席分支。反事实 Q 网络输入由物理观测和目标用户编码组成，定义 $\tilde{o}_{0,n}(t)=(o_0(t),\operatorname{onehot}(n))$ 和 $\tilde{o}_{0,n}^{-n}(t)=(o_0^{-n}(t),\operatorname{onehot}(n))$。其中，物理观测表示当前完整或缺席情形，$\operatorname{onehot}(n)$ 标记反事实奖励排除的目标用户，下一观测沿用相同编码。该输入编码不改变 POSG 的物理观测或 UAV 策略输入。后文反事实价值均以相应的 $\tilde{o}$ 为条件，用户 $n$ 以外参与者的福利由反事实奖励计量。从下一时隙起的期望折扣奖励定义为
+其中，$E_0(a_0)$ 为 UAV 能耗，$\tau_k(a_0)$ 为用户 $k$ 的任务时延。记 $o_{0}^{-n}(t)$ 为屏蔽完整观测 $o_0(t)$ 中用户 $n$ 报告后得到的反事实观测。为标记执行分支，UAV 策略网络输入定义为 $\tilde{o}_0(t)=(o_0(t),\operatorname{onehot}(0))$ 和 $\tilde{o}_0^{-n}(t)=(o_0^{-n}(t),\operatorname{onehot}(n))$，分别对应完整分支和用户 $n$ 缺席分支。完整与反事实样本均由同一个 UAV Q 网络 $Q_0$ 处理。该网络估计反事实价值时，输入由物理观测和目标用户编码组成，定义为 $\tilde{o}_{0,n}(t)=(o_0(t),\operatorname{onehot}(n))$ 和 $\tilde{o}_{0,n}^{-n}(t)=(o_0^{-n}(t),\operatorname{onehot}(n))$。其中，物理观测表示完整或缺席情形，$\operatorname{onehot}(n)$ 标记反事实奖励排除的目标用户，下一观测沿用相同编码。该输入编码不改变 POSG 的物理观测。后文价值均由同一 Q 网络根据相应输入观测和奖励估计，用户 $n$ 以外参与者的福利由反事实奖励计量。从下一时隙起的期望折扣奖励定义为
 \begin{equation}
 G_{-n}(t+1\mid \tilde{o},a)=\mathbb{E}\left[\sum_{\nu=t+1}^{T}\gamma^{\nu-(t+1)}r_{0}^{-n}(\nu)\mid \tilde{o},a\right].
 \end{equation}
@@ -295,23 +295,23 @@ p_{n}(t)={}&r_{0}^{-n}(t,a_{0,-n}^{*}(t))-r_{0}^{-n}(t,a_{0}^{*}(t))\\
 \end{equation}
 支付由两部分组成：第一项是两种情形下剩余系统即时奖励之差，第二项是相应的后续折扣奖励之差。基于反事实奖励，定义动作价值函数为
 \begin{equation}
-Q_{0}^{-n}(\tilde{o},a)=\mathbb{E}\left[\sum_{\nu=t}^{T}\gamma^{\nu-t}r_{0}^{-n}(\nu)\mid \tilde{o},a\right].
+Q_{0}(\tilde{o},a)=\mathbb{E}\left[\sum_{\nu=t}^{T}\gamma^{\nu-t}r_{0}^{-n}(\nu)\mid \tilde{o},a\right].
 \label{eq:counterfactual-q}
 \end{equation}
 移除用户 $n$ 后的最优反事实动作按照长期价值选择，即
 \begin{equation}
-a_{0,-n}^{*}(t)=\operatorname*{arg\,max}_{a_{0}^{-n}(t)}Q_{0}^{-n}(\tilde{o}_{0,n}^{-n}(t),a_{0}^{-n}(t)).
+a_{0,-n}^{*}(t)=\operatorname*{arg\,max}_{a_{0}^{-n}(t)}Q_{0}(\tilde{o}_{0,n}^{-n}(t),a_{0}^{-n}(t)).
 \end{equation}
 因此，上述长期外部性支付可等价地形式化为两个反事实长期 Q 值之差：
 \begin{equation}
-p_{n}(t)=Q_{0}^{-n}(\tilde{o}_{0,n}^{-n}(t),a_{0,-n}^{*}(t))-Q_{0}^{-n}(\tilde{o}_{0,n}(t),a_{0}^{*}(t)).
+p_{n}(t)=Q_{0}(\tilde{o}_{0,n}^{-n}(t),a_{0,-n}^{*}(t))-Q_{0}(\tilde{o}_{0,n}(t),a_{0}^{*}(t)).
 \label{eq:long-term-externality-q-payment}
 \end{equation}
-实际训练中，反事实 Q 网络估计式 \eqref{eq:long-term-externality-q-payment} 中的长期价值，因此支付估计会随策略和价值网络更新而变化。为减少环境交互开销，训练时按 $\epsilon$-贪婪规则采样分支：以 $1-\epsilon$ 的概率执行完整环境分支，以 $\epsilon$ 的概率均匀选择一个用户 $n$ 并执行其缺席时的反事实分支。重复采样可逐步覆盖所有用户对应的反事实环境。
+实际训练中，同一个 UAV Q 网络根据输入观测和对应奖励估计式 \eqref{eq:long-term-externality-q-payment} 中的长期价值，因此支付估计会随策略和价值网络更新而变化。为减少环境交互开销，训练时按 $\epsilon$-贪婪规则采样分支：以 $1-\epsilon$ 的概率执行完整环境分支，以 $\epsilon$ 的概率均匀选择一个用户 $n$ 并执行其缺席时的反事实分支。重复采样可逐步覆盖所有用户对应的反事实环境。
 
-执行完整环境分支时，UAV 根据完整观测 $o_0(t)$ 选择动作 $a_0(t)$ 并执行环境。完整转移样本 $(\tilde{o}_0(t),a_0(t),r_0(t),\tilde{o}_0(t+1))$ 写入 UAV 回放池 $\mathcal{B}_0$，用于常规 SAC 更新，各用户转移写入对应回放池 $\mathcal{B}_n$。此外，根据转移结果对每个用户 $n$ 计算反事实奖励 $r_0^{-n}(t)$，将样本 $(\tilde{o}_{0,n}(t),\allowbreak a_0(t),\allowbreak r_0^{-n}(t),\allowbreak \tilde{o}_{0,n}(t+1))$ 也写入 $\mathcal{B}_0$，每次完整转移对每个用户各存一条。反事实样本用于训练 $Q_0^{-n}$，进而估计支付。
+执行完整环境分支时，UAV 根据完整观测 $o_0(t)$ 选择动作 $a_0(t)$ 并执行环境。完整转移样本 $(\tilde{o}_0(t),a_0(t),r_0(t),\tilde{o}_0(t+1))$ 写入 UAV 回放池 $\mathcal{B}_0$，用于常规 SAC 更新，各用户转移写入对应回放池 $\mathcal{B}_n$。此外，根据转移结果对每个用户 $n$ 计算反事实奖励 $r_0^{-n}(t)$，将样本 $(\tilde{o}_{0,n}(t),\allowbreak a_0(t),\allowbreak r_0^{-n}(t),\allowbreak \tilde{o}_{0,n}(t+1))$ 也写入 $\mathcal{B}_0$，每次完整转移对每个用户各存一条。该样本与完整转移共用 $Q_0$，用于估计支付。
 
-当采样到用户 $n$ 缺席的分支时，屏蔽其报告并移除其任务，得到反事实观测 $o_0^{-n}(t)$。UAV 据此选择动作 $a_{0,-n}^*(t)$ 并执行反事实环境，将样本 $(\tilde{o}_{0,n}^{-n}(t),\allowbreak a_{0,-n}^*(t),\allowbreak r_0^{-n}(t),\allowbreak \tilde{o}_{0,n}^{-n}(t+1))$ 写入同一回放池 $\mathcal{B}_0$。更新 $Q_0^{-n}$ 时，根据输入观测中的目标用户编码筛选对应样本。
+当采样到用户 $n$ 缺席的分支时，屏蔽其报告并移除其任务，得到反事实观测 $o_0^{-n}(t)$。UAV 据此选择动作 $a_{0,-n}^*(t)$ 并执行反事实环境，将样本 $(\tilde{o}_{0,n}^{-n}(t),\allowbreak a_{0,-n}^*(t),\allowbreak r_0^{-n}(t),\allowbreak \tilde{o}_{0,n}^{-n}(t+1))$ 写入同一回放池 $\mathcal{B}_0$。更新 $Q_0$ 时，根据输入观测中的目标用户编码筛选对应反事实样本。
 图 \ref{fig:long-term-externality-sac-framework} 展示了所提方法中在线机制交互、长期外部性支付与多智能体 SAC 更新之间的关系。
 \begin{figure}[H]
 \centering
@@ -325,35 +325,27 @@ p_{n}(t)=Q_{0}^{-n}(\tilde{o}_{0,n}^{-n}(t),a_{0,-n}^{*}(t))-Q_{0}^{-n}(\tilde{o
 \caption{长期外部性感知多智能体 SAC 训练流程}
 \label{alg:long-term-externality-marl}
 \begin{algorithmic}[1]
-\Require 用户策略与双 Q 网络 $\{\pi_n,Q_n,\hat Q_n\}_{n\in N}$，UAV 策略与双 Q 网络 $\pi_0,Q_0,\hat Q_0$，反事实双 Q 网络 $\{Q_0^{-n},\hat Q_0^{-n}\}_{n\in N}$，回放池 $\{\mathcal{B}_m\}_{m=0}^{N}$
-\Ensure 更新后的策略参数、Q 网络参数及目标 Q 网络参数
-\For{每个训练回合 $e=1,\ldots,E$}
-    \State 重置环境，获得初始全局状态 $s(0)$、UAV 观测 $o_0(0)$ 和用户观测 $\{o_n(0)\}_{n\in N}$。
-    \For{每个时隙 $t=0,\ldots,T-1$}
-        \State 采样分支索引 $\kappa(t)$：以 $1-\epsilon$ 的概率令 $\kappa(t)=0$，否则从 $N$ 中均匀采样 $\kappa(t)=n$。
-        \State 用户并行生成上报 $a_n(t)=\hat\theta_n(t)\sim\pi_n(\cdot\mid o_n(t))$，$\forall n\in N$。
-        \State 根据 $s(t)$ 与 $\hat{\boldsymbol\theta}(t)=\{\hat\theta_n(t)\}_{n\in N}$ 构造完整 UAV 观测 $o_0(t)$。
+\Require 各智能体策略、在线 Q 网络及目标 Q 网络 $\{\pi_m,Q_m,\hat Q_m\}_{m\in\{0\}\cup N}$，回放池 $\{\mathcal{B}_m\}_{m=0}^{N}$
+\Ensure 更新后的策略、Q 网络、温度参数及目标网络
+\For{每个训练回合}
+    \State 重置环境并获取初始观测。
+    \For{每个时隙 $t$}
+        \State 以 $1-\epsilon$ 的概率采样完整分支 $\kappa(t)=0$，否则从 $N$ 中均匀采样缺席分支 $\kappa(t)=n$。
+        \State 用户依据各自观测生成上报，并据此构造完整 UAV 观测 $o_0(t)$。
         \If{$\kappa(t)=0$}
-            \State 令 UAV 增广观测 $\tilde{o}_0(t)=(o_0(t),\operatorname{onehot}(0))$，采样动作 $a_0(t)\sim\pi_0(\cdot\mid\tilde{o}_0(t))$ 并执行环境，获得 $\{\tau_n(t)\}_{n\in N}$、$E_0(t)$ 及 $o_0(t+1)$。
+            \State UAV 根据完整观测选择动作并执行环境，得到完整转移。
+            \State 计算用户支付与奖励，将各用户转移写入 $\mathcal{B}_n$，将完整 UAV 转移 $(\tilde{o}_0(t),a_0(t),r_0(t),\tilde{o}_0(t+1))$ 写入 $\mathcal{B}_0$。
             \ForAll{$n\in N$}
-                \State 由式 \eqref{eq:long-term-externality-q-payment} 计算 $p_n(t)$ 与 $r_n(t)$，存储用户转移 $(o_n(t),a_n(t),r_n(t),o_n(t+1))$ 至 $\mathcal{B}_n$。
-                \State 将目标用户编码并入反事实 Q 输入观测，构造完整分支反事实样本并存入 UAV 回放池 $\mathcal{B}_0$。
-                \Statex \quad $(\tilde{o}_{0,n}(t),a_0(t),r_0^{-n}(t),\tilde{o}_{0,n}(t+1))$，其中 $\tilde{o}_{0,n}(t+1)=(o_0(t+1),\operatorname{onehot}(n))$。
+                \State 计算反事实奖励 $r_0^{-n}(t)$，将完整分支反事实转移 $(\tilde{o}_{0,n}(t),a_0(t),r_0^{-n}(t),\tilde{o}_{0,n}(t+1))$ 写入 $\mathcal{B}_0$。
             \EndFor
-            \State 令 $r_0(t)=W(t)$，存储完整 UAV 转移 $(\tilde{o}_0(t),a_0(t),r_0(t),\tilde{o}_0(t+1))$ 至 $\mathcal{B}_0$。
         \Else
-            \State 令 $n=\kappa(t)$，屏蔽用户 $n$ 的报告并移除其任务，得到 $o_0^{-n}(t)$。
-            \State 令 UAV 增广观测 $\tilde{o}_0^{-n}(t)=(o_0^{-n}(t),\operatorname{onehot}(n))$，依据该观测选择 $a_{0,-n}^{*}(t)$ 并执行反事实环境，获得奖励和 $o_0^{-n}(t+1)$。
-            \State 将目标用户编码并入反事实 Q 输入观测，存储缺席分支样本至 UAV 回放池 $\mathcal{B}_0$。
-            \Statex \quad $(\tilde{o}_{0,n}^{-n}(t),a_{0,-n}^{*}(t),r_0^{-n}(t),\tilde{o}_{0,n}^{-n}(t+1))$，其中 $\tilde{o}_{0,n}^{-n}(t+1)=(o_0^{-n}(t+1),\operatorname{onehot}(n))$。
+            \State 令 $n=\kappa(t)$，屏蔽用户 $n$ 的报告并移除其任务。
+            \State UAV 根据缺席分支观测选择动作并执行反事实环境。
+            \State 将反事实转移样本 $(\tilde{o}_{0,n}^{-n}(t),a_{0,-n}^{*}(t),r_0^{-n}(t),\tilde{o}_{0,n}^{-n}(t+1))$ 写入 $\mathcal{B}_0$。
         \EndIf
-        \ForAll{$m\in\{0\}\cup N$ 且对应类型的样本数不少于 $B$}
-            \State 记网络输入观测为 $o_m^{\mathrm{in}}$，其中 $o_0^{\mathrm{in}}=\tilde{o}_0$，$o_n^{\mathrm{in}}=o_n$ 对 $n\in N$ 成立。
-            \State 从 $\mathcal{B}_m$ 采样对应类型的小批量 $\mathcal{D}_m(t)=\{(o_m^{\mathrm{in}}(\tau),a_m(\tau),r_m(\tau),o_m^{\mathrm{in}}(\tau+1))\}$，其中 $m=0$ 时仅采样分支编码为 $0$ 的完整转移。
-            \State 由 $y_m(\tau)=r_m(\tau)+\gamma V_m(o_m^{\mathrm{in}}(\tau+1))$ 更新 $\omega_m(t+1)$、$\psi_m(t+1)$、$\alpha_m(t+1)$ 与 $\hat\omega_m(t+1)$。
-        \EndFor
-        \ForAll{$n\in N$ 且 $\mathcal{B}_0$ 中目标用户编码为 $n$ 的样本数不少于 $B$}
-            \State 根据输入观测中的目标用户编码从 $\mathcal{B}_0$ 筛选反事实样本，采样小批量更新 $Q_0^{-n}$ 及其目标网络 $\hat Q_0^{-n}$。
+        \State 从 $\mathcal{B}_0$ 的完整分支样本更新 UAV 策略、$Q_0$、温度参数及目标网络，从各 $\mathcal{B}_n$ 更新用户网络。
+        \ForAll{$n\in N$}
+            \State 从 $\mathcal{B}_0$ 中筛选目标用户编码为 $n$ 的反事实样本，更新共享 UAV Q 网络 $Q_0$ 及其目标网络。
         \EndFor
     \EndFor
 \EndFor
@@ -369,7 +361,7 @@ p_{n}(t)=Q_{0}^{-n}(\tilde{o}_{0,n}^{-n}(t),a_{0,-n}^{*}(t))-Q_{0}^{-n}(\tilde{o
 
 物理场景设置为 $1\,\mathrm{km}\times1\,\mathrm{km}$ 的服务区域，UAV 飞行高度和速度分别为 $100$ m 与 $30$ m/s。上行通信带宽为 $0.2$ MHz，用户发射功率为 $10$ dBm，噪声功率为 $-80$ dBm。LoS 概率参数取 $\mu_1=11.5$、$\mu_2=0.1$。LoS/NLoS 参考路径损耗分别取 $-3$ dB 和 $-20$ dB，路径损耗指数分别取 $2$ 和 $3.5$。
 
-各智能体均采用离散动作 SAC 进行训练，策略网络与双 Q 网络均采用两层全连接网络，并以修正线性单元（rectified linear unit, ReLU）作为激活函数。折扣因子设为 $\gamma=0.99$，学习率设为 $3\times10^{-4}$，初始温度参数为 $0.2$。UAV 与用户网络的隐藏层宽度分别为 128 和 64。UAV 的目标网络在每次参数更新后以 $\tau=0.005$ 进行软更新，用户目标网络的更新间隔设为 10。各智能体经验回放池容量均设为 $250000$，小批量大小为 128。温度参数通过最大熵目标自适应调节，UAV 与用户的目标熵系数分别设为 $-0.2$ 和 $-0.005$。所有实验采用随机种子 42。图\ref{fig:training-reward}给出了覆盖 $2.5\times10^6$ 个训练回合的回报演化过程。
+各智能体均采用离散动作 SAC 进行训练，策略网络与 Q 网络均采用两层全连接结构，并以修正线性单元（rectified linear unit, ReLU）作为激活函数。折扣因子设为 $\gamma=0.99$，学习率设为 $3\times10^{-4}$，初始温度参数为 $0.2$。UAV 与用户网络的隐藏层宽度分别为 128 和 64。UAV 的目标网络在每次参数更新后以 $\tau=0.005$ 进行软更新，用户目标网络的更新间隔设为 10。各智能体经验回放池容量均设为 $250000$，小批量大小为 128。温度参数通过最大熵目标自适应调节，UAV 与用户的目标熵系数分别设为 $-0.2$ 和 $-0.005$。所有实验采用随机种子 42。图\ref{fig:training-reward}给出了覆盖 $2.5\times10^6$ 个训练回合的回报演化过程。
 
 \subsection{对比方法与评价协议}
 \textbf{即时 VCG 定价基线：}该方法仍采用多智能体 SAC 学习用户上报策略与 UAV 卸载决策策略。在定价阶段，依据某用户参与所造成的当前时隙社会福利外部性确定其支付，即以该用户参与前后其余用户福利的变化衡量其支付成本。该基线保留联合学习与即时外部性定价过程，用于对比所提机制在支付设计上的改进。
