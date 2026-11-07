@@ -1,27 +1,25 @@
 # Fdb version 4
-["bibtex build/main"] 1793679312.06473 "build/main.aux" "build/main.bbl" "build/main" 1793679854.90712 0
+["bibtex build/main"] 1793998210.29485 "build/main.aux" "build/main.bbl" "build/main" 1793998221.32758 0
   "./main.bib" 1792747125 7611 7c47c246f19f721a2b0fefbbe710f783 ""
-  "build/main.aux" 1793679847 4842 adcbb25eaf30ad8d38d2c6eeda9592c8 "xelatex"
+  "build/main.aux" 1793998213 4828 6c92305d262fa20c92951555bf23227d "xelatex"
   "c:/texlive/2026/texmf-dist/bibtex/bst/base/unsrt.bst" 1786356490 18030 1376b4b231b50c66211e47e42eda2875 ""
   (generated)
   "build/main.bbl"
   "build/main.blg"
   (rewritten before read)
-["xdvipdfmx"] 1793679848.06845 "build/main.xdv" "build/main.pdf" "build/main" 1793679854.91852 0
-  "build/main.xdv" 1793679847 198240 4b8b8e734c72e32cb55b23fd29a0129f "xelatex"
+["xdvipdfmx"] 1793998214.49366 "build/main.xdv" "build/main.pdf" "build/main" 1793998221.33937 0
+  "build/main.xdv" 1793998213 184040 7c169927fbc5f9dbe02cf2f0464fa033 "xelatex"
   (generated)
   "build/main.pdf"
   (rewritten before read)
-["xelatex"] 1793679844.2209 "main.tex" "build/main.xdv" "main" 1793679854.90783 0
-  "build/main.aux" 1793679847 4842 adcbb25eaf30ad8d38d2c6eeda9592c8 "xelatex"
-  "build/main.bbl" 1793679312 3166 d4541638006aa130c33ba4c4dc775a3d "bibtex build/main"
+["xelatex"] 1793998210.64427 "main.tex" "build/main.xdv" "main" 1793998221.32835 0
+  "build/main.aux" 1793998213 4828 6c92305d262fa20c92951555bf23227d "xelatex"
+  "build/main.bbl" 1793998210 3166 d4541638006aa130c33ba4c4dc775a3d "bibtex build/main"
   "c:/Windows/Fonts/msyh.ttc" 1777512000 19704352 1e10e74402e59d54499af795caf0b135 ""
   "c:/texlive/2026/texmf-dist/fonts/map/fontname/texfonts.map" 1786408412 3524 cb3e574dea2d1052e39280babc910dc8 ""
-  "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmbsy5.tfm" 1786356374 1120 1e8878807317373affa7f7bba4cf2f6a ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmbsy7.tfm" 1786356374 1120 7f9f170e8aa57527ad6c49feafd45d54 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1786356374 1004 54797486969f23fa377b128694d548df ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1786356374 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
-  "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmmib5.tfm" 1786356374 1496 c79f6914c6d39ffb3759967363d1be79 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmmib7.tfm" 1786356374 1508 6e807ff901c35a5f1fde0ca275533df8 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm" 1786356374 916 f87d7c45f9c908e672703b83b72241a3 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam5.tfm" 1786356374 924 9904cf1d39e9767e7a3622f2a125a565 ""
@@ -31,9 +29,7 @@
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm7.tfm" 1786356374 940 228d6584342e91276bf566bcf9716b83 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmbsy10.tfm" 1786408137 1116 4e6ba9d7914baa6482fd69f67d126380 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmbx10.tfm" 1786408137 1328 c834bbb027764024c09d3d2bf908b5f0 ""
-  "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmbx5.tfm" 1786408137 1332 f817c21a1ba54560425663374f1b651a ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmbx6.tfm" 1786408137 1344 8a0be4fe4d376203000810ad4dc81558 ""
-  "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmbx7.tfm" 1786408137 1336 3125ccb448c1a09074e3aa4a9832f130 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmbx8.tfm" 1786408137 1332 1fde11373e221473104d6cc5993f046e ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmex10.tfm" 1786408137 992 662f679a0b3d2d53c1b94050fdaa3f50 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmmi10.tfm" 1786408137 1528 abec98dbc43e172678c11b3b9031252a ""
@@ -116,7 +112,7 @@
   "images/reporting_error_curve.png" 1788152760 243108 f6df99a69bbe90773ea59ad0e26dbd2e ""
   "images/training_reward.png" 1788146463 1454989 6df46dfcf1841fbc6f670ae56eb26996 ""
   "images/utility_heatmap.png" 1788146088 257728 ac6b5e5774970e762ed82078da0c5d40 ""
-  "main.tex" 1793679839 37126 6f742993dac0fc6fe91b9431cc1653c4 ""
+  "main.tex" 1793998185 34036 841ef77790f982939529645c2f6eac26 ""
   (generated)
   "build/main.aux"
   "build/main.log"

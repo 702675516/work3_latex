@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999998 (TeX Live 2026) (preloaded format=xelatex 2026.8.11)  3 NOV 2026 12:24
+This is XeTeX, Version 3.141592653-2.6-0.999998 (TeX Live 2026) (preloaded format=xelatex 2026.8.11)  7 NOV 2026 04:50
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -851,32 +851,29 @@ LaTeX Font Info:    Font shape `TU/SimSun(0)/m/sl' in size <10.95> not availabl
 e
 (Font)              Font shape `TU/SimSun(0)/m/it' tried instead on input line 
 84.
- [2] [3] [4]
-Overfull \hbox (26.72021pt too wide) in paragraph at lines 172--173
-\TU/SimSun(0)/m/n/10.95 策 略，|  各 移 动 用 户 则 基 于 局 部 信 息 学 习 上 报 策 略。|  该 博 弈 记 为
- $\OML/cmm/m/it/10.95 G \OT1/cmr/m/n/10.95 = \OMS/cmsy/m/n/10.95 h\OML/cmm/m/it
-/10.95 I; S; \OMS/cmsy/m/n/10.95 f\OML/cmm/m/it/10.95 Z[]\OMS/cmsy/m/n/10.95 g[
-]\OML/cmm/m/it/10.95 ; \OMS/cmsy/m/n/10.95 f\OML/cmm/m/it/10.95 A[]\OMS/cmsy/m/
-n/10.95 g[]\OML/cmm/m/it/10.95 ; P; \OMS/cmsy/m/n/10.95 f\OML/cmm/m/it/10.95 r[
-]\OMS/cmsy/m/n/10.95 g[]\OML/cmm/m/it/10.95 ; ^^M\OMS/cmsy/m/n/10.95 i$\TU/SimS
-un(0)/m/n/10.95 ，|
+ [2] [3]
+Overfull \hbox (5.04675pt too wide) in paragraph at lines 127--128
+[]\TU/SimSun(0)/m/n/10.95 本 文 考 虑 用 户 策 略 性 报 告 私 有 类 型 的 动 态 资 源 分 配 问 题。|  用 
+户 $\OML/cmm/m/it/10.95 n$ \TU/SimSun(0)/m/n/10.95 的 真 实 时 延 敏 感 度 为 $\OML/cmm/m
+/it/10.95 ^^R[]\OT1/cmr/m/n/10.95 (\OML/cmm/m/it/10.95 t\OT1/cmr/m/n/10.95 ) \O
+MS/cmsy/m/n/10.95 2
  []
 
-[5] [6] [7] [8]
+[4] [5] [6] [7]
 File: images/algorithm_framework.pdf Graphic file (type pdf)
 <use images/algorithm_framework.pdf>
- [9] [10]
+ [8] [9]
 File: images/training_reward.png Graphic file (type bmp)
 <images/training_reward.png>
- [11]
+ [10]
 File: images/utility_heatmap.png Graphic file (type bmp)
 <images/utility_heatmap.png>
- [12]
+ [11]
 File: images/reporting_error_curve.png Graphic file (type bmp)
 <images/reporting_error_curve.png>
 File: images/reporting_error.png Graphic file (type bmp)
 <images/reporting_error.png>
- [13] [14] (build/main.bbl) [15
+ [12] [13] (build/main.bbl) [14
 
 ]
 (build/main.aux)
@@ -886,12 +883,12 @@ L3 programming layer <2022/07/14>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 12122 strings out of 468168
- 302041 string characters out of 5436524
- 715286 words of memory out of 5000000
- 40651 multiletter control sequences out of 15000+600000
- 643097 words of font info for 132 fonts, out of 8000000 for 9000
+ 12060 strings out of 468168
+ 299071 string characters out of 5436524
+ 715285 words of memory out of 5000000
+ 40596 multiletter control sequences out of 15000+600000
+ 640316 words of font info for 120 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
- 93i,10n,111p,577b,563s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 93i,10n,111p,683b,563s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on build/main.xdv (15 pages, 198240 bytes).
+Output written on build/main.xdv (14 pages, 184040 bytes).
