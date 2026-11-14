@@ -1,0 +1,1687 @@
+                                                                                                                                                                                        1
+
+
+
+
+                                                Cooperative Sensing and Heterogeneous
+                                           Information Fusion in VCPS: A Multi-agent Deep
+                                                  Reinforcement Learning Approach
+                                                            Xincao Xu, Kai Liu, Senior Member, IEEE, Penglin Dai, Member, IEEE, Ruitao Xie,
+                                                                       Jingjing Cao, and Jiangtao Luo, Senior Member, IEEE
+
+
+
+                                            Abstract—Cooperative sensing and heterogeneous information                  status, vehicle locations, point cloud data and surveillance
+arXiv:2209.12265v2 [cs.NI] 27 Jan 2023
+
+
+
+
+                                         fusion are critical to realize vehicular cyber-physical systems                videos can be cooperatively sensed and uploaded by vehicles.
+                                         (VCPSs). This paper makes the first attempt to quantitatively                  The view, which is logical mapping of physical status of
+                                         measure the quality of VCPS by designing a new metric called
+                                         Age of View (AoV). Specifically, we first present the system                   the elements in vehicular networks, such as the locations,
+                                         architecture where heterogeneous information can be coopera-                   velocities, and heading directions of vehicles, and the status
+                                         tively sensed and uploaded via vehicle-to-infrastructure (V2I)                 of traffic lights can be constructed at the edge node based on
+                                         communications in vehicular edge computing (VEC). Logical                      the fusing of sensed information. The particular elements to
+                                         views are constructed by fusing the heterogeneous information                  be constructed in a logical view is determined by the specific
+                                         at edge nodes. Further, we formulate the problem by deriving
+                                         a cooperative sensing model based on the multi-class M/G/1                     ITS applications. On the other hand, vehicular edge computing
+                                         priority queue, and defining the AoV by modeling the timeliness,               (VEC) [2] becomes a promising paradigm in supporting high-
+                                         completeness and consistency of the logical views. On this basis, a            density vehicular communications, massive data transmission,
+                                         multi-agent deep reinforcement learning solution is proposed. In               and adaptive computation offloading at the edge of vehicular
+                                         particular, the system state includes vehicle sensed information,              networks. Therefore, it is of great significance to investigate
+                                         edge cached information and view requirements. The vehicle
+                                         action space consists of the sensing frequencies and uploading                 quality cyber-physical fusion in VEC.
+                                         priorities of information. A difference-reward-based credit as-                   Great efforts have been devoted to data dissemination [3]
+                                         signment is designed to divide the system reward, which is defined             [4], information caching [5]–[7] and task offloading [8] [9] in
+                                         as the VCPS quality, into the difference reward for vehicles. Edge             vehicular networks. However, none of them have investigated
+                                         node allocates V2I bandwidth to vehicles based on predicted                    the synergistic effects of cooperative sensing and heteroge-
+                                         vehicle trajectories and view requirements. Finally, we build
+                                         the simulation model and give a comprehensive performance                      neous information fusion. A number of studies have been
+                                         evaluation, which conclusively demonstrates the superiority of                 studied on predicting [10] [11], scheduling [12] [13], and
+                                         the proposed solution.                                                         controlling [14]–[17] technologies in VCPS, which facilitated
+                                            Index Terms—Vehicular cyber-physical system, edge comput-                   the implementation of various ITS applications. Nevertheless,
+                                         ing, cooperative sensing, heterogeneous information fusion, multi-             they are based on assumed sufficient and reliable informa-
+                                         agent deep reinforcement learning                                              tion collected by the edge/cloud nodes. Several studies have
+                                                                                                                        concerned the information quality evaluation in VCPS [18]–
+                                                                                                                        [22]. However, they only evaluated the quality at the data item
+                                                                   I. I NTRODUCTION
+                                                                                                                        level, while ignoring the quality evaluation for the fusing of
+                                           Recent advances in sensing technologies and vehicular                        heterogeneous information. Some studies have focused on ve-
+                                         communications drive the development of vehicular cyber-                       hicle sensing and information fusion using deep reinforcement
+                                         physical systems (VCPSs) [1], which is a key enabler of the                    learning (DRL) in vehicular networks [23]–[25], but they are
+                                         next generation of intelligent transportation systems (ITSs).                  not suitable in modeling multiple vehicle scenarios. A few
+                                         In VCPS, heterogeneous information such as traffic light                       literatures have applied the multi-agent DRL into vehicular
+                                                                                                                        networks [26] [27]. However, none of the solutions can be
+                                            Manuscript received.                                                        directly applied in VCPS for cooperative sensing and hetero-
+                                            Xincao Xu and Kai Liu are with the College of Computer Sci-
+                                         ence, Chongqing University, Chongqing 400040, China. (e-mail: near,            geneous information fusion. To the best of our knowledge,
+                                         liukai0807@cqu.edu.cn).                                                        this is the first work on investigating the synergistic effect of
+                                            Penglin Dai is with the School of Computing and Artificial Intelligence,    cooperative sensing and heterogeneous information fusion by
+                                         Southwest Jiaotong University, Chengdu 611756, China, and also with the Na-
+                                         tional Engineering Laboratory of Integrated Transportation Big Data Applica-   quantitatively measuring the quality of VCPS.
+                                         tion Technology, Chengdu 611756, China. (e-mail: penglindai@swjtu.edu.cn).        The critical issues and challenges to be addressed in this
+                                            Ruitao Xie is with the College of Computer Science and Software Engineer-   paper are summarized as follows. First, the physical informa-
+                                         ing, Shenzhen University, Shenzhen 518060, China. (e-mail: xie@szu.edu.cn).
+                                            Jingjing Cao is with the School of Transportation and Logistics Engi-       tion is highly dynamic. Therefore, it is critical to consider the
+                                         neering, Wuhan University of Technology, Hubei 430063, China. (e-mail:         synergistic effect of the sensing frequency, queuing delay, and
+                                         bettycao@whut.edu.cn).                                                         transmission delay to ensure information freshness and timeli-
+                                            Jiangtao Luo is with the Electronic Information and Networking Research
+                                         Institute, Chongqing University of Posts and Telecommunications, Chongqing     ness. Second, the physical information is temporal-spatial cor-
+                                         400065, China (e-mail: luojt@cqupt.edu.cn).                                    related. Meanwhile, vehicles have different sensing capacities
+                                                                                                                                    2
+
+
+
+and they are scheduled in a distributed manner. Consequently,       proposes the solution. Section VI evaluates the performance.
+vehicles are expected to be cooperated in information sensing       Finally, Section VII concludes this paper and discusses future
+and uploading to reduce resource consumption and enhance in-        research directions.
+formation quality. Third, vehicle-to-infrastructure (V2I) com-
+munications have limited radio coverage, and unreliable due
+                                                                                         II. R ELATED W ORK
+to the nature of wireless communications. Thus, it is also
+critical to alleviate the impact of intermittent connection and        There have been numerous studies on data dissemination,
+packet loss during uploading. Fourth, the physical information      information caching, and task offloading in vehicular net-
+is intrinsically heterogeneous in terms of distribution, updating   works. Liu et al. [3] considered the cooperative data dissem-
+frequency, and modality, which brings great challenges to the       ination problem in a vehicular end-edge-cloud architecture,
+quality modeling of information fusion.                             and proposed a clique searching-based scheduling scheme to
+   With above motivations, we jointly investigate the evalua-       enable collaborative data encoding and dissemination. Singh
+tion metric and the scheduling algorithm, aiming at enhancing       et al. [4] proposed an intent-based network control framework,
+the quality of VCPS by synergizing the cooperative sensing          where a neural network is used to train the flow table and en-
+and heterogeneous information fusion. The main contributions        ables intelligent data dissemination. Zhang et al. [5] proposed
+are outlined as follows.                                            a social-aware vehicular edge caching mechanism, which
+                                                                    dynamically orchestrates the cache capability of edge nodes
+  1) A novel problem is investigated in VCPS by integrat-           and smart vehicles according to user preference similarity
+     ing the sensing, uploading, modeling and evaluation of         and service availability. Dai et al. [6] proposed a blockchain-
+     heterogeneous information. In particular, a cooperative        enabled distributed information caching framework, which
+     sensing model is derived based on the multi-class M/G/1        integrates DRL and permissioned blockchain and achieves
+     priority queue and the Shannon theory. On this basis, a        intelligent and secure information caching. Su et al. [7] de-
+     new metric called Age of View (AoV) is designed to             veloped a dynamic information caching scheme based on the
+     evaluate the timeliness, completeness, and consistency         analyzed vehicular content request features. Shang et al. [8]
+     of heterogeneous information in VCPS. To the best of           studied energy-efficient task offloading and developed a deep-
+     our knowledge, this is the first work on quantitatively        learning-based algorithm to minimize the energy consumption.
+     evaluating the quality of VCPS with the consideration          Liao et al. [9] presented a task offloading strategy for air-
+     of unique characteristics captured by the newly designed       ground integrated VEC that enables vehicles to learn long-
+     metic AoV.                                                     term strategies with a multi-dimensional awareness of intent.
+  2) A dedicated solution is proposed based on multi-agent          These studies mainly focused on scheduling algorithms for
+     deep reinforcement learning. Specifically, vehicles act as     data dissemination, information caching, and task offloading in
+     independent agents with action space of sensing frequen-       vehicular networks. However, none of them have investigated
+     cies and uploading priorities. Then, a different reward        the synergistic effects of cooperative sensing and heteroge-
+     (DR) based credit assignment scheme is designed to             neous information fusion in VCPS.
+     evaluate the contributions of individual vehicles on view
+                                                                       Great efforts have been devoted to predicting, scheduling,
+     construction, so as to enhance the evaluation accuracy
+                                                                    and controlling technologies in VCPS. Zhang et al. [10]
+     in term of the action of each agent. Further, the solution
+                                                                    proposed a hybrid velocity-profile prediction method, which
+     manages to achieve smaller action space of each agent
+                                                                    integrates the traffic flow state with individual driving behav-
+     and speed up the convergency compared with conven-
+                                                                    iors. Zhang et al. [11] predicted the vehicle status based on a
+     tional DRL algorithms. Meanwhile, a V2I bandwidth
+                                                                    lane-change behavioral prediction model and an acceleration
+     allocation (VBA) scheme is designed at the edge node
+                                                                    prediction model. Li et al. [12] considered vehicle mobility
+     based on vehicle trajectories and view requirements.
+                                                                    and developed a physical-ratio-K interference model-based
+  3) A comprehensive performance evaluation is conducted
+                                                                    broadcast scheme to ensure communication reliability. Lian et
+     based on real-world vehicular trajectories. The proposed
+                                                                    al. [13] presented a scheduling method for path planning based
+     solution and four competitive algorithms, including ran-
+                                                                    on an established map model to optimize the path utilization
+     dom allocation (RA), centralized deep deterministic
+                                                                    efficiency. Dai et al. [14] proposed an autonomous intersection
+     policy gradient (C-DDPG) [25], multi-agent actor-critic
+                                                                    control mechanism to determine vehicle priorities for passing
+     (MAC) [27] and MAC with V2I bandwidth allocation
+                                                                    through intersections. Hu et al. [15] proposed a fuel-optimal
+     scheme (MAC-VBA) are implemented. The simulation
+                                                                    controller to optimize the vehicle speed and continuously
+     results demonstrated that the proposed solution outper-
+                                                                    variable transmission gear ratio based on the leading vehicle
+     forms RA, C-DDPG, MAC, and MAC-VBA by around
+                                                                    status. Lv et al. [16] presented an adaptive algorithm to control
+     61.8%, 23.8%, 22.0%, and 8.0%, respectively, in terms
+                                                                    the vehicle acceleration under three typical driving styles with
+     of maximizing the VCPS quality, and speeds up the
+                                                                    different protocol selections. Xu et al. [17] proposed a vehicle
+     convergence by around 6.8×, 1.4× and 1.3× compared
+                                                                    collision warning scheme based on trajectory calibration by
+     with C-DDPG, MAC, and MAC-VBA, respectively.
+                                                                    considering V2I communication delay and packet loss. These
+   The rest of this paper is organized as follows. Section          studies focused on different technologies to support VCPS,
+II reviews the related work. Section III presents the system        such as trajectory predicting, path scheduling, and vehicle
+architecture. Section IV formulates the problem. Section V          controlling, which facilitated the implementation of various
+                                                                                                                                     3
+
+
+
+ITS applications. Nevertheless, these studies are based on the     environment and the logical views constructed by edge nodes.
+assumption of the availability of quality information to model     In particular, edge nodes such as 5G stations and roadside units
+the physical elements in vehicular networks, without giving        (e.g., e1 ∼e5 ) are installed at the roadside. Vehicles are able to
+quantitative analysis on the quality of the logical views.         communicate with edge nodes within their radio coverage via
+   Several studies have evaluated the information quality in       V2I communications and can sense heterogeneous information
+VCPS. Liu et al. [18] proposed a scheduling algorithm for          via equipped onboard sensors such as LiDAR, GPS, and cam-
+temporal data dissemination in VCPS, which strikes a balance       eras. Clearly, the physical information in vehicular networks
+between real-time data dissemination and timely information        are highly dynamic and temporal-spatial correlated. Mean-
+sensing. Dai et al. [19] proposed an evolutionary multi-           while, the sensing vehicles are with heterogeneous capacities
+objective algorithm to enhance the information quality and         and limited resources, and the vehicular communications are
+improve the data delivery ratio. Liu et al. [20] proposed two      intermittent and unreliable. Therefore, it is critical to have
+online algorithms to schedule the temporal data dissemination      a tailored metric to quantitively evaluate the quality of the
+under different consistency requirements by analyzing the          logical views constructed by the edge node, so as to measure
+dissemination characteristics. Rager et al. [21] developed a       the overall VCPS performance effectively.
+framework to enhance the information quality by modeling              As shown in Fig. 1(b), the logical view construction at edge
+random data loads to capture the stochastic nature of real         node e1 consists of three steps. Step 1 (Sensing): Each vehicle
+networks. Yoon et al. [22] presented a unified cooperative         may sense different information based on their locations and
+perception framework to obtain the accurate motion states          sensing capacities. The sensed information is queued at each
+of vehicles, considering communication losses in vehicular         vehicle for uploading to the edge node, and each vehicle will
+networks and the random vehicle motions. These studies             determine the sensing frequencies and uploading priorities of
+focused on information quality evaluation with respect to data     these information. Step 2 (Uploading): The edge node allocates
+timeliness, accuracy, or consistency in VCPS. Nevertheless,        V2I bandwidth (i.e., different ranges of non-overlapped spec-
+existing studies only considered the quality measurement at the    trums) to vehicles with uploading tasks, so that these vehicles
+homogeneous data item level, which may not sufficient when         are able to upload their sensed information simultaneously
+considering at the application level where the required logical    without interference. Step 3 (View Constructing): The edge
+views are constructed by fusing heterogeneous information.         node constructs the logical view by mapping the received
+   Some studies have focused on vehicle sensing and informa-       physical information to the corresponding logical elements
+tion fusion by using DRL algorithms. Zhao et al. [23] designed     based on the requirement of specific ITS applications.
+a social-aware incentive mechanism based on proximal policy           The system characteristics are summarized as follows. First,
+optimization (PPO) to derive the optimal long term sensing         the heterogeneous information is sensed by vehicles at dif-
+strategy. Dong et al. [24] presented a deep Q networks (DQN)       ferent sensing frequencies. Therefore, the arrival moments
+based approach to fuse information obtained on the local           of different information could be not the same. In addition,
+downstream environment for reliable lane change decisions.         improving the sensing frequency may enhance information
+Mika et al. [25] proposed a deep deterministic policy gradient     freshness, but also lengthen the queuing delay. Second, it
+(DDPG) based solution to minimize the age of information           is essential to determine the uploading priorities of different
+by scheduling resource block and broadcast coverage. These         information in vehicles by considering the different data sizes
+technologies are mainly proposed for vehicle sensing and           of information, connectivity of V2I communications, and
+information fusion using single agent DRL algorithms such as       view requirements comprehensively. Third, due to the limited
+DQN, DDPG, and PPO. However, these algorithms cannot be            bandwidth resources of edge nodes and changeable vehicular
+directly applied for the cooperative sensing and heterogeneous     channel conditions, the allocated V2I bandwidth may not be
+information fusion in VCPS, and they are not suitable when         sufficient to support the data uploading timely. It is meaningful
+considering multiple vehicles. A few studies applied the multi-    to allocate larger bandwidth to vehicles that are prepared to
+agent DRL to allocate resources in vehicular networks. Xu          upload fresher and more urgent information rather than in
+et al. [26] presented a multi-agent distributed distributional     worse channel conditions (e.g., leaving the V2I coverage)
+deep deterministic policy gradient (MAD4PG) to maximize            to maximize bandwidth efficiency. The channel conditions
+the service ratio by scheduling the task offloading in vehicular   of different vehicles are considered by modeling the signal
+edge computing. He et al. [27] proposed a multi-agent actor-       to noise ratio (SNR) between vehicles and the edge nodes,
+critic (MAC) algorithm to allocate resources for vehicles with     and the V2I transmission rate is determined by the distance
+strict delay requirements and minimum bandwidth consump-           between the two nodes and the allocated bandwidth.
+tion. Nevertheless, these solutions only considered one type of       Further, we give an example to better illustrate the idea.
+agents (i.e., vehicles or edge nodes) in vehicular networks.       As shown in Fig. 1(a), a logical view is constructed in edge
+                                                                   node e1 at time t to enable the speed advisory application
+                                                                   at the intersection based on the information sensed and
+                III. S YSTEM A RCHITECTURE
+                                                                   uploaded by vehicles s1 , s2 , and s3 . In general, the goal
+   In this section, we present a cooperative sensing and hetero-   of such an application is to advise optimal speed to the
+geneous information fusion architecture in VCPS at the edge        vehicles, which are approaching the intersection. So, vehicles
+of vehicular networks. As shown in Fig. 1(a), the architecture     can pass smoothly and the overall traffic efficiency can be
+can be abstracted into two layers, i.e., the physical vehicular    also maximized. Suppose vehicles s2 and s3 can sense the
+                                                                                                                                                             4
+
+
+
+
+                       Packet loss of    ’s
+                         location update        Inconsistency                                               Logical View
+                                                remaining time
+                  N                           17s (   ) 16s (  )                                     Logical Mapping of Physical
+                   Queuing                                                                                Traffic Elements
+                                                                         The location of P1
+                                          True location
+                                                            P1       sensed by both     and
+                                              of
+             P1       17s         V2I                                                                 ③ View Constructing
+                  N                                                                                                                𝑒!
+                            16s
+       Heterogeneous Information
+                                                                   Logical View of    at Time          V2I Bandwidth Allocation
+
+
+
+         Cooperative Sensing
+                                                                                                       ① Sensing                         ② Uploading
+
+                                                                                                                           𝑠!                  𝑠#
+
+
+                                                                                 5G Station                                         𝑠"
+                                                                                Roadside Unit
+                                                                                                 Sensing Frequency and
+                                                                                Traffic Light      Uploading Priority
+      Physical Vehicular Environment                                          Roadside Camera        Determination
+
+          (a) Cooperative sensing and heterogeneous information fusion in VCPS                                     (b) System workflow
+
+                                                                   Fig. 1: System architecture
+
+
+traffic light information, but the values are not consistent at                        time t; Ds is the set of information that can be sensed by
+time t. For example, s2 observes 17s remaining of the red                              vehicle s, and πs is the transmission power of vehicle s.
+light, whereas s3 observes 16s, resulting in the information                           The set of edge nodes is denoted by E. Each edge node
+inconsistency. On the other hand, note that the status of the                          e ∈ E is characterized by a three-tuple e = (le , re , be ),
+same physical element (e.g., the location of pedestrian P1)                            where le is the location, re is the communication range, and
+might be sensed by multiple vehicles simultaneously (e.g.,                             be is the bandwidth capacity, measured by Hz. The distance
+s1 and s2 ). In such case, it only needs to be uploaded by                             between vehicle s and edge node e at time t is denoted by
+one of the vehicles (e.g., vehicle s1 ) at certain time to save                        dists,e , distance (lst , le ) , ∀s ∈ S, ∀e ∈ E, ∀t ∈ T , where
+the V2I bandwidth. As long as the physical elements are                                distance (·, ·) is the Euclidean distance.
+modeled at the edge node with the same quality level, it can be                           The set of information sensed by vehicle s at time t is
+applied to different applications without the need of repeatedly                       denoted by Dst ⊆ Ds . The information types are distinct
+uploading by different vehicles. Moreover, the packet loss may                         for any information d ∈ Dst , i.e., typed∗ 6= typed , ∀d∗ ∈
+cause a gap between the physical environment and the view.                             Dst \ {d} , ∀d ∈ Dst . The sensing frequency of information d
+For example, suppose the packet for s2 ’s location update is                           in vehicle s at time t is denoted by λtd,s . Due to the limited
+lost, which results in the significant inconsistency between its                       sensing ability, we have λtd,s ∈ [λmin         max              t
+                                                                                                                               d,s , λd,s ], ∀d ∈ Ds , ∀s ∈
+true location and modeled location at time t. As illustrated                                                      min         max
+                                                                                       S, ∀t ∈ T , where λd,s and λd,s are the minimum and
+above, it is critical yet challenging to quantitatively measure                        maximum of sensing frequency for information with typed in
+the quality of views constructed at edge nodes, and design an                          vehicle s, respectively. The uploading priority of information
+effective scheduling mechanism for cooperative sensing and                             d in vehicle s at time t is denoted by ptd,s , and we have
+information fusion to maximize the overall quality of VCPS.                            ptd∗ ,s 6= ptd,s , ∀d∗ ∈ Dst \ {d} , ∀d ∈ Dst , ∀s ∈ S, ∀t ∈ T . The
+                                                                                       set of vehicles within the  radio coverage of edge node e at time
+                  IV. P ROBLEM F ORMULATION                                            t is denoted by Set = s| dists,e ≤ re , ∀s ∈ S , Set ⊆ S. The
+A. Notations                                                                           V2I bandwidth allocated by edge node e for vehicle s at time t
+                                                                                       is denoted by bts,e , and we have bts,e ∈ [0, be ] , ∀s ∈ Set , ∀t ∈ T .
+   The set of discrete time slots of the system is denoted
+                                                                                       The sum of V2I bandwidth allocated           by edge node e cannot
+by T = {1, 2, · · · , t, · · · , |T |}, where |T | is the number of
+                                                                                       exceed its capacity be , i.e., ∀s∈S t bts,e ≤ be , ∀t ∈ T . The
+                                                                                                                         P
+time slots. The set of heterogeneous information is denoted                                                                      e
+                                                                                       primary notations are summarized in Table I.
+by D. Each information d ∈ D is characterized by a two-
+tuple d = (typed , |d|), where typed is the type and |d| is
+data size, measured by bit. The set of vehicles is denoted                             B. Cooperative Sensing Model
+by S. Each vehicle s ∈ S is characterized by a three-tuple                                The cooperative sensing model is shown in Fig. 2. The
+s = (lst , Ds , πs ), where lst is the location of vehicle s at                        inter-arrival time and queuing time of information sensed
+                                                                                                                                                                                     5
+
+
+
+                                                   TABLE I: Summary of primary notations
+   Notations   Descriptions                                                                         Notes
+   T           Set of discrete time slots                                                           T = {1, 2, · · · , t, · · · , |T |}
+   D           Set of heterogeneous information                                                     d ∈ D and d = (typed , |d|)
+                                                                                                    s ∈ S and s = lst , Ds , πs
+                                                                                                                                      
+   S           Set of vehicles
+   E           Set of edge nodes                                                                    e ∈ E and e = (le , re , be )
+   typed       Type of information d
+   lst         Location of vehicle s at time t
+   Ds          Set of information that can be sensed by vehicle s
+   πs          Transmission power of vehicle s
+   le          Location of edge node e
+   re          Communication range of edge node e
+   be          Bandwidth capacity of edge node e
+   dists,e                                                                                          dists,e , distance lst , le
+                                                                                                                                 
+               Distance between vehicle s and edge node e at time t
+   Set         Set of vehicles within the radio coverage of edge node e                             Set = s| dists,e ≤ re , ∀s ∈ S , Set ⊆ S
+   Dst         Set of information sensed by vehicle s at time t
+   λtd,s                                                                                            λtd,s ∈ λmin        max
+                                                                                                                              , ∀d ∈ Dst
+                                                                                                                           
+               Sensing frequency of information d in vehicle s at time t                                        d,s , λd,s
+                                                                                                                         ∗
+   ptd,s       Uploading priority of information d in vehicle s at time t                             t         t
+                                                                                                    pd∗ ,s 6= pd,s , ∀d ∈ Dst \ {d} , ∀d ∈ Dst
+   bts,e       V2I bandwidth allocated by edge node e for vehicle s at time t                       bts,e ∈ [0, be ] , ∀s ∈ Set , ∀e ∈ E
+   atd,s       Inter-arrival time of adjacent information with typed in vehicle s
+       t                                                                                             t
+                                                                                                         = d∗ | ptd∗ ,s > ptd,s , ∀d∗ ∈ Dst
+                                                                                                          
+   Dd,s        Set of elements with higher uploading priority than d in vehicle s                   Dd,s
+   qtd,s       Queuing time of information d in vehicle s
+   gtd,s,e     Transmission time of information d from vehicle s to edge node e
+   ctd,s,e     Binary indicates whether d is successfully transmitted from s to e                   ctd,s,e ∈ {0, 1}
+       t                                                                                               t
+   Ds,e        Set of information transmitted by vehicle s and received at e                        Ds,e                                 t
+                                                                                                           = d | ctd,s,e = 1, ∀d ∈ Ds , Ds,e ⊆ Dst
+   O           Set of physical traffic elements
+                                                                                                          0
+   V           Set of views                                                                         v = {oS |yo,v = 1, ∀o ∈ O}
+   Dv          Set of information required by view v                                                Dv = yo,v =1 Do , ∀v ∈ V
+                                                                                                                ∀o∈O
+   Vet         Set of views required by edge node e at time t
+                                                                                                                                  t
+                                                                                                                                        , ∀v ∈ Vet , ∀e ∈ E
+                                                                                                              S                       
+   Dv,e        Set of information received by edge node e and required by view v                    Dv,e =        ∀s∈S      Dv ∩ Ds,e
+
+
+
+by vehicles are modeled by the multi-class M/G/1 priority                                  𝜆#(,(              #
+                                                                                                                  #
+                                                                                                                 𝑝!',(    #
+                                                                                                                       < 𝑝(,(    #
+                                                                                                                              < 𝑝),(  Heterogeneous Information
+                                                                                                            𝑝(,(                        Type
+queue [28]. We assume that the distribution of information                                 𝜆#),(            #
+                                                                                                           𝑝),(                      Vehicle
+                                                                                                                                             1 2 3 4 5 6
+                                                                                                                                               1
+transmission time with the same typed in vehicle s stays                                    #
+                                                                                           𝜆!',(               #
+                                                                                                              𝑝!',(               Vehicle 3    2
+stable within each time slot. The transmission time ĝtd,s,e of
+                                                                                                                                               3
+information with typed follows a class of General distribution         Sensing Frequency Uploading Priority
+with mean αd,s t
+                  , and finite second and third moments βd,st
+                                                              ,                                                                     #
+                                                                                                                                   𝑝0,0    #
+                                                                                                                                        > 𝑝2,0    #
+                                                                                                                                               > 𝑝1,0
+                                                                                                                                                                  #
+                                                                                                                                                                 𝑝0,0            𝜆#0,0
+                                                                        #
+  t                                                                    𝜆!,!               #
+                                                                                         𝑝!,!       #      #      #      #                                          #
+                                                                                                                                                                  𝑝1,0           𝜆#1,0
+γd,s , and the distribution set is represented by                                                  𝑝!,! < 𝑝%,! < 𝑝$,! < 𝑝&,!
+                                                                       𝜆#$,!            #
+                                                                                       𝑝$,!                                                                   #
+                                                                                                                                                             𝑝2,0                𝜆#2,0
+                                                                       𝜆#%,!              #
+                                                                                        𝑝%,!
+                 P = ĝtd,s,e : E ĝtd,s,e = αd,s
+                                                t
+                                         
+                                                    ,                                                                                       Vehicle 2
+                                                                       𝜆#&,!                 #
+                                                                                            𝑝&,!
+                           t          t
+                                           2     t                                                     Vehicle 1          #
+                                                                                                                          𝑏(,3
+                        E ĝd,s,e −αd,s       = βd,s  ,     (1)                                                    #                           Type 1
+                                                                                                                  𝑏!,3                #
+                                                                                                                                     𝑏0,3   Vehicle
+                                                                                                                                                         2   3    4   5    6
+                                                                                             e
+                          t              3
+                                                    o
+                                     t          t
+                                                                                         Tim#
+                                         
+                       E ĝd,s,e −αd,s = γd,s                                                           #      #
+                                                                                                                                              1
+                                                                                   …       𝑏!,3        𝑏0,3   𝑏(,3
+                                                                               𝑡                                                              2
+                                                                       𝑡−1
+Therefore, the uploading workload ρts is represented by                                                       Frequency                       3
+                                                                                     𝑏3
+                                                                          V2I Bandwidth Allocation                       Edge 𝑒                         View of 𝒆         Lost
+                              X
+                     ρts =                   t
+                                      λtd,s αd,s                 (2)
+                             ∀d⊆Dst                                                                Fig. 2: Cooperative sensing model
+  To guarantee the existence of the queue steady-state, it
+requires ρts < 1. The inter-arrival time atd,s is the duration
+between the arrival of two adjacent information with typed in          (i.e., the amount of elements to be uploaded before d by
+vehicle s, which is computed by                                        vehicle s at time t) is represented by
+                                  1                                                                 X
+                         atd,s = t                         (3)                           ρtd,s =          λtd∗ ,s αdt ∗ ,s   (5)
+                                 λd,s                                                                                      t
+                                                                                                                     ∀d∗ ∈Dd,s
+The set of elements with higher uploading priority than
+information d in vehicle s at time t is denoted by                     where λtd∗ ,s and αdt ∗ ,s are the sensing frequency and the mean
+                                                                       transmission time of information d∗ in vehicle s at time t,
+             t
+                 = d∗ | ptd∗ ,s > ptd,s , ∀d∗ ∈ Dst
+                   
+           Dd,s                                      (4)
+                                                                       respectively.
+where pd∗ ,s is the uploading priority of information d∗ ∈ Dst .          The queuing time of information with typed in vehicle s
+Therefore, the uploading workload ahead of information d               is denoted by qtd,s . According to the Pollaczek–Khintchine
+                                                                                                                                                                                        6
+
+
+
+formula [29], the mean of queuing time q̄td,s is calculated by                                     to limn→∞ (1 − ρtdn ,s ) → 0, similarly, limn→∞ (1 − ρtdn ,S −
+                                                                                                   λtdn ,s αdt n ,s ) → 0.
+                                                                                        
+                                         t
+                                  λtd,s βd,s                          λtd∗ ,s βdt ∗ ,s
+                                                        P
+                                             +
+                                                          t
+                                                    ∀d∗ ∈Dd,s                                                              λtdn ,s βdt n ,s + ∀d∗ ∈Dt n λtd∗ ,s βdt ∗ ,s
+                                                                                                                                             P
+              1
+q̄td,s =
+                      t                                                                  t
+                     α +                                                                −αd,s
+                                                                                                      lim q̄tdn ,s
+                                                                                                                                                   d ,s
+           1 − ρtd,s  d,s                                                                                               = 
+                                                                              
+                                                           t
+                                      2 1 − ρtd,s − λtd,s αd,s
+                                                                                                                                                                      
+                                                                                                     n→∞
+                                                                                                                          2 1 − ρtdn ,s 1 − ρtdn ,s − λtdn ,s αdt n ,s
+                                                             (6)                                                             ρtdn ,st αdt n ,s
+The variance of the queuing time of information with typed in                                                            +                         →∞
+                                        t
+vehicle s is obtained by Eq. 7, where αd,s    t
+                                           , βd,s        t
+                                                  , and γd,s are                                                              1 − ρtdn ,s
+                                                                                                                                                                     (13)
+the mean, and finite second and third moments of transmission
+                                                                                                   where λtdn ,s , αdt n ,s , and βdt n ,s are the sensing frequency, the
+time of information d, respectively. Based on Chebyshev’s
+                                                                                                   mean and second moment of transmission time of information
+Inequality, we have the following inequality
+                                                                                                   dn , respectively.
+                                    q                               1                                 Then, we model the data uploading via V2I communications
+       Pr(| qtd,s − q̄td,s | > j         V ar(qtd,s )) ≤               , j ∈ R+              (8)   based on the Shannon theory. The SNR of V2I communica-
+                                                                    j2
+                                                                                                   tions between vehicle s and edge node e at time t is denoted
+Thus, the upper bound of queuing time under 99% confidence                                         by SNRts,e , which is computed by [30]
+level can be obtained by
+                                                                                                                                       1         2        −ϕ
+                                                q                                                                    SNRts,e =            |hs,e | ζdists,e πs                        (14)
+                  sup qtd,s ≤ q̄td,s +10         V ar(qtd,s )                                (9)                                       N0
+                   Pr
+                                                                                                   where N0 is the additive white Gaussian noise; hs,e is the
+   To better analyze the relationship between the mean queuing                                     channel fading gain; ζ is a constant that depends on the
+time and the uploading priorities of different elements in Dst ,                                   antennas design, and ϕ is the path loss exponent. Then, the
+the Eq. 6 is rewritten as follows.                                                                 V2I transmission rate between vehicle s and edge node e at
+                                                                                                   time t, denoted by zts,e , is computed by
+                                  Pt
+         ρ t
+              α t           t
+                     λtd,s βd,s + ∀d∗ ∈Dt λtd∗ ,s βdt ∗ ,s
+           d,s d,s
+ qtd,s =           +                    d,s
+                                                           (10)                                                         zts,e = bts,e log2 1 + SNRts,e
+                                                                                                                                                                      
+         1 − ρtd,s
+                                                                                                                                                                                   (15)
+                    2 1 − ρt       1 − ρt − λ t α t
+                                       d,s                  d,s          d,s d,s
+
+                                                                                                   where bts,e is the bandwidth allocated to vehicle s at time t.
+Suppose there are n types of information, and the information                                      Note that given the transmission power πs of vehicle s, the
+d1 has the highest uploading priority, i.e., Ddt 1 ,s = ∅. Then,                                   SNR of V2I communications between vehicle s and edge node
+the mean queuing time of information d1 can be computed by                                         e at time t can be obtained by Eq. 14. Then, the transmission
+                                                                                                   rate can be obtained by Eq. 15.
+                                         λtd1 ,s βdt 1 ,s                                             Assume vehicle s is scheduled to upload d at time t, and
+                            q̄td1 ,s =                                                    (11)
+                                                2                                                  d will be transmitted after a certain queuing time q̄td,s . Then,
+                                                                                                   we denote the moment when vehicle s starts to transmit d as
+where λtd1 ,s and βdt 1 ,s are the sensing frequency and the second                                ktd,s = t+qtd,s . The amount of data transmitted from time ktd,s
+moment of transmission time of information d1 , respectively.                                                                      R kt +j
+On the other hand, the information dn has the lowest uploading                                     to ktd,s + j can be obtained by ktd,s zts,e dt bits, where j ∈
+                                                                                                                                      d,s
+
+priority. Since it requires that ρts < 1 to ensure the queue is                                    R+ and zts,e is the transmission rate at time t. If the amount
+stable and the queuing time is finite, we have                                                     of data could be transmitted during the entire transmission is
+                                                                                                   larger than the size of d, the uploading would be complete.
+                                                                                                   Therefore, the transmission time of information d from vehicle
+              X                                 X
+ ρtd,s =               λtd∗ ,s αdt ∗ ,s <                   t
+                                                     λtd,s αd,s = ρts < 1 (12)                                                        t
+                 t
+           ∀d∗ ∈Dd,s                        ∀d⊆Dst
+                                                                                                   s to edge node e is denoted by gd,s,e   , which is computed by
+
+                                                                                                                                              ktd,s +j
+                                                                                                                                       (Z                                    )
+                          t
+Similarly, ρtd,s + λtd,s αd,s < 1. The mean queuing time of                                                      t
+               n                                                                                                gd,s,e =        inf                      zts,e dt ≥ |d|              (16)
+information d can be obtained when n tends to infinity due                                                                    j∈R+          ktd,s
+
+
+
+                                                     t
+                                                                            λtd∗ ,s βdt ∗ ,s              t
+                                                                                                   λtd,s γd,s                   λtd∗ ,s γdt ∗ ,s
+                                                                   P                                                 P
+                                                    αd,s                                                      +
+                               t
+                             βd,s                                 t
+                                                            ∀d∗ ∈Dd,s                                                   t
+                                                                                                                  ∀d∗ ∈Dd,s
+           V ar(qtd,s ) =               +                                                      +
+                          (1 − ρtd,s )2                       (1 − ρtd,s )3                       3(1 − ρtd,s )2 (1 − ρtd,s − λtd,s αd,st )
+                                                                                                                                                                                      (7)
+                                     t
+                             (λtd,s βd,s                          λtd∗ ,s βdt ∗ ,s )2                t
+                                                                                             (λtd,s βd,s             λtd∗ ,s βdt ∗ ,s )                  λtd∗ ,s βdt ∗ ,s
+                                                    P                                                          P                         P
+                                         +                                                               +
+                                                      t
+                                                ∀d∗ ∈Dd,s                                                        t
+                                                                                                           ∀d∗ ∈Dd,s                             t
+                                                                                                                                           ∀d∗ ∈Dd,s
+                                                                                                                                                                               t
+                        +                                      t )2 +                                                                                                       − βd,s
+                            4(1 − ρtd,s )2 (1 − ρtd,s − λtd,s αd,s                                                                        t )
+                                                                                                       2(1 − ρtd,s )3 (1 − ρtd,s − λtd,s αd,s
+                                                                                                                                       7
+
+
+
+   A successful transmission requires that the received SNR          views. Thus, we define the timeliness of information d in
+is above a certain threshold called SNR wall [31] during the         vehicle s as follows.
+packet transmission, which is obtained by
+                                                                     Definition 2 (Timeliness of information d). The timeliness
+                                σ2 − 1                               ξd,s ∈ (0, +∞) of information d in vehicle s is defined as the
+                      SNRwall =                              (17)
+                                  σ                                  sum of the intel-arrival time, queuing time, and transmission
+where σ = 10ν/10 , and ν is a parameter measured by dB               time of the information d.
+                                                          that
+quantifies the size of the noise uncertainty, and ν 2 − 1 N0 =
+                                                                              ξd,s = atd,s + qtd,s + gtd,s,e , ∀d ∈ Dst , ∀s ∈ S    (22)
+πs ν. Thus, the successful transmission indicator, which indi-
+cates whether information d is successfully transmitted from         where atd,s , qtd,s and gtd,s,e are the intel-arrival time, queuing
+vehicle s to edge node e, is represented by                          time and transmission time of information d, respectively.
+                      h                   i
+           1, ∀t∗ ∈ ktd,s , ktd,s + gt          t∗                  Therefore, we define the timeliness of a view as follows.
+  t                                   d,s,e , SNRs,e > SNRwall
+ cd,s,e =              h                   i
+                                                 t∗                  Definition 3 (Timeliness of view v). The timeliness Ξv ∈
+           0, ∃t∗ ∈ ktd,s , ktd,s + gt
+                                      d,s,e , SNRs,e ≤ SNRwall
+                                                                     (0, +∞) of view v is defined as the sum of the information
+                                                              (18)
+                                                                     timeliness.
+Therefore, the set of information transmitted by vehicle s and
+                                               t
+received by edge node e is denoted by Ds,e       = {d | ctd,s,e =
+                                                                                   X       X
+                 t       t
+                                                                              Ξv =                 ξd,s , ∀v ∈ Vet , ∀e ∈ E (23)
+1, ∀d ∈ Ds }, Ds,e ⊆ Ds , ∀s ∈ S, ∀e ∈ E.                                           ∀s∈S ∀d∈Dv,e ∩Dst
+
+
+C. Heterogeneous Information Fusion Model                               Second, vehicular networks have several intrinsic charac-
+                                                                     teristics including the high mobility of vehicles, restricted
+   The set of physical elements in vehicular networks such as
+                                                                     network resources, and unreliable wireless communications.
+vehicles, pedestrians and roadside infrastructures is denoted
+                                                                     The view may be incomplete due to the disconnection between
+by O. For each element o ∈ O, the edge node can construct
+                                                                     the vehicle and the edge node, or the loss of the packet.
+a logical mapping o0 based on the corresponding sensed
+                                                                     Therefore, we define the completeness of a view as follows.
+information, and the set of information is denoted Do . A view
+v may contain multiple elements of the logical mapping based         Definition 4 (Completeness of view v). The completeness
+on specific ITS requirement, which is defined as follows.            Φv ∈ [0, 1] of view v is defined as the ratio of the number of
+                                                                     information actually received by edge node e to the number
+Definition 1 (View v). View v is a set of logical mapping
+                                                                     of total required information.
+of physical elements constructed at the edge node, which is
+constructed by fusing the sensed information of vehicles based                    Φv = |Dv,e | |Dv |, ∀v ∈ Vet , ∀e ∈ E
+                                                                                              
+                                                                                                                               (24)
+on particular ITS application requirement and represented by
+                                                                     where |Dv,e | is the number of information received by edge
+                  v = {o0 |yo,v = 1, ∀o ∈ O}                 (19)
+                                                                     node e and required by view v, and |Dv | is the number of
+where yo,v ∈ {0, 1} indicates whether the logical mapping of         information required by view v.
+the physical element o is included in view v.                           Third, since different types of information have their own
+                                                                     sensing frequencies and uploading priorities, it is important to
+  The set of information required by view v is denoted by Dv ,
+                                                                     keep the versions of different types of information as close as
+which is the mapping of physical traffic elements required by
+                                                                     possible when constructing a view. Therefore, we define the
+particular ITS application, and it is represented by
+                               [                                     consistency of a view as follows.
+                       Dv =          Do                   (20)
+                               yo,v =1
+                                                                     Definition 5 (Consistency of view v). The consistency Ψv ∈
+                                ∀o∈O                                 (0, +∞) of view v is defined as the quadratic sum of the
+The number of required elements in view v is denoted by |Dv |.       difference between the receiving time of information d and
+Denote the set of views in the system as V , and denote the set      average receiving time of information required by the view.
+of views required by edge node e at time t by Vet ⊆ V . Thus,               X       X                          2
+the set of information received by edge node e and required          Ψv =                   qtd,s + gtd,s,e −ψv , ∀v ∈ Vet , ∀e ∈ E
+                                                                            ∀s∈S ∀d∈Dv,e ∩Dst
+by view v is represented by
+                  [                                                                                                                 (25)
+                                t
+                                    , ∀v ∈ Vet , ∀e ∈ E
+                                  
+         Dv,e =        Dv ∩ Ds,e                          (21)       where ψv is average receiving time of information required by
+                 ∀s∈S
+                                                                     view v, which is computed by
+and |Dv,e | is the number of information that received by edge
+                                                                              1 X           X
+                                                                                                      qtd,s + gtd,s,e , ∀v ∈ Vet , ∀e ∈ E
+                                                                                                                     
+node e and required by view v. Then, we define the three             ψv =
+characteristics of heterogeneous information fusion, including              |Dv,e |
+                                                                                  ∀s∈S ∀d∈Dv,e ∩Dst
+the timeliness, completeness, and consistency of the view as                                                                  (26)
+follows.                                                                Finally, we give the formal definition of the age of view,
+   First, the heterogeneous information is time-varying, and         which synthesizes the timeliness, completeness, and consis-
+information freshness is essential for modeling the quality of       tency of the view.
+                                                                                                                                          8
+
+
+
+Definition 6 (Age of View, AoV). The age of view AoVv ∈             the problem is to maximize the quality of VCPS, which is
+(0, 1) is defined as the weighted average of normalized time-       expressed as follows:
+liness, completeness and consistency of the view v.
+                                                                                   max Υ
+                                                                                Λ,P,B
+   AoVv = w1 Ξ̂v + w2 Φ̂v + w3 Ψ̂v , ∀v ∈ Vet , ∀e ∈ E      (27)
+                                                                            C1 :λtd,s ∈ λmin         max
+                                                                                                           , ∀d ∈ Dst , ∀s ∈ S, ∀t ∈ T
+                                                                                                        
+                                                                     s.t.                    d,s , λd,s
+where Ξ̂v ∈ (0, 1), Φ̂v ∈ (0, 1) and Ψ̂v ∈ (0, 1) denote the                C2 :ptd∗ ,s 6= ptd,s , ∀d∗ ∈ Dst \ {d} , ∀d ∈ Dst , ∀s ∈ S, ∀t ∈ T
+normalized timeliness, normalized completeness, and normal-                 C3 :bts,e ∈ [0, be ] , ∀s ∈ Set , ∀e ∈ E, ∀t ∈ T
+ized consistency of view v, respectively. Note that since the                       X
+dimensions of the timeliness, completeness, and consistency                 C4 :                     t
+                                                                                            λtd,s · αd,s < 1, ∀s ∈ S, ∀t ∈ T
+of view are different, in order to form a uniform representation                   ∀d⊆Dst
+                                                                                   X
+of AoV, they are normalized to (0, 1) based on the min-max                  C5 :         bts,e ≤ be , ∀e ∈ E, ∀t ∈ T
+scaling as follows.                                                             ∀s∈Set
+                                                                                                                             (31)
+   
+    Ξ̂v = Ξv (δξ |Dv,e ||T |)                                         Constraint C1 requires that the sensing frequencies of in-
+   
+   Φ̂v = 1 − Φv
+   
+   
+                                                                   formation d in vehicle s at time t should meet the requirement
+               
+                                  
+                                                      2
+                                                                   of its sensing ability. C2 guarantees the uploading priority of
+     Ψ̂v = Ψv δψ max t qtd,s + gtd,s,e −ψv
+   
+   
+   
+                                                                  information d in vehicle s at time t. C3 states that the V2I
+                     ∀d∈Dv ∩Ds
+   
+                        ∀s∈S                                        bandwidth allocated by the edge node e for vehicle s at time
+                                                            (28)    t cannot exceed its bandwidth capacity be . C4 guarantees the
+where δξ ∈ (0, 1) and δψ ∈ (0, 1) are the data scaling              queue steady-state during the scheduling period T . C5 requires
+factors of the timeliness and consistency, respectively. They       that the sum of V2I bandwidth allocated by the edge node e
+are utilized to avoid concentrating most of the values in a         cannot exceed its capacity be .
+small range by scaling down the theoretical maximum of the
+timeliness and consistency in the min-max scaling.                                           V. P ROPOSED S OLUTION
+   The weighting factors of Ξ̂v , Φ̂v , and Ψ̂v are denoted by
+                                                                    A. Solution Model
+w1 , w2 , and w3 , respectively, and w1 + w2 + w3 = 1. These
+three weighting factors can be tuned accordingly based on              As shown in Fig. 3, the solution model consists of |S|
+the different requirements of ITS applications. For example,        vehicles, edge node e, the VCPS environment, and an expe-
+for the speed advisory application at the road intersection,        rience replay buffer. First, vehicle s decides its action ats on
+the vehicles are expected to receive instructions of real-time      determining the sensing frequencies and uploading priorities.
+velocity from the edge node so as to pass the intersection          In particular, the actor network of vehicle s is utilized to
+safely and smoothly. In such a case, the timeliness factor (e.g.,   generate its action with the input of the local observation
+real-time traffic light status is more important to be modeled      ots of the system state. The critic network of vehicle s is
+in the view compared with the completeness factor (e.g., the        utilized to evaluate the action generated by the corresponding
+pedestrians to be modeled in the view). Note that the lower         actor network. Second, edge node e decides its action ate on
+value of AoVv indicates higher quality of the constructed view.     allocating V2I bandwidth for vehicles within its radio coverage
+                                                                    based on predicted vehicle trajectories and view requirements.
+                                                                    Third, the environment obtains the system reward according
+D. Quality of VCPS                                                  to the actions {at1 , · · · , at|S| , ate }. The system reward is the
+   Given the above metric AoV, which evaluates the quality of       achieved VCPS quality in edge node e at time t. A DR-based
+views individually, we further define the quality of VCPS at        credit assignment is adopted to divide the system reward into
+the system level as follows.                                        the difference reward {r1t , · · · , r|S| t
+                                                                                                                 }, where rst is utilized to
+                                                                    evaluate the contribution of vehicle s on view construction.
+Definition 7 (VCPS Quality). The quality of VCPS Υ ∈ (0, 1)         Fourth, the related interaction experiences including the sys-
+is defined as the average of the complement of AoV for each         tem state, vehicle actions, difference reward and next system
+view v in edge nodes during the scheduling period T .               state are stored in the experience replay buffer, and they are
+                                                                    utilized to train the actor and critic networks in vehicles.
+                P      P        P
+                  ∀t∈T    ∀e∈E    ∀v∈Vet (1 − AoVv )
+          Υ=            P       P          t
+                                                       (29)            The primary components of the solution model are designed
+                           ∀t∈T   ∀e∈E |Ve |
+                                                                    as follows.
+   Given a solution (Λ, P, B), where Λ denotes the deter-              1) System State: The edge node broadcasts its view re-
+mined sensing frequencies, P denotes the determined upload-         quirements and cached information periodically. The local
+ing priorities, and B denotes the determined V2I bandwidth          observation of the system state in vehicle s at time t is denoted
+allocation, which are represented by                                by
+                                                                                            ots = Dst , Det , Vet
+                                                                                                     
+                   n                                  o                                                                                (32)
+                       t            t
+            Λ    =  λ d,s |∀d ∈ D  s , ∀s ∈ S, ∀t ∈ T
+                                                                    where Dst represents the set of information sensed by vehicle
+          
+                   n                                  o
+             P    =  p t
+                       d,s |∀d ∈ D  t
+                                    s , ∀s ∈ S, ∀t ∈ T   (30)       s at time t, Det represents the set of cached information in
+          
+                                                                    edge node e at time t, and Vet represents the set of views
+                    t           t
+             B = bs,e |∀s ∈ Se , ∀e ∈ E, ∀t ∈ T
+          
+                                                                                                                                                                   9
+
+
+
+
+                                           Vehicular Cyber-Physical System Environment                                    Action
+                          DR-based                   System                                     View                𝒂(" , ⋯ , 𝒂"! , 𝒂"#
+                         Assignment                                AoV                                          𝜆$!,# : Sensing Frequency
+                                                     Reward                                 at the Edge
+                          𝑟!" , ⋯ , 𝑟 "#        " " "        1 %!"
+                                             𝑟 𝒂! , 𝒂# |𝒐 = " ∑$ 1 − AoV$
+                                                                                                                   $
+                                                                                                                𝑝!,#   : Uploading Priority
+                                                            𝑉#                                                  𝑏#$ : Allocated Bandwidth
+
+
+
+                            𝒐" , 𝒂(" , ⋯ , 𝒂"! , 𝑟(" , ⋯ , 𝑟 "! ,𝒐")(   Experience Replay Buffer                EM-based
+
+
+
+
+                                                                                                                                          𝒂"$ = 𝑏%$ |∀𝑠 ∈ 𝑆&$
+                                                                                                              Mobility Pattern
+                                                                                                                Prediction
+                             Actor 1             Critic 1               Actor n         Critic n
+                                                                                                                 Greedy
+                                                                  …                                             Bandwidth
+                                                                                                                Allocation
+                                     Vehicle 1                               Vehicle 𝑆                         Edge Node 𝑒
+                                  𝒂!" =             $
+                                            𝜆$!,#, 𝑝!,# |∀𝑑 ∈ 𝐷#$            𝒂"# = 𝜆"&, ! , 𝑝&,
+                                                                                             "           "
+                                                                                                ! |∀𝑑 ∈ 𝐷 !
+
+
+
+                                                           Fig. 3: Model of the proposed solution
+
+                                                                                                              
+required by edge node e at time t. The system state at time t                         where r atS−s , ate | ot is the system reward achieved without
+is denoted:                                                                           the contribution of vehicle s, and it can be obtained by setting
+                n                                             o                       null action set for vehicle s. The set of the difference reward
+                                              t
+            ot = D1t , · · · , Dst , · · · , D|S| , Det , Vet   (33)
+                                                                                      for vehicles is denoted by r tS = {rst | ∀s ∈ S}.
+   2) Action Space: The action space of vehicle s consists of
+the sensing frequencies and uploading priorities of the sensed                        B. Workflow
+information at time t, which is denoted by                                               The proposed solution includes three parts, namely, the
+                  ats = {λtd,s , ptd,s | ∀d ∈ Dst }                          (34)     initialization, replay experiences storing and training.
+                                                                                         1) Initialization: Each vehicle consists of four neural net-
+where λtd,s and ptd,s are the sensing frequency and uploading                         works, i.e., a local actor, a target actor, a local critic, and a
+priority of information d in vehicle s at time t, respectively.                       target critic network. The parameters of the local actor and
+The set of vehicle actions is denoted by atS = {ats | ∀s ∈ S}.                        local critic networks of vehicle s are denoted by θsµ and
+The action of edge node is the V2I bandwidth allocation for                           θsQ , respectively. The parameters of target actor and target
+                                                                                                                             0         0
+vehicles, which is denoted by                                                         critic networks are denoted by θsµ and θsQ , respectively.
+                     ate = {bts,e | ∀s ∈ Set }                               (35)     The parameters of local actor and local critic networks of
+                                                                                      vehicles are randomly initialized. The parameters of target
+where bts,e is the V2I bandwidth allocated by edge node e for                         actor and target critic networks are initialized as the same
+vehicle s at time t.                                                                  as the corresponding local network,
+   3) System Reward: The system reward via vehicle actions                                                              0
+
+atS and edge action ate in the system state ot is defined as                                                         θsµ ← θsµ , ∀s ∈ S
+                                                                                                                        0                                       (38)
+the achieved VCPS quality in edge node e at time t, which is                                                        θsQ ← θsQ , ∀s ∈ S
+computed by
+                                                                                      An experiment replay buffer B with a maximum size |B|
+                               1 X                                                    is initialized to store replay experiences for vehicles. The
+           r atS , ate | ot = t
+                           
+                                        (1 − AoVv )      (36)
+                             |Ve |    t                                               procedure is shown in lines 1∼2 in Algorithm 1.
+                                           ∀v∈Ve
+                                                                                         2) Replay experiences storing: At the beginning of each
+   The system reward reflects the entire system performance,                          iteration, a random process N is initialized for exploration.
+which is contributed by both vehicles and the edge node.                              The action of vehicle s at time t is obtained by the local actor
+It is expected to assign the system reward into individual                            network based on its local observation of the system state.
+rewards for vehicles to evaluate their contributions. The DR-
+                                                                                                          ats = µs ots | θsµ + Nt
+                                                                                                                            
+based credit assignment scheme use the difference between                                                                                         (39)
+the system reward and the reward achieved without the agent
+                                                                                      where Nt is an exploration noise to increase the diversity of
+action to represent the individual reward of the agent, so that it
+                                                                                      vehicle actions.
+can further improve the performance of the proposed solution
+                                                                                         Edge node e allocates the V2I bandwidth via the VBA
+by accurately evaluating the action of each agent separately.
+                                                                                      scheme based on predicted vehicle trajectories and view re-
+Accordingly, the difference reward of vehicle s is represented
+                                                                                      quirements. First, the mobility patterns of vehicles are pre-
+by [32]
+                                                                                      dicted by edge node e using the expectation-maximization
+            rst = r atS , ate | ot − r atS−s , ate | ot
+                                                       
+                                                             (37)                     (EM) method [33] based on historical distances between
+                                                                                                                                                          10
+
+
+
+    Algorithm 1: Proposed Solution                                               Finally, the V2I bandwidth allocated by edge node e for
+1  Initialize the parameters;                                                    vehicle s is calculated by
+2  Initialize the experience replay buffer B;                                                                           be
+                                                                                                           bts,e =                                    (44)
+ 3 for iteration = 1 to max-iteration-number do                                                                      ω + ranks
+ 4      Initialize a random process N for exploration;
+                                                                                 where ω is a constant, and ranks is the sort ranking of vehicle
+ 5      Receive the initial system state o1 ;                                                                t                                       ¯t
+                                                                                 s by the sequence of |Ds,V      t | in the descending order and diss,e
+ 6      for t = 1 to |T | do                                                                                    e
+                                                                                 in the ascending order.
+ 7           for vehicle s = 1 to |S| do
+                                                                                    After determining the actions of vehicles and the edge node,
+ 8               Receive a local observation ots ;
+                                                                                 the system reward r (atS , ate | ot ) is obtained as the achieved
+ 9               Select a action ats = µs (ots | θsµ ) + Nt ;
+                                                       t                         VCPS quality, which is further divided into the difference
+10               Obtain the required information Ds,R     ;
+                                                                                 reward r tS via the DR-based credit assignment scheme. Fi-
+11               Predict the mobility patten via EM-based                        nally, the interaction experiences including the system state
+                  method with historical relative distances;                     ot , vehicle actions atS , difference reward r tS , and next system
+12               Predict the future locations Trajts ;                           state ot+1 , are stored in the experience replay buffer B. The
+13               Compute the average distance dis  ¯t ;
+                                                      s,e                        procedure is shown in lines 4∼18 in Algorithm 1.
+14          for vehicle s = 1 to |S| do                                             3) Training: A minibatch of M transitions is sampled from
+15              Allocate the bandwidth bts,e to s via the                        experience replay buffer B to train the actor and critic networks
+                 VBA scheme;                                                     in vehicles. The transition of the M minibatch is denoted
+16          Receive the system reward r (atS , ate | ot ) and                    by (om      m     m
+                                                                                        s , aS , r S , os
+                                                                                                         m+1
+                                                                                                             ). The loss function of the local critic
+             the next system state ot+1 ;                                        network of vehicle s is computed by
+17          Divide the system reward into the difference                                               1                                  Q 2
+                                                                                        L θsQ =          Σm ηm − Qs om             m
+                                                                                                                                          
+             reward r tS for vehicles;                                                                                        s , aS | θs             (45)
+                                                                                                     M
+18          Store ot , atS , r tS , ot+1 in replay buffer B;                     where ηm is the target value generated by the target critic
+                                                                                                                                        0
+19      for vehicle s = 1 to |S| do                                              network ηm = rsm + τ Q0s (om+1       s   , am+1
+                                                                                                                             S     | θsQ ), and τ is the
+20          Sample M transitions from B randomly;                                discount rate. The action of vehicle s at time m+1 is obtained
+21          Update the local critic and local actor networks;                    by the target actor network based on the local observation
+                                                                                                                                                  0
+
+22      Update the target networks of vehicles;                                  of next system state, i.e., am+1      s     = µ0s (om+1
+                                                                                                                                      s      | θsµ ). The
+                                                                                 parameters of the local actor network of vehicle s are updated
+                                                                                 via policy gradient.
+                                                                                              1 X                    
+                                                                                                      Qs om    m    Q
+                                                                                                                        ∇θsµ µs om+1 | θsµ
+                                                                                                                                           
+                                                                                   ∇θsµ J ≈       ∇am     s , aS | θs            s                    (46)
+vehicles and the edge node. Then, the trajectory of vehicle                                   M m   s
+
+s at future h time slots is predicted based on the EM-based
+                                                                                 Finally, vehicles update the parameters of target networks,
+mobility pattens prediction, which is denoted by Trajts =
+{ˆlst+1 , ˆlst+2 , . . . , ˆlst+h }, where ˆlst+1 is the predicted location of
+                                                                                                   0                            0
+                                                                                                θsµ ← ns θsµ + (1 − ns )θsµ , ∀s ∈ S
+vehicle s at time t + 1. Thus, he average distance of vehicle                                      0                                0                 (47)
+                                                                                                θsQ ← ns θiQ + (1 − ns )θsQ , ∀s ∈ S
+between edge node is computed by
+                                                                                 with ns  1, ∀s ∈ S. The procedure is shown in lines 19∼22
+                                 ¯t = 1
+                                               X        t+i
+                                dis s,e              dis
+                                                     c
+                                                        s,e               (40)   in Algorithm 1.
+                                         h
+                                     ∀i∈[1,h]
+
+            t+i                                                                                  VI. P ERFORMANCE E VALUATION
+where dis
+       c
+          s,e is the distance between the predicted location of                  A. Settings
+                                      t+i
+vehicle s and the edge node, and dis
+                                   c      = distance(ˆlt+i , le ).
+                                                s,e                 s               In this section, we implement a simulation model by using
+  Then, the set of information sensed by vehicle s and                           Python 3.9 and PyTorch 1.11.0 to evaluate the performance
+required by view v at time t is represented by                                   of the proposed solution. The simulation model 1 is based
+                  t                                                              on a Ubuntu 20.04 server with an AMD Ryzen 9 5950X 16-
+                      = d | d ∈ Dst ∩ Dv
+                         
+                Ds,v                               (41)
+                                                                                 core processor @ 3.4 GHz, two NVIDIA GeForce RTX 3090
+Thus, the set of information sensed by vehicle s and required                    graphic processing units, and 64 GB memory. In particular, we
+by views in edge node e at time t is denoted by                                  have examined three traffic scenarios using real-world vehicle
+                                   [                                             trajectories 2 collected from Didi GAIA open data set [34],
+                   t                     t
+                Ds,V  t = {d | d ∈      Ds,v }           (42)                    including 1): a 3 km × 3 km area of Qingyang District,
+                     e
+                                          ∀v∈Vet                                 Chengdu, China, from 8:00 to 8:05, on 16 Nov. 2016; 2):
+                              t
+and its size is denoted by |Ds,V t |, which is computed by
+                                                                                    1 The    code of the simulation model can be found                    at
+                                e
+                                                                                 https://github.com/neardws/Multi-Agent-Deep-Reinforcement-Learning
+                                  X                                                 2 The code of vehicle trajectory processing can be found              at
+                       t
+                    |Ds,Ve
+                          t| =           |d|              (43)                   https://github.com/neardws/Vehicular-Trajectories-Processing-for-Didi-
+                                          t
+                                      ∀d∈Ds,V t                                  Open-Data
+                                                e
+                                                                                                                                           11
+
+
+
+                                         TABLE II: Traffic characteristics of each scenario
+   Scenario    Map         Number of Traces       Time            Date            ADT       VDT     ANV      VNV          ASV       VSV
+      1       Chengdu           718            08:00-08:05    Nov. 16, 2016      198.3(s)   123.8   474.6    11.6       5.22(m/s)   2.61
+      2       Chengdu           359            23:00-23:05    Nov. 16, 2016      173.7(s)   124.1   207.9    3.93       7.30(m/s)   3.16
+      3        Xian             206            08:00-08:05    Nov. 27, 2016      145.5(s)   114.7    99.9    7.65       8.06(m/s)   3.70
+
+
+
+
+                        (a) Scenario 1                         (b) Scenario 2                          (c) Scenario 3
+                              Fig. 4: Heat map of the distribution of vehicles under different scenarios
+
+
+the same area from 23:00 to 23:05, on 16 Nov. 2016; 3):                 local actor network. The local critic network is a four-layer
+a 3 km × 3 km area of Beilin District, Xian, China, from                fully connected neural network with two hidden layers, where
+8:00 to 8:05, on 27 Nov. 2016. Detailed statistics including            the numbers of neurons are 128, and 64, respectively. The
+the total number of vehicle traces, average dwell time (ADT)            architecture of the target critic network is the same as the local
+of vehicles, the variance of dwell time (VDT), the average              critic network. The Rectified Linear Unit (ReLU) is utilized
+number of vehicles (ANV) in each second, the variance of                as the activation function and the Adam optimizer is used to
+the number of vehicles (VNV), the average speed of vehicles             update network weights with a learning rate of 0.001, and
+(ASV), and the variance of speeds of vehicles (VSV) are                 the discount factor is set to 0.996. The size of the experience
+summarized in Table II. Fig. 4 shows the heat maps of vehicle           replay buffer |B| is set to 100000, and the size of minibatch
+distribution within the scheduling period T to better exhibit           M is set to 512. Four comparable algorithms are implemented
+the traffic characteristic under different scenarios. Comparing         as follows.
+Figs. 4(a), 4(b), and 4(c), it is noted that the vehicle density in        • RA: it randomly selects one action on determining the
+the rush hour on the weekday (i.e., around 8:00 on Nov. 16,                   sensing frequencies, uploading priorities, and V2I band-
+2016, Wed.) is much higher than that during the night (i.e.,                  width allocation.
+around 23:00 on Nov. 16, 2016) in the same area. It is also                • C-DDPG [25]: it implements an agent at the edge node
+much higher than that in the rush hour on the weekend (i.e.,                  to determine the sensing frequencies, uploading priorities,
+around 8:00 on Nov. 27, 2016, Sun.). Also, it is observed that                and V2I bandwidth allocation in a centralized way based
+the vehicle distribution is totally different in Fig.4(c), which              on the system state. Meanwhile, the system reward is
+is extracted from another city.                                               received by the agent to evaluate its contribution.
+   The parameter settings are described as follows. The data               • MAC [27]: it implements agents in vehicles to decide
+sizes of information are uniformly distributed in the range of                the sensing frequencies and uploading priorities based
+[100B, 1MB]. The transmission power of each vehicle is set                    on local observation of the physical environment, and
+to 1 mW. The additive white Gaussian noise and the path                       an agent in the edge node to decide the V2I bandwidth
+loss exponent of V2I communications are set to -90 dBm                        allocation. The system reward is received by each agent
+and 3, respectively [30]. The channel fading gains of V2I                     to evaluate their contributions, which is the same for each
+communications follow the Gaussian distribution with a mean                   agent.
+of 2 and a variance of 0.4, and the bandwidth of the edge node             • MAC-VBA: To enable MAC to better allocate V2I band-
+is set to 3 MHz [35]. The noise uncertainty is set to follow                  width, we further design a variant called MAC-VBA,
+uniformly distributed in the intervals [0, 3] dB [31].                        where edge nodes allocates V2I bandwidth based on
+                                                                              predicted vehicle trajectories and view requirements.
+   For the implementation of the proposed solution, the archi-
+tectures and hyperparameters of the actor and critic networks              Furthermore, the following metrics are designed for perfor-
+are described as follows. The local actor network is a four-            mance evaluation.
+layer fully connected neural network with two hidden layers,               • Cumulative Reward (CR): it is the cumulative system re-
+where the numbers of neurons are 64, and 32, respectively.                    wardPduring the scheduling period T , which is computed
+The architecture of the target actor network is the same as the               by ∀t∈T r (atS , ate | ot ).
+                                                                                                                                                 12
+
+
+
+               400                                                                 Fig. 6(a) compares the VCPS quality of the five algorithms.
+                                                                                   As demonstrated, the proposed solution achieves the highest
+               350                                                                 VCPS quality under all scenarios. In particular, the proposed
+               300                                                                 solution improves the VCPS quality by 58.0%, 27.1%, 19.1%,
+Cumulative Reward
+
+
+
+                                                                                   and 12.5% on average over RA, C-DDPG, MAC, and MAC-
+               250                                                                 VBA, respectively, under different traffic scenarios. Fig. 6(b)
+                                                                                   shows the average AoV of the five algorithms. It is expected
+               200 360                                                             that the proposed solution achieves the lowest average AoV
+               150 320                                      RA                     under all the scenarios. Fig. 6(c) compares the CR of the five
+                                                            C-DDPG                 algorithms. As noted, the CR of the proposed solution is higher
+               100 280                                      MAC                    than RA, C-DDPG, MAC, and MAC-VBA. Meanwhile, the
+                                                                                   CR of the proposed solution and MAC-VBA are similar under
+                    50 240                                  MAC-VBA
+                                                                                   scenario 3. The reason is that the lower vehicle density and
+                                                            Proposed Solution
+                         0    250   500   750 1000                                 higher traffic dynamic in scenario 3 make the data uploading
+                    00       1000     2000        3000          4000        5000
+                                     Number of Iterations                          more difficult than that in scenarios 1 and 2.
+                                                                                      Fig. 6(d) breaks down the average reward into three parts,
+                             Fig. 5: Convergence comparison                        which demonstrates the proportion of timeliness, complete-
+                                                                                   ness, and consistency, respectively. It is observed that the
+                                                                                   timeliness and consistency of the five algorithms are very small
+            • Composition of Average Reward (CAR): it is defined                   under scenario 3. This is mainly because the requirements of
+              as the percentage of the normalized timeliness, com-                 timeliness and consistency can hardly be satisfied when the
+              pleteness, and consistency in the average reward and                 view is incomplete. Figs. 6(e) and 6(f) compare the AQT and
+                                 3              4             3
+              formulated by < 10   (1 − Ξ̂v ), 10 (1 − Φ̂v ), 10 (1 − Ψ̂v ) >.     SR of the five algorithms under different traffic scenarios. It
+            • Average Queuing Time (AQT): it is defined as
+                                                                                   demonstrates that the proposed solution achieves the lowest
+              the sum of queuing time of the sensed informa-                       AQT, and maintains the highest SR under all scenarios.
+              tion divided by the number of information during                        3) Effect of V2I bandwidths: Fig. 7 compares the perfor-
+              the scheduling     period T , which is computed by                   mance of the five algorithms under different V2I bandwidths.
+                                            t        t
+              P          P      P
+                 ∀t∈T {{   s∈S {   ∀d⊆Dst qd,s }/|Ds |}/|S|}/|T |.                 In this set of experiments, we consider the V2I bandwidth
+            • Service Ratio (SR): it is defined as the number of views,
+                                                                                   of edge nodes increases from 1 MHz to 5 MHz. A larger
+              which satisfy the completeness requirement, over the                 bandwidth represents that more information can be uploaded
+              total number of required viewsPduringPthe scheduling                 via V2I communications. Fig. 7(a) compares the VCPS quality
+              period T , which is computed by ∀t∈T ∀v∈Vet 1{Φv ≥                   of the five algorithms. With the increasing bandwidth, the
+              Φthreshold }/ ∀t∈T |Vet |, and Φthreshold is the com-
+                            P
+                                                                                   VCPS quality of all algorithms increases accordingly. The
+              pleteness threshold.                                                 VCPS quality of the proposed solution outperforms RA, C-
+                                                                                   DDPG, MAC, and MAC-VBA by around 72.9%, 28.3%,
+B. Results and Analysis                                                            17.8% and 9.3%, respectively, under different bandwidths of
+   1) Algorithm Convergence: Fig. 5 compares the CR of the                         the edge node. Fig. 7(b) compares the average AoV of the
+five algorithms in terms of convergence speed. As noted, the                       five algorithms. In particular, the proposed solution achieves
+proposed solution converges the fastest (around 660 iterations)                    the lowest average AoV across all cases. Fig. 7(c) compares
+and achieves the highest CR value (around 357). In contrast,                       the CR of the five algorithms. As expected, the performance of
+C-DDPG, MAC and MAC-VBA converge after around 4500,                                all five algorithms gets better when the bandwidth increases.
+950, and 870 iterations and achieve the CR around 307, 290                         Specifically, the proposed solution achieve around 75.1%,
+and 315, respectively. RA achieves a CR of around 241 as                           29.4%, 22.7%, and 10.6% improvement in CR than RA, C-
+the baseline. We note that the proposed solution achieves                          DDPG, MAC, and MAC-VBA, respectively.
+about 16.3%, 23.1%, and 13.3% improvement with respect                                Fig. 7(d) compares the CAR of the five algorithms. The
+to CR and about 6.8×, 1.4×, and 1.3× improvement with                              proposed solution achieves a better performance than the
+respect to converge speed compared with C-DDPG, MAC,                               other four algorithms, particularly, in terms of timeliness and
+and MAC-VBA, respectively. The primary reason is that the                          consistency of average reward. This is because the cooperation
+proposed solution is designed to maintain a stable communi-                        of sensing and uploading information among vehicles is more
+cation environment for vehicles, which makes the training of                       efficient in the proposed solution under the limited bandwidth.
+actor and critic networks in vehicles more efficient. On the                       Fig. 7(e) compares the AQT of the five algorithms. As noted,
+other hand, due to the smaller action space of the proposed                        the AQT of the proposed solution maintains the lowest under
+solution model, the proposed solution converges much faster                        different edge bandwidths, which reflects that the designed
+than C-DDPG, which decides the actions on determining the                          proposed solution can allocate the bandwidth more efficiently.
+sensing frequencies, uploading priorities, and V2I bandwidth                       The advantage can be further justified by Fig. 7(f), which
+allocation simultaneously using a DDPG agent.                                      shows the SR of the five algorithms. The SR of the proposed
+   2) Effect of traffic scenarios: Fig. 6 compares the perfor-                     solution remains at the highest level across all cases.
+mance of the five algorithms under different traffic scenarios.                       4) Effect of view requirements: Fig. 8 compares the per-
+                                                                                                                                                                                                                                                                             13
+
+
+
+                                                                                                            RA                             C-DDPG                          MAC           MAC-VBA                               Proposed Solution
+                                                                                                                                                                                                                        350
+                                           0.7                                                                                                   0.8
+                                                                                                                                                                                                                        300
+                                           0.6
+
+
+
+
+                                                                                                                            Average Age of View
+
+
+
+
+                                                                                                                                                                                                         Cumulative Reward
+                                                                                                                                                                                                                        250
+             VCPS Quality
+
+                                           0.5                                                                                                   0.6
+                                           0.4                                                                                                                                                                          200
+                                                                                                                                                 0.4                                                                    150
+                                           0.3
+                                           0.2                                                                                                                                                                          100
+                                                                                                                                                 0.2
+                                           0.1                                                                                                                                                                               50
+                                           0.0 Scenario 1                    Scenario 2 Scenario 3                                               0.0 Scenario 1              Scenario 2 Scenario 3                            0 Scenario 1       Scenario 2 Scenario 3
+                                                                           Traffic Scenario                                                                                Traffic Scenario                                                    Traffic Scenario
+                                                                          (a) VCPS Quality                                                                                (b) Average AoV                                                           (c) CR
+                                     120
+                                                          Proposed Solution
+       Composition of Average Reward (%)
+
+
+
+
+                                                                                                   Completeness                                      80
+                                     100                                                           Timeliness                                                                                                                0.8
+                                                                                                   Consistency                 Average Queuing Time (ms)
+                                                       MAC-VBA
+
+
+
+
+                                           80                                                                                                        60
+                                                      C-DDPG
+
+
+
+
+                                                                                                                                                                                                            Service Ratio
+                                                                                                                                                                                                                             0.6
+                                                                                   Proposed Solution
+                                                     MAC
+
+
+
+
+                                           60                                                                                                        40
+                                                                                                        Proposed Solution
+                                                                                  MAC-VBA
+
+
+
+
+                                                                                                                                                                                                                             0.4
+                                                 RA
+
+
+
+
+                                                                                 C-DDPG
+
+
+
+
+                                           40
+                                                                                  MAC
+
+
+
+
+                                                                                                        MAC-VBA
+                                                                                                       C-DDPG
+                                                                                RA
+
+
+
+
+                                                                                                                                                     20                                                                      0.2
+                                                                                                        MAC
+
+
+
+
+                                           20
+                                                                                                       RA
+
+
+
+
+                                            0 Scenario 1                        Scenario 2 Scenario 3                                                      0 Scenario 1     Scenario 2 Scenario 3                            0.0 Scenario 1      Scenario 2 Scenario 3
+                                                                              Traffic Scenario                                                                            Traffic Scenario                                                     Traffic Scenario
+                                                                                 (d) CAR                                                                                      (e) AQT                                                               (f) SR
+                                                                                               Fig. 6: Performance comparison under different traffic scenarios
+
+                                                                                                            RA                             C-DDPG                          MAC           MAC-VBA                               Proposed Solution
+
+                                           0.8                                                                                                   0.7
+                                                                                                                                                                                                                        350
+                                           0.7                                                                                                   0.6
+                                                                                                                            Average Age of View
+
+
+
+
+                                                                                                                                                                                                         Cumulative Reward
+             VCPS Quality
+
+
+
+
+                                           0.6                                                                                                   0.5                                                                    300
+
+                                           0.5                                                                                                   0.4
+                                                                                                                                                                                                                        250
+                                           0.4                                                                                                   0.3
+                                                                                                                                                                                                                        200
+                                           0.3                                                                                                   0.2
+                                                 1                    2          3         4                          5                                      1        2          3        4          5                             1       2          3        4         5
+                                                                          Bandwidth (MHz)                                                                                 Bandwidth (MHz)                                                      Bandwidth (MHz)
+                                                                          (a) VCPS Quality                                                                                (b) Average AoV                                                          (c) CR
+       Composition of Average Reward (%)
+
+
+
+
+                                     120                    Completeness
+                                                                        Proposed Solution
+
+
+
+
+                                                            Timeliness                                                                                                                                                       0.9
+                                                                     Proposed Solution
+                                                                     Proposed Solution
+
+
+
+
+                                                                                                                               Average Queuing Time (ms)
+
+
+
+
+                                                            Consistency                                                                              40
+                                                                 Proposed Solution
+
+
+
+
+                                                                       MAC-VBA
+
+
+
+
+                                     100
+                                                                    MAC-VBA
+
+                                                                    C-DDPG
+                                                               MAC-VBA
+
+
+
+                                                               MAC-VBA
+
+
+
+
+                                                                                                                                                                                                                             0.8
+                                                                    MAC
+
+
+
+
+                                                                                                                                                                                                            Service Ratio
+                                                        Proposed Solution
+
+
+
+
+                                                                C-DDPG
+
+
+
+
+                                           80
+                                                                  MAC
+                                                              C-DDPG
+
+
+
+
+                                                                                                                                                     35
+                                                            MAC
+                                                      MAC-VBA
+
+                                                       C-DDPG
+                                                          MAC
+
+
+
+
+                                           60
+                                                           RA
+                                                        MAC
+
+
+
+
+                                                                                                                                                                                                                             0.7
+                                                        RA
+                                                   C-DDPG
+
+
+
+
+                                                                                                                                                     30
+                                                      RA
+
+
+
+
+                                           40
+                                                    RA
+                                                 RA
+
+
+
+
+                                           20                                                                                                        25                                                                      0.6
+
+                                            0         1                   2       3     4                         5                                          1        2           3       4          5                             1       2          3        4         5
+                                                                          Bandwidth (MHz)                                                                                 Bandwidth (MHz)                                                      Bandwidth (MHz)
+                                                                              (d) CAR                                                                                         (e) AQT                                                              (f) SR
+                                                                                              Fig. 7: Performance comparison under different V2I bandwidths
+
+
+formance of the five algorithms under different requirements                                                                                                                     applications increases from 0.25× to 4×, and the average view
+on views, in which the average size of views required by ITS                                                                                                                     size of 1× is around 6.46 MB. Fig. 8(a) compares the VCPS
+                                                                                                                                                                                                                                                                                                               14
+
+
+
+                                                                                                                                                    RA                                         C-DDPG                      MAC          MAC-VBA                          Proposed Solution
+                                            0.9                                                                                                                                                                                                                   400
+                                            0.8                                                                                                                                                      0.7
+                                                                                                                                                                                                                                                                  350
+
+
+
+
+                                                                                                                                                                                Average Age of View
+                                                                                                                                                                                                     0.6
+
+
+
+
+                                                                                                                                                                                                                                                   Cumulative Reward
+                                            0.7
+              VCPS Quality
+
+
+                                            0.6                                                                                                                                                      0.5                                                          300
+
+                                            0.5                                                                                                                                                      0.4
+                                                                                                                                                                                                                                                                  250
+                                            0.4                                                                                                                                                      0.3
+                                                                                                                                                                                                                                                                  200
+                                            0.3                                                                                                                                                      0.2
+
+                                              0.25×                     0.5×     1×        2×                                                                         4×                             0.10.25×          0.5×      1×      2×   4×                  1500.25×         0.5×     1×       2×   4×
+                                                                          Average View Size                                                                                                                              Average View Size                                           Average View Size
+                                                                           (a) VCPS Quality                                                                                                                               (b) Average AoV
+                                                    Proposed Solution
+        Composition of Average Reward (%)
+
+
+
+
+                                      120                                                                                            Completeness
+                                                                          Proposed Solution
+
+
+
+
+                                                                                                                                     Timeliness                                                                                                                        0.9
+                                                                                                     Proposed Solution
+                                                    MAC-VBA
+
+
+
+
+                                                                                                                                                                                   Average Queuing Time (ms)
+                                                                                                                                                                                                         40
+                                                                         MAC-VBA
+
+
+
+
+                                                                                                                                     Consistency
+                                                    C-DDPG
+
+
+
+
+                                      100
+                                                                         C-DDPG
+                                                   MAC
+
+
+
+
+                                                                                                                                Proposed Solution
+
+
+
+
+                                                                                                                                                                                                                                                                       0.8
+                                                                                                 MAC-VBA
+
+
+
+
+                                                                                                                                                            Proposed Solution
+
+
+
+
+                                                                                                                                                                                                                                                      Service Ratio
+                                            80
+                                                                                                                                 MAC-VBA
+
+
+
+
+                                                                                                                                                                                                         30
+                                                                                                C-DDPG
+                                                                             MAC
+                                                  RA
+
+
+
+
+                                                                                                                                                          MAC-VBA
+                                                                                               MAC
+
+
+
+
+                                            60
+                                                                        RA
+
+
+
+
+                                                                                                                           C-DDPG
+
+
+
+
+                                                                                                                                                                                                                                                                       0.7
+                                                                                                                                                                                                         20
+                                                                                                                                                      C-DDPG
+                                                                                                                          MAC
+
+
+
+                                                                                                                                                        MAC
+                                                                                              RA
+
+
+
+
+                                            40
+                                                                                                                         RA
+
+
+
+
+                                                                                                                                                                                                                                                                       0.6
+                                                                                                                                                    RA
+
+
+
+
+                                            20                                                                                                                                                           10
+                                             0 0.25× 0.5× 1×                                                                                                                                                                                                           0.5
+                                                                    2×                                                                                      4×                                                 0.25×   0.5×     1×       2×   4×                          0.25×    0.5×     1×       2×   4×
+                                                      Average View Size                                                                                                                                                  Average View Size                                           Average View Size
+                                                          (d) CAR                                                                                                                                                            (e) AQT                                                      (f) SR
+                                                                                                   Fig. 8: Performance comparison under different requirements on views
+
+
+quality of the five algorithms. As expected, the performance                                                                                                                                                                     of timeliness, completeness, and consistency of heterogeneous
+of all five algorithms gets worse when the average view size                                                                                                                                                                     information in VCPS. On this basis, the problem was for-
+increases. The proposed solution outperforms RA, C-DDPG,                                                                                                                                                                         mulated to maximize the VCPS quality. Further, a tailored
+MAC, and MAC-VBA by around 68.1%, 23.5%, 27.9% and                                                                                                                                                                               solution based on multi-agent DRL was proposed, in which
+4.9%, respectively, in terms of maximizing the VCPS quality                                                                                                                                                                      vehicles act as independent agents to determine the sensing
+under different application requirements on views. Figs. 8(b)                                                                                                                                                                    frequencies and uploading priorities. Edge nodes allocated
+and 8(c) compare the average AoV and CR of the five                                                                                                                                                                              the V2I bandwidth based on VBA scheme by considering
+algorithms. When the average view size is small (i.e., around                                                                                                                                                                    vehicle trajectories and view requirements. The DR-based
+1.62 MB), the average AoV in the proposed solution is slightly                                                                                                                                                                   credit assignment scheme was adopted to divide the system
+lower than that in MAC and MAC-VBA. Meanwhile, note that                                                                                                                                                                         reward based on the difference between the system reward
+the CR of the proposed solution, MAC, and MAC-VBA are                                                                                                                                                                            and achieved reward without the action of vehicle, which are
+similar. The reason is that a smaller data size has a higher                                                                                                                                                                     utilized to evaluate the individual contributions of vehicles.
+probability of being successfully uploaded.                                                                                                                                                                                      Finally, a comprehensive performance evaluation was con-
+   Fig. 8(d) compares the CAR of the five algorithms. It is ob-                                                                                                                                                                  ducted to demonstrate the significance of the newly designed
+served that the performance difference between the proposed                                                                                                                                                                      metric AoV and the superiority of the proposed solution. In
+solution and MAC-VBA is small when the average view size                                                                                                                                                                         particular, the proposed solution outperforms RA, C-DDPG,
+increases from 0.25× to 0.5×. The reason is the scheduling                                                                                                                                                                       MAC, and MAC-VBA by around 61.8%, 23.8%, 22.0%, and
+effect is not significant when there are sufficient resources to                                                                                                                                                                 8.0%, respectively, in terms of maximizing the VCPS quality.
+meet the requirements of a smaller average view size (i.e.,                                                                                                                                                                      Meanwhile, compared with C-DDPG, MAC, and MAC-VBA,
+around 1.62 MB and 3.23 MB). Figs. 8(e) and 8(f) compare                                                                                                                                                                         the proposed solution speeds up the convergence by around
+the AQT and SR of the five algorithms, showing that the                                                                                                                                                                          6.8×, 1.4×, and 1.3×, respectively.
+proposed solution can remain the lowest AQT, and meanwhile
+achieve the highest SR in most cases. It is noted that MAC-                                                                                                                                                                         As an early stage of exploring cooperative sensing and
+VBA achieves the lowest AQT and the highest SR when the                                                                                                                                                                          information fusion in VCPS, this work focused on the AoV
+average view size is 2×, which reflects that the proposed VBA                                                                                                                                                                    modeling and evaluation within the coverage of a single edge
+scheme can allocate the bandwidth more efficiently.                                                                                                                                                                              node. In our future work, the cooperation among the edge
+                                                                                                                                                                                                                                 nodes will be further investigated to extend the supported ITS
+           VII. C ONCLUSION AND F UTURE W ORK                                                                                                                                                                                    applications as well as enhance overall system performance.
+   In this paper, a new metric AoV was designed to evaluate                                                                                                                                                                      Also, the transmission power control and allocation will be
+the quality of the logical view constructed at the edge in terms                                                                                                                                                                 further investigated when considering the overall power con-
+                                                                                                                                                               15
+
+
+
+sumption and spatial reusability of V2V communication.                            [21] S. T. Rager, E. N. Ciftcioglu, R. Ramanathan, T. F. La Porta, and
+                                                                                       R. Govindan, “Scalability and satisfiability of quality-of-information in
+                                                                                       wireless networks,” IEEE-ACM Trans. Netw., vol. 26, no. 1, pp. 398–
+                              R EFERENCES                                              411, 2017.
+                                                                                  [22] D. D. Yoon, B. Ayalew, and G. G. M. N. Ali, “Performance of
+ [1] D. Jia, K. Lu, J. Wang, X. Zhang, and X. Shen, “A survey on platoon-              decentralized cooperative perception in v2v connected traffic,” IEEE
+     based vehicular cyber-physical systems,” IEEE Commun. Surv. Tutor.,               Trans. Intell. Transp. Syst., pp. 1–14, 2021.
+     vol. 18, no. 1, pp. 263–284, 2015.                                           [23] Y. Zhao and C. H. Liu, “Social-aware incentive mechanism for vehicular
+ [2] K. Liu, X. Xu, M. Chen, B. Liu, L. Wu, and V. C. Lee, “A hierarchical             crowdsensing by deep reinforcement learning,” IEEE Trans. Intell.
+     architecture for the future internet of vehicles,” IEEE Commun. Mag.,             Transp. Syst., vol. 22, no. 4, pp. 2314–2325, 2020.
+     vol. 57, no. 7, pp. 41–47, 2019.                                             [24] J. Dong, S. Chen, Y. Li, P. Y. J. Ha, R. Du, A. Steinfeld, and S. Labi,
+ [3] K. Liu, K. Xiao, P. Dai, V. C. Lee, S. Guo, and J. Cao, “Fog comput-              “Spatio-weighted information fusion and drl-based control for connected
+     ing empowered data dissemination in software defined heterogeneous                autonomous vehicles,” in Proc. IEEE Int. Conf. on Intell. Transp. Syst.
+     vanets,” IEEE. Trans. Mob. Comput., vol. 20, no. 11, pp. 3181–3193,               (ITSC), 2020, pp. 1–6.
+     2021.                                                                        [25] Z. Mlika and S. Cherkaoui, “Deep deterministic policy gradient to
+                                                                                       minimize the age of information in cellular v2x communications,” IEEE
+ [4] A. Singh, G. S. Aujla, and R. S. Bali, “Intent-based network for data
+                                                                                       Trans. Intell. Transp. Syst., 2022.
+     dissemination in software-defined vehicular edge computing,” IEEE
+                                                                                  [26] X. Xu, K. Liu, P. Dai, F. Jin, H. Ren, C. Zhan, and S. Guo, “Joint
+     Trans. Intell. Transp. Syst., vol. 22, no. 8, pp. 5310–5318, 2020.
+                                                                                       task offloading and resource optimization in noma-based vehicular edge
+ [5] K. Zhang, J. Cao, S. Maharjan, and Y. Zhang, “Digital twin empowered
+                                                                                       computing: A game-theoretic drl approach,” J. Syst. Archit., vol. 134, p.
+     content caching in social-aware vehicular edge networks,” IEEE Trans.
+                                                                                       102780, 2023.
+     Comput. Soc. Syst., vol. 9, no. 1, pp. 239–251, 2022.
+                                                                                  [27] Y. He, Y. Wang, F. R. Yu, Q. Lin, J. Li, and V. C. Leung, “Effi-
+ [6] Y. Dai, D. Xu, K. Zhang, S. Maharjan, and Y. Zhang, “Deep rein-
+                                                                                       cient resource allocation for multi-beam satellite-terrestrial vehicular
+     forcement learning and permissioned blockchain for content caching
+                                                                                       networks: A multi-agent actor-critic method with attention mechanism,”
+     in vehicular edge computing and networks,” IEEE Trans. Veh. Technol.,
+                                                                                       IEEE Trans. Intell. Transp. Syst., vol. 23, no. 3, pp. 2727–2738, 2021.
+     vol. 69, no. 4, pp. 4312–4324, 2020.
+                                                                                  [28] Z. Qian, F. Wu, J. Pan, K. Srinivasan, and N. B. Shroff, “Minimizing
+ [7] Z. Su, Y. Hui, Q. Xu, T. Yang, J. Liu, and Y. Jia, “An edge caching               age of information in multi-channel time-sensitive information update
+     scheme to distribute content in vehicular networks,” IEEE Trans. Veh.             systems,” in Proc. IEEE Conf. on Comput. Commun. (INFOCOM), 2020,
+     Technol., vol. 67, no. 6, pp. 5346–5356, 2018.                                    pp. 446–455.
+ [8] B. Shang, L. Liu, and Z. Tian, “Deep learning-assisted energy-efficient      [29] T. Takine, “Queue length distribution in a fifo single-server queue with
+     task offloading in vehicular edge computing systems,” IEEE Trans. Veh.            multiple arrival streams having different service time distributions,”
+     Technol., vol. 70, no. 9, pp. 9619–9624, 2021.                                    Queueing Syst., vol. 39, no. 4, pp. 349–375, 2001.
+ [9] H. Liao, Z. Zhou, W. Kong, Y. Chen, X. Wang, Z. Wang, and                    [30] A. K. Sadek, Z. Han, and K. R. Liu, “Distributed relay-assignment
+     S. Al Otaibi, “Learning-based intent-aware task offloading for air-ground         protocols for coverage expansion in cooperative wireless networks,”
+     integrated vehicular edge computing,” IEEE Trans. Intell. Transp. Syst.,          IEEE. Trans. Mob. Comput., vol. 9, no. 4, pp. 505–515, 2009.
+     vol. 22, no. 8, pp. 5127–5139, 2021.                                         [31] R. Tandra and A. Sahai, “Snr walls for signal detection,” IEEE J. Sel.
+[10] Y. Zhang, L. Chu, Y. Ou, C. Guo, Y. Liu, and X. Tang, “A cyber-                   Top. Signal Process., vol. 2, no. 1, pp. 4–17, 2008.
+     physical system-based velocity-profile prediction method and case study      [32] J. N. Foerster, G. Farquhar, T. Afouras, N. Nardelli, and S. Whiteson,
+     of application in plug-in hybrid electric vehicle,” IEEE T. Cybern.,              “Counterfactual multi-agent policy gradients,” in Proc. AAAI Conf. on
+     vol. 51, no. 1, pp. 40–51, 2019.                                                  Artif. Intell. (AAAI), 2018.
+[11] T. Zhang, Y. Zou, X. Zhang, N. Guo, and W. Wang, “Data-driven based          [33] T. Hofmann, “Unsupervised learning by probabilistic latent semantic
+     cruise control of connected and automated vehicles under cyber-physical           analysis,” Mach. Learn., vol. 42, no. 1, pp. 177–196, 2001.
+     system framework,” IEEE Trans. Intell. Transp. Syst., vol. 22, no. 10,       [34] “Data source: Didi chuxing gaia open dataset initiative,” https://outreach.
+     pp. 6307–6319, 2020.                                                              didichuxing.com/research/opendata/en/.
+[12] C. Li, H. Zhang, T. Zhang, J. Rao, L. Y. Wang, and G. Yin, “Cyber-           [35] J. Wang, K. Liu, B. Li, T. Liu, R. Li, and Z. Han, “Delay-sensitive
+     physical scheduling for predictable reliability of inter-vehicle commu-           multi-period computation offloading with reliability guarantees in fog
+     nications,” IEEE Trans. Veh. Technol., vol. 69, no. 4, pp. 4192–4206,             networks,” IEEE. Trans. Mob. Comput., vol. 19, no. 9, pp. 2062–2075,
+     2020.                                                                             2019.
+[13] Y. Lian, Q. Yang, W. Xie, and L. Zhang, “Cyber-physical system-based
+     heuristic planning and scheduling method for multiple automatic guided
+     vehicles in logistics systems,” IEEE Trans. Ind. Inform., vol. 17, no. 11,
+     pp. 7882–7893, 2021.                                                                                   Xincao Xu received the B.S. degree in network
+[14] P. Dai, K. Liu, Q. Zhuge, E. H.-M. Sha, V. C. S. Lee, and S. H.                                        engineering from the North University of China,
+     Son, “A convex optimization based autonomous intersection control                                      Taiyuan, China, in 2017. He is currently pursuing
+     strategy in vehicular cyber-physical systems,” in Proc. IEEE Int. Conf.                                the Ph.D. degree in computer science at Chongqing
+     on Ubiquitous Intelligence Comput. (UIC), 2016, pp. 203–210.                                           University, Chongqing, China. His research interests
+[15] X. Hu, H. Wang, and X. Tang, “Cyber-physical control for energy-saving                                 include vehicular networks, edge computing, and
+     vehicle following with connectivity,” IEEE Trans. Ind. Electron., vol. 64,                             deep reinforcement learning.
+     no. 11, pp. 8578–8587, 2017.
+[16] C. Lv, X. Hu, A. Sangiovanni-Vincentelli, Y. Li, C. M. Martinez, and
+     D. Cao, “Driving-style-based codesign optimization of an automated
+     electric vehicle: A cyber-physical system approach,” IEEE Trans. Ind.
+     Electron., vol. 66, no. 4, pp. 2965–2975, 2018.
+[17] X. Xu, K. Liu, K. Xiao, L. Feng, Z. Wu, and S. Guo, “Vehicular fog                                      Kai Liu (Senior Member, IEEE) received the Ph.D.
+     computing enabled real-time collision warning via trajectory calibra-                                   degree in computer science from the City University
+     tion,” Mobile Netw. Appl., vol. 25, no. 6, pp. 2482–2494, 2020.                                         of Hong Kong in 2011. He is currently a Full
+[18] K. Liu, V. C. S. Lee, J. K.-Y. Ng, J. Chen, and S. H. Son, “Temporal                                    Professor with the College of Computer Science,
+     data dissemination in vehicular cyber–physical systems,” IEEE Trans.                                    Chongqing University, China. From 2010 to 2011,
+     Intell. Transp. Syst., vol. 15, no. 6, pp. 2419–2431, 2014.                                             he was a Visiting Scholar with the Department of
+[19] P. Dai, K. Liu, L. Feng, H. Zhang, V. C. S. Lee, S. H. Son, and                                         Computer Science, University of Virginia, Char-
+     X. Wu, “Temporal information services in large-scale vehicular networks                                 lottesville, VA, USA. From 2011 to 2014, he was
+     through evolutionary multi-objective optimization,” IEEE Trans. Intell.                                 a Postdoctoral Fellow with Nanyang Technologi-
+     Transp. Syst., vol. 20, no. 1, pp. 218–231, 2019.                                                       cal University, Singapore, City University of Hong
+[20] K. Liu, V. C. S. Lee, J. K. Y. Ng, S. H. Son, and E. H.-M. Sha, “Schedul-                               Kong, and Hong Kong Baptist University, Hong
+     ing temporal data with dynamic snapshot consistency requirement in           Kong. His research interests include mobile computing, pervasive computing,
+     vehicular cyber-physical systems,” ACM Trans. Embed. Comput. Syst.,          intelligent transportation systems, and the Internet of Vehicles.
+     vol. 13, no. 5s, 2014.
+                                                                                   16
+
+
+
+                          Penglin Dai (Member, IEEE) received the B.S.
+                          degree in mathematics and applied mathematics
+                          and the Ph.D. degree in computer science from
+                          Chongqing University, Chongqing, China, in 2012
+                          and 2017, respectively. He is currently an As-
+                          sociate Professor with the School of Information
+                          Science and Technology, Southwest Jiaotong Uni-
+                          versity, Chengdu, China. His research interests in-
+                          clude intelligent transportation systems and vehicu-
+                          lar cyber-physical systems.
+
+
+
+
+                          Ruitao Xie received the Ph.D. degree in computer
+                          science from City University of Hong Kong in
+                          2014, and the B.Eng. degree from Beijing University
+                          of Posts and Telecommunications in 2008. She is
+                          currently an Assistant Professor with the College
+                          of Computer Science and Software Engineering,
+                          Shenzhen University, Shenzhen, China. Her research
+                          interests include AI networking and mobile comput-
+                          ing, distributed systems, and cloud computing.
+
+
+
+
+                          Jingjing Cao received her Ph.D. degree in Com-
+                          puter Sciences from City University of Hong Kong,
+                          Hongkong, China, in 2013. She is currently an Asso-
+                          ciation Professor of the School of Transportation and
+                          Logistics Engineering, Wuhan University of Tech-
+                          nology, Hubei, China. Her current research interests
+                          include machine learning, pervasive computing and
+                          their applications in transportation and logistics.
+
+
+
+
+                          Jiangtao Luo (Senior Member, IEEE) received the
+                          B.S. degree from Nankai University in 1993 and
+                          the Ph.D. degree from the Chinese Academy of
+                          Science in 1998. He is currently a Full Professor,
+                          a Ph.D. Supervisor, and the Deputy Dean of the
+                          Electronic Information and Networking Research In-
+                          stitute, Chongqing University of Posts and Telecom-
+                          munications (CQUPT). He has been visiting scholars
+                          with the University of Hamburg, Germany, and the
+                          University of Southern California, Los Angeles, CA,
+                          USA, from 2015 to 2016. His research interests are
+network data analysis, visual big data, and future Internet architecture. He has
+published more than 100 articles and owned 30 patents in these fields. He was
+awarded the Chinese State Award of Scientific and Technological Progress
+in 2011, the Chongqing Provincial Award of Scientific and Technological
+Progress twice in 2010 and 2007, respectively, and the Chongqing Science
+and Technology Award for Youth in 2010.
+

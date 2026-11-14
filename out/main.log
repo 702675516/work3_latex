@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.8.11)  8 NOV 2026 13:47
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.8.11)  15 NOV 2026 02:41
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -880,7 +880,7 @@ e.sfd}) [1
 <images/algorithm_framework.pdf, id=227, 963.6pt x 542.025pt>
 File: images/algorithm_framework.pdf Graphic file (type pdf)
 <use images/algorithm_framework.pdf>
-Package pdftex.def Info: images/algorithm_framework.pdf  used on input line 308
+Package pdftex.def Info: images/algorithm_framework.pdf  used on input line 303
 .
 (pdftex.def)             Requested size: 452.96826pt x 171.16164pt.
  [7] [8 <./images/algorithm_framework.pdf>] [9]
@@ -888,13 +888,13 @@ Package pdftex.def Info: images/algorithm_framework.pdf  used on input line 308
 File: images/training_reward_recreated.png Graphic file (type png)
 <use images/training_reward_recreated.png>
 Package pdftex.def Info: images/training_reward_recreated.png  used on input li
-ne 364.
+ne 359.
 (pdftex.def)             Requested size: 452.96826pt x 264.21277pt.
 <images/utility_heatmap_truthful_illustrative.png, id=289, 722.7pt x 578.16pt>
 File: images/utility_heatmap_truthful_illustrative.png Graphic file (type png)
 <use images/utility_heatmap_truthful_illustrative.png>
 Package pdftex.def Info: images/utility_heatmap_truthful_illustrative.png  used
- on input line 372.
+ on input line 367.
 (pdftex.def)             Requested size: 353.31468pt x 282.64804pt.
 
 [10 <./images/training_reward_recreated.png (PNG copy)>]
@@ -902,13 +902,13 @@ Package pdftex.def Info: images/utility_heatmap_truthful_illustrative.png  used
 File: images/reporting_error_curve_illustrative.png Graphic file (type png)
 <use images/reporting_error_curve_illustrative.png>
 Package pdftex.def Info: images/reporting_error_curve_illustrative.png  used on
- input line 383.
+ input line 378.
 (pdftex.def)             Requested size: 353.31468pt x 176.65503pt.
 <images/reporting_error_bars_illustrative.png, id=297, 722.7pt x 361.35pt>
 File: images/reporting_error_bars_illustrative.png Graphic file (type png)
 <use images/reporting_error_bars_illustrative.png>
 Package pdftex.def Info: images/reporting_error_bars_illustrative.png  used on 
-input line 391.
+input line 386.
 (pdftex.def)             Requested size: 353.31468pt x 176.65503pt.
  [11 <./images/utility_heatmap_truthful_illustrative.png>] [12 <./images/report
 ing_error_curve_illustrative.png> <./images/reporting_error_bars_illustrative.p
@@ -923,10 +923,10 @@ L3 programming layer <2022/07/14>
  ***********
  ) 
 Here is how much of TeX's memory you used:
- 11670 strings out of 467525
- 213971 string characters out of 5423209
- 622853 words of memory out of 5000000
- 40024 multiletter control sequences out of 15000+600000
+ 11674 strings out of 467525
+ 214040 string characters out of 5423209
+ 622827 words of memory out of 5000000
+ 40028 multiletter control sequences out of 15000+600000
  708965 words of font info for 338 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  78i,10n,92p,1376b,599s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -940,16 +940,16 @@ ows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf>
 <c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/sim
 sun.ttc><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/F
 onts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/W
-indows/Fonts/simhei.ttf><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simhei.t
+indows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.t
 tf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/
 simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Window
-s/Fonts/simhei.ttf><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c
-:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhe
-i.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fon
-ts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Win
+s/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c
+:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhe
+i.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fon
+ts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simhei.ttf><c:/Win
 dows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf
 ><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/simhei.ttf><c:/Windows/Fonts/si
-mhei.ttf><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/
+msun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/
 Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/
 Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.
 ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts/simsun.ttc><c:/Windows/Fonts
@@ -998,7 +998,7 @@ mf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb><c:/texlive/2026/texmf-dist/fo
 nts/type1/public/amsfonts/cm/cmti10.pfb><c:/texlive/2026/texmf-dist/fonts/type1
 /public/amsfonts/symbols/msbm10.pfb>
 Output written on C:/Users/ME/PycharmProjects/work3_latex/out/main.pdf (13 page
-s, 2667082 bytes).
+s, 2669194 bytes).
 PDF statistics:
  804 PDF objects out of 1000 (max. 8388607)
  520 compressed objects within 6 object streams

@@ -45,7 +45,7 @@
 
 拍卖机制为 MEC 中多个用户竞争有限计算资源提供了分配与定价方法。在 UAV 辅助任务卸载场景中，Wang 等\cite{wang2024opponent}采用逐轮第二价格拍卖，由用户竞价决定服务对象，并以次高报价确定支付。Habiba 等\cite{habiba2024repeated}在多接入边缘计算中采用重复拍卖，依据任务到达和服务器负载，通过改进的广义第二价格规则逐轮分配资源并确定支付。这类方法能够根据竞价和系统状态调整当前轮次的资源分配，但在多个任务竞争有限资源时，还需衡量单个用户获得服务对其他参与者福利的影响。VCG 机制将标准单物品第二价格拍卖的定价思想推广到更一般的配置问题，依据这种外部性确定支付。Ren 等\cite{ren2024dependent}在车联网边缘计算的依赖任务卸载中采用 VCG 支付，以兼顾配置效率与真实报告。然而，在 UAV 辅助 MEC 的动态卸载中，本轮接收任务和调整服务位置会影响其他用户后续的服务机会与时延，进而改变系统的长期福利。若支付仅依据当期福利确定，用户造成的跨时隙外部性便无法得到充分反映，可能削弱如实报告激励并降低长期资源配置效率。
 
-针对上述问题，本文借鉴动态枢轴机制的长期外部性定价思想\cite{bergemann2010dynamic}，面向任务动态到达、UAV 服务位置随时间变化且机载资源受限的场景，提出一种动态 VCG 式激励机制。该机制中，UAV 以最大化长期社会福利为目标确定任务接收和服务位置，用户以最大化自身长期效用为目标选择类型报告。UAV 和各用户分别采用离散动作 SAC 学习相应策略。定价时，UAV 利用学得的长期动作价值函数，估计用户缺席后重新优化决策与沿用完整系统决策时其余参与者的长期折扣福利，并以两者之差确定该用户的外部性支付。训练过程中，算法随机采样完整系统分支或用户缺席的反事实分支，以降低长期价值评估所需的环境交互开销。
+针对上述问题，本文借鉴动态枢轴机制的长期外部性定价思想\cite{bergemann2010dynamic}，面向任务动态到达、UAV 服务位置随时间变化且机载资源受限的场景，提出一种动态 VCG 式激励机制。该机制中，UAV 以最大化长期社会福利为目标确定任务接收和服务位置，用户以最大化自身长期效用为目标选择类型报告。UAV 和各用户分别采用离散动作 SAC 学习相应策略。定价时，UAV 利用学得的长期动作价值函数，估计用户缺席后重新优化决策与沿用完整系统决策时其余参与者的长期累计福利，并以两者之差确定该用户的外部性支付。训练过程中，算法随机采样完整系统分支或用户缺席的反事实分支，以降低长期价值评估所需的环境交互开销。
 
 \section{系统模型（System Model）}
 考虑由一架 UAV 和 $N$ 名移动用户组成的 UAV 辅助 MEC 系统，节点 $0$ 表示 UAV，节点 $n\in N=\{1,2,\ldots,N\}$ 表示用户 $n$。系统按离散时隙运行。每个时隙内，UAV 根据当前状态联合决定服务位置与任务接收情况。被接收的任务经上行传输后由 UAV 处理，其余任务在本地完成。下文介绍通信、计算卸载和能耗模型。
@@ -144,29 +144,29 @@ W(t)=U_{0}(t)+\sum_{n=1}^{N} U_{n}(t)=-\sum_{n=1}^{N} \theta _{n}\left(t\right)\
 UAV 的控制决策需要同时考虑任务时延和能耗，以提升系统整体福利。用户则通过选择类型报告影响资源分配，并依据真实时延敏感度权衡任务时延成本与支付。
 
 \noindent\textbf{UAV 侧社会福利优化：}
-UAV 联合确定计算决策和服务位置，使期望折扣累计社会福利最大化：
+UAV 联合确定计算决策和服务位置，使期望累计社会福利最大化：
 \begin{equation}
 \begin{aligned}
-\max_{\{f_n(t)\},\,\{l_0(t)\}} \quad & \mathbb{E}\left[\sum_{t=0}^{T}\gamma^t W(t)\right] \\
+\max_{\{f_n(t)\},\,\{l_0(t)\}} \quad & \mathbb{E}\left[\sum_{t=1}^{T} W(t)\right] \\
 \text{s.t.} \quad & f_n(t)\in\mathcal F\cup\{0\}, && \forall n\in N,\ \forall t, \\
 & \sum_{n=1}^{N} f_n(t)\leq F_{\mathrm{uav}}, && \forall t, \\
 & l_0(t)\in L, && \forall t.
 \end{aligned}
 \end{equation}
-其中，$\gamma\in[0,1]$ 为折扣因子，期望对任务到达、状态转移和策略随机性等不确定因素取值。约束依次限定计算决策、总算力和服务位置。
+其中，期望对任务到达、状态转移和策略随机性等不确定因素取值。约束依次限定计算决策、总算力和服务位置。
 
 \noindent\textbf{用户侧效用优化：}
 \begin{equation}
 \begin{aligned}
-\max_{\{\hat{\theta}_n(t)\}} \quad & \mathbb{E}\left[\sum_{t=0}^{T}\gamma^t U_n(t)\right] \\
+\max_{\{\hat{\theta}_n(t)\}} \quad & \mathbb{E}\left[\sum_{t=1}^{T} U_n(t)\right] \\
 \text{s.t.} \quad & \hat{\theta}_n(t)\in[0,1], && \forall t.
 \end{aligned}
 \end{equation}
-该目标表示，用户 $n$ 通过选择类型报告最大化其期望折扣效用。
+该目标表示，用户 $n$ 通过选择类型报告最大化其期望累计效用。
 \subsection{部分可观测随机博弈模型}
 本文将参与方之间的交互建模为带时隙内顺序行动的部分可观测随机博弈（partially observable stochastic game, POSG）：
 \begin{equation}
-\mathcal{G}=\left(I,\mathcal{S},\{\mathcal{O}_{i}\}_{i\in I},\{\mathcal{A}_{i}\}_{i\in I},\{R_{i}\}_{i\in I},\gamma,P\right),
+\mathcal{G}=\left(I,\mathcal{S},\{\mathcal{O}_{i}\}_{i\in I},\{\mathcal{A}_{i}\}_{i\in I},\{R_{i}\}_{i\in I},P\right),
 \end{equation}
 其中，$I=\{0\}\cup N$ 为参与方集合，$\mathcal{S}$ 为状态空间，$\mathcal{O}_i$ 和 $\mathcal{A}_i$ 分别为参与方 $i$ 的观测与动作空间，$R_i$ 为即时奖励，$P$ 为状态转移核。每个时隙内，用户先并行报告类型，UAV 再根据全部报告选择控制动作，随后环境产生奖励并转移。
 时隙 $t$ 的系统状态定义为
@@ -206,7 +206,7 @@ r_{n}(t)=U_{n}(t).
 \end{equation}
 记联合策略为 $\boldsymbol\pi=(\pi_0,\pi_1,\ldots,\pi_N)$。参与方 $m$ 在该策略下的长期动作价值为
 \begin{equation}
-Q_m^{\boldsymbol\pi}(o_m(t),a_m(t))=\mathbb{E}_{\boldsymbol\pi}\!\left[\sum_{\nu=t}^{T}\gamma^{\nu-t}r_m(\nu)\mid o_m(t),a_m(t)\right],\quad m\in I.
+Q_m^{\boldsymbol\pi}(o_m(t),a_m(t))=\mathbb{E}_{\boldsymbol\pi}\!\left[\sum_{\nu=t}^{T}r_m(\nu)\mid o_m(t),a_m(t)\right],\quad m\in I.
 \end{equation}
 各策略通过 SAC 算法迭代更新。
 \section{算法设计（Algorithm Design）}
@@ -214,7 +214,7 @@ Q_m^{\boldsymbol\pi}(o_m(t),a_m(t))=\mathbb{E}_{\boldsymbol\pi}\!\left[\sum_{\nu
 针对动态环境中联合动作复杂、状态持续演化且难以解析求解的问题，本文采用 SAC 算法\cite{haarnoja2018soft}。该算法在期望累积回报中加入策略熵，以维持探索，其目标为
 \begin{equation}
 \begin{aligned}
-J\left(\pi _{m}\right)=E_{a_{m}\sim \pi _{m}}\left(\sum_{\nu =t}^{T} \gamma ^{\nu -t}\left(r_{m}\left(\nu \right)-\alpha \log\pi _{m}\left(a_{m}\left(\nu \right)\mid o_{m}\left(\nu \right)\right)\right)\right)
+J\left(\pi _{m}\right)=E_{a_{m}\sim \pi _{m}}\left(\sum_{\nu =t}^{T} \left(r_{m}\left(\nu \right)-\alpha \log\pi _{m}\left(a_{m}\left(\nu \right)\mid o_{m}\left(\nu \right)\right)\right)\right)
 \end{aligned}
 \end{equation}
 其中，$m\in\{0,1,\ldots,N\}$ 表示 UAV 或移动用户。相应的状态价值函数为
@@ -226,7 +226,7 @@ V_{m}\left(o_{m}\left(t\right)\right)=E_{a_{m}\left(t\right)\sim \pi _{m}}\left(
 其中，$\hat{\omega}_m$ 和 $\psi_m$ 分别为目标 Q 网络与策略网络参数。时序差分目标为
 \begin{equation}
 \begin{aligned}
-y_{m}\left(t\right)=r_{m}\left(t\right)+\gamma V_{m}\left(o_{m}\left(t+1\right)\right)
+y_{m}\left(t\right)=r_{m}\left(t\right)+\mathbb{1}_{\{t<T\}}V_{m}\left(o_{m}\left(t+1\right)\right)
 \end{aligned}
 \end{equation}
 Q 网络损失为
@@ -235,7 +235,7 @@ Q 网络损失为
 L\left(\omega _{m}\right)=E_{\left(o_{m}\left(t\right),a_{m}\left(t\right),r_{m}\left(t\right),o_{m}\left(t+1\right)\right)\sim D_{m}}\left(\frac{1}{2}\left(Q_{m}\left(o_{m}\left(t\right),a_{m}\left(t\right),\omega _{m}\right)-y_{m}\left(t\right)\right)^{2}\right)
 \end{aligned}
 \end{equation}
-其中，$\omega_m$ 为在线 Q 网络参数，$D_m$ 为经验回放池。策略网络损失为
+其中，终止时隙 $t=T$ 不进行后续价值自举；$\omega_m$ 为在线 Q 网络参数，$D_m$ 为经验回放池。策略网络损失为
 \begin{equation}
 \begin{aligned}
 L\left(\psi _{m}\right)=E_{o_{m}\left(t\right)\sim D_{m}, a_{m}\left(t\right)\sim \pi _{m}}\left(\alpha\log \pi _{m}\left(a_{m}\left(t\right)\mid o_{m}\left(t\right),\psi _{m}\right)-Q_{m}\left(o_{m}\left(t\right),a_{m}\left(t\right),\omega _{m}\right)\right)
@@ -276,32 +276,27 @@ L\left(\alpha _{m}\right)=E_{o_{m}\left(t\right)\sim D_{m}, a_{m}\left(t\right)\
 \begin{equation}
 r_{0}^{-n}(t,a_{0})=-\beta E_{0}(a_{0})-\sum_{k\in N\setminus \{n\}}\theta _{k}(t)\tau _{k}(a_{0}).
 \end{equation}
-其中，$E_0(a_0)$ 为 UAV 能耗，$\tau_k(a_0)$ 为用户 $k$ 的任务时延。记 $o_0^{-n}(t)$ 为屏蔽用户 $n$ 报告后的观测。为区分执行分支，策略网络分别接收完整观测 $\tilde{o}_0(t)=(o_0(t),\operatorname{onehot}(0))$ 和缺席观测 $\tilde{o}_0^{-n}(t)=(o_0^{-n}(t),\operatorname{onehot}(n))$。UAV Q 网络估计反事实价值时，将物理观测与目标用户编码拼接，得到 $\tilde{o}_{0,n}(t)=(o_0(t),\operatorname{onehot}(n))$ 和 $\tilde{o}_{0,n}^{-n}(t)=(o_0^{-n}(t),\operatorname{onehot}(n))$。其中，$\operatorname{onehot}(n)$ 标记反事实奖励中被排除的用户。该编码仅用于价值估计，不改变 POSG 的物理观测。用户 $n$ 以外参与者的福利由反事实奖励计量，从下一时隙起的期望折扣奖励定义为
+其中，$E_0(a_0)$ 为 UAV 能耗，$\tau_k(a_0)$ 为用户 $k$ 的任务时延。记 $o_0^{-n}(t)$ 为屏蔽用户 $n$ 报告后的观测。为区分执行分支，策略网络分别接收完整观测 $\tilde{o}_0(t)=(o_0(t),\operatorname{onehot}(0))$ 和缺席观测 $\tilde{o}_0^{-n}(t)=(o_0^{-n}(t),\operatorname{onehot}(n))$。UAV Q 网络估计用户 $n$ 以外参与者的价值时，完整分支采用编码观测 $\tilde{o}_{0,n}(t)=(o_0(t),\operatorname{onehot}(n))$，缺席分支采用 $\tilde{o}_0^{-n}(t)$。其中，$\operatorname{onehot}(n)$ 标记反事实奖励中被排除的用户，并用于区分策略的执行分支；该编码不改变 POSG 的物理观测。用户 $n$ 以外参与者的福利由反事实奖励计量。记 $\pi_0$ 为 UAV 在相应分支的后续策略，执行当前动作后，从下一时隙起用户 $n$ 以外参与者的长期期望社会福利为
 \begin{equation}
-G_{-n}(t+1\mid \tilde{o},a)=\mathbb{E}\left[\sum_{\nu=t+1}^{T}\gamma^{\nu-(t+1)}r_{0}^{-n}(\nu)\mid \tilde{o},a\right].
+\mathcal{W}^{\pi_0}(\tilde{o}_0(t),a_0(t);r_0^{-n})=\mathbb{E}^{\pi_0}\!\left[\sum_{\nu=t+1}^{T}r_{0}^{-n}(\nu)\mid \tilde{o}_0(t),a_0(t)\right].
 \end{equation}
-其中，$a_0^*(t)$ 为完整分支当前策略选择的动作，$a_{0,-n}^*(t)$ 为用户 $n$ 缺席时使剩余系统长期价值最大的动作。缺席用户的任务不再参与分配，其算力由剩余系统重新配置。用户 $n$ 的长期外部性支付定义为
+其中，$\tilde{o}_0(t)$ 表示相应分支的编码观测；$\mathcal{W}$ 是从下一时隙起的期望累计福利，与单时隙福利 $W(t)$ 区分。记 $\pi_0^{-n}$ 和 $\pi_0^{\mathrm{full}}$ 为 UAV 在缺席分支和完整分支的后续策略，$(a_0^{-n})^{*}(t)$ 和 $a_0^*(t)$ 为两分支的当前动作。用户 $n$ 的长期外部性支付定义为
 \begin{equation}
 \begin{aligned}
-p_{n}(t)={}&r_{0}^{-n}(t,a_{0,-n}^{*}(t))-r_{0}^{-n}(t,a_{0}^{*}(t))\\
-&+\gamma\left[G_{-n}(t+1\mid \tilde{o}_{0,n}^{-n}(t),a_{0,-n}^{*}(t))-G_{-n}(t+1\mid \tilde{o}_{0,n}(t),a_{0}^{*}(t))\right].
+p_{n}(t)={}&r_{0}^{-n}(t,(a_0^{-n})^{*}(t))-r_{0}^{-n}(t,a_{0}^{*}(t))\\[-1pt]
+&+\mathcal{W}^{\pi_0^{-n}}(\tilde{o}_{0}^{-n}(t),(a_0^{-n})^{*}(t);r_0^{-n})\!-\!\mathcal{W}^{\pi_0^{\mathrm{full}}}(\tilde{o}_{0,n}(t),a_{0}^{*}(t);r_0^{-n}).
 \end{aligned}
 \label{eq:long-term-externality-payment}
 \end{equation}
-支付由即时反事实奖励差和后续折扣奖励差构成。相应的动作价值函数为
+记 $Q_0^{\pi_0}$ 为以 $r_0^{-n}$ 计量、从当前时隙起的期望累计奖励。与 $\mathcal{W}^{\pi_0}$ 相比，$Q_0^{\pi_0}$ 包含当前时隙的奖励。当即时奖励可由当前观测和动作确定时，将每个分支的即时奖励与后续福利合并，支付可写为
 \begin{equation}
-Q_{0}(\tilde{o},a)=\mathbb{E}\left[\sum_{\nu=t}^{T}\gamma^{\nu-t}r_{0}^{-n}(\nu)\mid \tilde{o},a\right].
-\label{eq:counterfactual-q}
-\end{equation}
-因此，用户 $n$ 缺席时的最优动作是
-\begin{equation}
-a_{0,-n}^{*}(t)=\operatorname*{arg\,max}_{a_{0}^{-n}(t)}Q_{0}(\tilde{o}_{0,n}^{-n}(t),a_{0}^{-n}(t)).
-\end{equation}
-支付可写为两个反事实长期 Q 值之差：
-\begin{equation}
-p_{n}(t)=Q_{0}(\tilde{o}_{0,n}^{-n}(t),a_{0,-n}^{*}(t))-Q_{0}(\tilde{o}_{0,n}(t),a_{0}^{*}(t)).
+\begin{aligned}
+p_n(t)={}&Q_0^{\pi_0^{-n}}(\tilde{o}_0^{-n}(t),(a_0^{-n})^{*}(t);r_0^{-n})\\
+&-Q_0^{\pi_0^{\mathrm{full}}}(\tilde{o}_{0,n}(t),a_0^{*}(t);r_0^{-n}).
+\end{aligned}
 \label{eq:long-term-externality-q-payment}
 \end{equation}
+若即时奖励含有不可观测信息，式 \eqref{eq:long-term-externality-q-payment} 对应给定观测下的条件期望支付。实际训练中，UAV Q 网络估计各分支不含熵项的反事实累计奖励，所学策略和价值均为近似。
 图 \ref{fig:long-term-externality-sac-framework}概述了在线机制交互、长期外部性支付与多智能体 SAC 更新之间的关系。
 \begin{figure}[H]
 \centering
@@ -309,11 +304,11 @@ p_{n}(t)=Q_{0}(\tilde{o}_{0,n}^{-n}(t),a_{0,-n}^{*}(t))-Q_{0}(\tilde{o}_{0,n}(t)
 \caption{基于长期外部性支付的多智能体 SAC 框架。实线表示在线决策及模块内执行流程，虚线表示网络更新和反事实价值传递。}
 \label{fig:long-term-externality-sac-framework}
 \end{figure}
-训练时，UAV Q 网络根据输入观测及对应奖励估计式 \eqref{eq:long-term-externality-q-payment} 中的价值，因此支付会随策略和价值网络更新。为控制环境交互开销，算法以 $1-\epsilon$ 的概率采样完整分支，以 $\epsilon$ 的概率均匀选择用户并采样其缺席分支。重复采样可逐步覆盖各用户的反事实环境。
+训练时，UAV Q 网络根据输入观测及对应奖励估计式 \eqref{eq:long-term-externality-q-payment} 所需的长期价值，因此支付会随策略和价值网络更新。为控制环境交互开销，算法以 $1-\epsilon$ 的概率采样完整分支，以 $\epsilon$ 的概率均匀选择用户并采样其缺席分支。重复采样可逐步覆盖各用户的反事实环境。
 
 完整分支中，UAV 根据 $o_0(t)$ 选择动作并执行环境。完整转移 $(\tilde{o}_0(t),a_0(t),r_0(t),\tilde{o}_0(t+1))$ 写入 UAV 回放池 $\mathcal{B}_0$，用户转移写入各自的 $\mathcal{B}_n$。同时，对每个用户计算反事实奖励 $r_0^{-n}(t)$，并将对应样本 $(\tilde{o}_{0,n}(t),\allowbreak a_0(t),\allowbreak r_0^{-n}(t),\allowbreak \tilde{o}_{0,n}(t+1))$ 写入 $\mathcal{B}_0$，用于估计支付。
 
-缺席分支中，屏蔽用户 $n$ 的报告并移除其任务，得到 $o_0^{-n}(t)$。UAV 据此选择 $a_{0,-n}^*(t)$ 并执行反事实环境，再将样本 $(\tilde{o}_{0,n}^{-n}(t),\allowbreak a_{0,-n}^*(t),\allowbreak r_0^{-n}(t),\allowbreak \tilde{o}_{0,n}^{-n}(t+1))$ 写入 $\mathcal{B}_0$。更新 $Q_0$ 时，按目标用户编码筛选相应样本。
+缺席分支中，屏蔽用户 $n$ 的报告并移除其任务，得到 $o_0^{-n}(t)$。UAV 根据当前策略选择动作 $a_0^{-n}(t)$ 并执行反事实环境，再将样本 $(\tilde{o}_{0}^{-n}(t),\allowbreak a_0^{-n}(t),\allowbreak r_0^{-n}(t),\allowbreak \tilde{o}_{0}^{-n}(t+1))$ 写入 $\mathcal{B}_0$。更新 $Q_0$ 时，按目标用户编码筛选相应样本。
 \begin{algorithm}[H]
 \small
 \caption{长期外部性感知多智能体 SAC 训练流程}
@@ -335,7 +330,7 @@ p_{n}(t)=Q_{0}(\tilde{o}_{0,n}^{-n}(t),a_{0,-n}^{*}(t))-Q_{0}(\tilde{o}_{0,n}(t)
         \Else
             \State 令 $n=\kappa(t)$，屏蔽用户 $n$ 的报告并移除其任务。
             \State UAV 根据缺席分支观测选择动作并执行反事实环境。
-            \State 将反事实转移样本 $(\tilde{o}_{0,n}^{-n}(t),a_{0,-n}^{*}(t),r_0^{-n}(t),\tilde{o}_{0,n}^{-n}(t+1))$ 写入 $\mathcal{B}_0$。
+            \State 将反事实转移样本 $(\tilde{o}_{0}^{-n}(t),a_0^{-n}(t),r_0^{-n}(t),\tilde{o}_{0}^{-n}(t+1))$ 写入 $\mathcal{B}_0$。
         \EndIf
         \State 从 $\mathcal{B}_0$ 的完整分支样本更新 UAV 策略、$Q_0$、温度参数及目标网络，从各 $\mathcal{B}_n$ 更新用户网络。
         \ForAll{$n\in N$}
@@ -351,7 +346,7 @@ p_{n}(t)=Q_{0}(\tilde{o}_{0,n}^{-n}(t),a_{0,-n}^{*}(t))-Q_{0}(\tilde{o}_{0,n}(t)
 
 每比特计算量为 $\xi=1000$ 个 CPU 周期，UAV 总算力为 $F_{\mathrm{uav}}=1$ GHz，本地 CPU 频率为 $f_{\mathrm{loc}}=0.5$ GHz。UAV 计算频率满足 $f_n(t)\geq0$ 和 $\sum_n f_n(t)\leq F_{\mathrm{uav}}$，服务位置可在 $1\,\mathrm{km}\times1\,\mathrm{km}$ 区域内连续选择。飞行高度和速度分别为 $100$ m 和 $30$ m/s。通信带宽、用户发射功率和噪声功率分别为 $0.2$ MHz、$10$ dBm 和 $-80$ dBm。LoS 概率参数为 $\mu_1=11.5$、$\mu_2=0.1$。LoS/NLoS 参考路径损耗分别为 $-3$ dB 和 $-20$ dB，路径损耗指数分别为 $2$ 和 $3.5$。
 
-UAV 和用户均采用 SAC，策略网和 Q 网均为两层全连接网络并使用 ReLU 激活。UAV 输出算力分配与服务位置，用户输出 $[0,1]$ 内的类型报告。折扣因子为 $\gamma=0.99$，学习率为 $3\times10^{-4}$，初始温度为 $0.2$。UAV 和用户网络的隐藏层宽度分别为 128 和 64。UAV 目标网络软更新系数为 $\tau=0.005$，用户目标网络每 10 步更新一次。温度参数自适应调整，UAV 和用户的目标熵分别为 $-0.2$ 和 $-0.005$。
+UAV 和用户均采用 SAC，策略网和 Q 网均为两层全连接网络并使用 ReLU 激活。UAV 输出算力分配与服务位置，用户输出 $[0,1]$ 内的类型报告。学习率为 $3\times10^{-4}$，初始温度为 $0.2$。UAV 和用户网络的隐藏层宽度分别为 128 和 64。UAV 目标网络软更新系数为 $\tau=0.005$，用户目标网络每 10 步更新一次。温度参数自适应调整，UAV 和用户的目标熵分别为 $-0.2$ 和 $-0.005$。
 
 \subsection{对比方法与评价协议}
 \textbf{即时 VCG 定价基线：}采用多智能体 SAC 联合学习用户上报和 UAV 卸载策略，并依据用户参与前后其余用户的当期福利变化确定支付。该基线用于比较即时与长期外部性定价。

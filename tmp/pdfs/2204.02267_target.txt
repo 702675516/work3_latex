@@ -1,0 +1,910 @@
+                                            Multi-Agent Distributed Reinforcement Learning
+                                            for Making Decentralized Offloading Decisions
+                                                     Jing Tan                          Ramin Khalili                             Holger Karl                            Artur Hecker
+                                              Huawei Technology                    Huawei Technology                      Hasso Plattner Institute                  Huawei Technology
+                                               Munich, Germany                     Munich, Germany                           Berlin, Germany                         Munich, Germany
+                                              jingtan@huawei.com                ramin.khalili@huawei.com                    holger.karl@hpi.de                   artur.hecker@huawei.com
+
+
+
+                                           Abstract—We formulate computation offloading as a decentral-                     This separation poses problems for both user and operating
+arXiv:2204.02267v1 [cs.MA] 5 Apr 2022
+
+
+
+
+                                        ized decision-making problem with autonomous agents. We design                   sides, especially in the V2X context. V2X users have private
+                                        an interaction mechanism that incentivizes agents to align private               goals [16], are highly autonomous [17], reluctant to share infor-
+                                        and system goals by balancing between competition and cooper-
+                                        ation. The mechanism provably has Nash equilibria with optimal                   mation or cooperate, and disobedient to a central planner [18].
+                                        resource allocation in the static case. For a dynamic environ-                   They want flexible task prioritization and influence on resource
+                                        ment, we propose a novel multi-agent online learning algorithm                   allocation without sharing private information [19]. On the
+                                        that learns with partial, delayed and noisy state information,                   operating side, edge cloud computing architecture introduces
+                                        and a reward signal that reduces information need to a great                     signalling overhead and information delay in updating site uti-
+                                        extent. Empirical results confirm that through learning, agents
+                                        significantly improve both system and individual performance,                    lization [10]; coupled with growing user autonomy and service
+                                        e.g., 40% offloading failure rate reduction, 32% communication                   customization, traditional centralized optimization methods for
+                                        overhead reduction, up to 38% computation resource savings                       resource allocation become challenging due to unavailability of
+                                        in low contention, 18% utilization increase with reduced load                    real-time information and computational intractability.
+                                        variation in high contention, and improvement in fairness. Results                  Nonetheless, efforts are made on the operating side to apply
+                                        also confirm the algorithm’s good convergence and generalization
+                                        property in significantly different environments.                                centralized methods under such conditions, e.g., using heuris-
+                                           Index Terms—Offloading, Distributed Systems, Reinforcement                    tics at run-time [20] or decoupling into smaller problems [21],
+                                        Learning, Decentralized Decision-Making                                          but these solutions still assume complete information. Other
+                                                                                                                         efforts are made to jointly optimize private and system goals
+                                                                  I. I NTRODUCTION                                       through game theoretic approaches—although they naturally
+                                                                                                                         deal with decentralized incentives, they often require complete
+                                           Vehicular network (V2X) applications are characterized by                     information of the game to centrally execute the desired
+                                        huge number of users, dynamic nature, and diverse Quality of                     outcome. E.g., both [22] and [23] model network resource
+                                        Service (QoS) requirements [1]. They are also computation-                       allocation problems of autonomous users as a game, but [22]
+                                        intensive, e.g., inferring from large neural networks [2] or                     assumes users share decision information, and [23] assumes
+                                        solving non-convex optimization problems [3] [4]. These ap-                      all user and node profiles are known a priori. None of these
+                                        plications currently reside in the vehicle’s onboard units (OBU)                 assumptions are plausible in practice.
+                                        for short latency and low communication overhead. Even                              We, hence, need an interaction mechanism between user
+                                        with companies such as NVidia developing OBUs with high                          and operating sides based on incentives, not rules, and an
+                                        computation power [5], post-production OBU upgrades are                          algorithm that makes decentralized decisions with partial and
+                                        typically not commercially viable; and irrespective of local                     delayed information in a dynamic environment. There are
+                                        OBU power, the ability to offload tasks to edge/cloud via multi-                 several challenges with such a mechanism. Users may game
+                                        access edge computing (MEC) devices increases flexbility,                        the system, resulting in potentially worse overall and individual
+                                        protecting vehicles against IT obsolescence. Hence, offloading                   outcomes [24]—the first challenge C1 is how to incentivize
+                                        is a key technique for future V2X scenarios [6]–[9].                             user behavior such that users willingly align their private
+                                           Currently, computation offloading decisions are strictly sep-                 goals to the system goal while preserving their autonomy. The
+                                        arated between the user and the operating side [10]. Users                       second challenge C2 is finding an algorithm that efficiently
+                                        decide what to offload to optimize an individual goal, e.g.,                     learns from partial information with just enough feedback
+                                        latency [11] or energy efficiency [12]. Apart from expressing                    signals, keeping information-sharing at a minimum.
+                                        their preference through a pre-defined, static and universal                        Among learning algorithms for decentralized decision-
+                                        QoS matrix [13], users cannot influence how their tasks are                      making, no-regret algorithms apply to a wide range of prob-
+                                        prioritized. The operating side centrally prioritizes tasks and                  lems and converge fast; however, they require the knowledge
+                                        decides resource allocation to optimize a system goal that is                    of best strategies that are typically assumed to be static [25].
+                                        based on the QoS matrix, but not always the same as the users’                   Best-response algorithms search for best responses to other
+                                        goals, e.g., task maximization [14] or load-balancing [15].                      users’ strategies, not for a equilibrium—they are therefore
+
+
+                                        Accepted by INFOCOM ©2022 IEEE. Personal use of this material is permitted. Permission from IEEE must be obtained for all other uses, in any current or
+                                        future media, including reprinting/republishing this material for advertising or promotional purposes, creating new collective works, for resale or redistribution
+                                        to servers or lists, or reuse of any copyrighted component of this work in other works.
+   Remote computing sites                 storage
+                                                       user-side                Vehicles                                 ACAs     operating-side          Computing Sites
+                server         server
+                                                                   new requests        pipeline for                                              release resource, execute request,
+          internet                            retrieve past env.info,                  unsubmitted requests                                      check and drop infeasible requests
+                         Edge computing       past requests, past bidding results
+   ACA                   sites   server                                                                                         send utilization info, execution
+   admission control                                            create bid, infer from learning model,                          result of finished tasks
+   and assignment                                               decide backoff or submit
+                                                                                        send service details,
+                                                                                        resource estim., bidding price
+                                                                                                        admit and allocate ordered requests
+                                                                                                        based on load-balancing policy
+                                                                                     inform admit/reject/finish, send result send service details, resource estim.
+                                               store new env.info, bidding result
+                                                                                                                                                     queue incoming requests
+                                                                         train learning model
+
+
+                (a) Topology                                                                    (b) Message sequence
+                                                    Figure 1: System model
+adaptive to a dynamic environment, but they may not converge           making problem with decentralized incentive and execu-
+at all [26]. To improve the convergence property of best-              tion. The strategic players are incentivized to align private
+response algorithms, [27] introduces an algorithm with varying         and system goals by balancing between competition and
+learning rate depending on the reward; [26] extends the work to        cooperation.
+non-stationary environments. However, both these algorithms         • We introduce DRACO, a distributed algorithm that learns
+provably converge only with restricted classes of games. The           based on delayed and noisy environment information
+challenge C3 still exists to trade off between optimality and          and a single reward signal. Our solution reduces the
+convergence, while keeping computation and communication               requirement for information-sharing to a great extent.
+complexity tractable [18].                                          • We evaluate DRACO in a synthetic setup with randomized
+   We propose a decentralized decision-making mechanism                parameters, as well as in a realistic setup based on specific
+based on second-price sealed-bid auctions that successfully            mobility model and self-driving applications. Our results
+addresses these challenges, using the V2X context as an                show that it significantly increases resource utilization,
+example. Our method is not restricted to V2X applications—it           reduces offloading failure rate, load variation and commu-
+can be applied to other applications facing similar challenges.        nication overhead, even in a dynamic environment where
+   Second-price auctions are commonly used to distribute pub-          information-sharing is limited. The models are easily
+lic goods, due to its welfare-maximization property. Typically,        generalized in different environments.
+in a second-price sealed-bid auction, a bidder has no knowl-        • The authors have provided public access to their code or
+edge of other bidders’ bidding prices and it only receives the         data at [29].
+bidding outcome as feedback signal. Additionally, it receives       Sec.II describes system model and problem formulation,
+the final price if it wins the bid—this befits our requirement Sec.III proposes our solution, Sec.IV presents empirical results,
+to limit information-sharing. Our mechanism also utilizes the Sec.V summarizes related work, Sec.VI concludes the paper.
+feedback signal to incentivize cooperative behavior and speed
+up learning. We prove that in the static case, the outcome of         II. S YSTEM M ODEL AND P ROBLEM F ORMULATION
+this mechanism is a Nash equilibrium (NE) and a maximization A. System model
+of social welfare; under specific conditions (Sec.III-C), it is
+                                                                    Our system adopts the classic edge cloud computing ar-
+also a Pareto-optimal allocation of resources (C1).
+                                                                 chitecture: user-side vehicles request services; operating-side
+   For the dynamic case, we choose to use a multi-agent admission control and assignment (ACA) units (e.g., road side
+reinforcement learning (MARL) algorithm, for its ability to units or base station) control admission of service requests and
+learn with partial, noisy and delayed information, and a single assign them to different computing sites, which own resources
+reward signal (C2). Specifically, our core RL algorithm learns and execute services [30] (Fig.1a). We propose changes only
+the best-response strategy updated in a fictitious self play to: 1) the algorithm deciding admission and assignments,
+(FSP) method. FSP addresses strategic users’ adaptiveness 2) the interaction mechanism. In addition, most signalling
+in a dynamic environment by evaluating state information needs in our proposed approach are covered by the ISO 20078
+incrementally, and by keeping a weighted historical record standard on extended vehicle web services [31]; additional
+[28]; it is easier to implement than the method proposed in fields required to pass bidding information are straightforward
+[27], especially with a large state and action space (C3). Our to implement. Channel security is not the focus of this study.
+empirical results show that over time, the best-response strate-
+                                                                    We first define service request in our study; then we explain
+gies stabilize and lead to significantly improved individual
+                                                                 in detail the user side and the operating side.
+and overall outcomes. We compare active (learning-capable)
+                                                                    1) Service request as bid: The cloud-native paradigm de-
+and passive (learning-incapable) agents in both synthetic and
+                                                                 composes services into tasks that can be sequentially de-
+realistic V2X setups. Our algorithm demonstrates capability to
+                                                                 ployed [32]. A service request comprises 1) a task chain,
+generalize to very different, unseen environments.
+                                                                 with varying number, type, order and resource needs of tasks,
+   To summarize, our main contributions are:                     and 2) a deadline. We consider a system with custom-tailored
+  • We       formulate computation offloading as a decision- services placed at different computing sites in the network;
+
+
+
+                                                                                                                                                                                      2
+the properties of these services are initially unknown to the                           Table I: Symbol definition
+computing sites. This enables us to extend use cases into new          Sym.     Description                Sym.    Description
+areas, e.g., self-driving [8] [9]. We consider independent ser-       𝑘 ∈𝐾      service type/commodity      𝑛𝑘     𝑘’s availability
+vices, e.g., in self-driving, segmentation and motion planning         𝑖∈𝐼      service request/bid         𝑣      bid value
+services can be requested independently.                              𝑚∈𝑀       vehicle/bidder               𝑝     payment
+                                                                         𝑥      bidding outcome             𝑢      utility
+   Classic decentralized decision-making mechanisms include              𝛼      backoff decision            𝑏      bidding price
+dynamic pricing, negotiations, and auctions. Among these                 𝑐      lost bid penalty            𝑞      backoff cost
+mechanisms, auction is most suitable in a dynamic and compet-            𝛽      utilization                 𝐵      budget
+                                                                      ℎ∈𝐻       resource types             𝜔𝑖,ℎ    𝑖’s requirement of ℎ
+itive environment, where the number of bidders and their pref-          𝑄       service deadline            𝜌      service request details
+erences vary over time and distribution of private valuations is        e𝑚      𝑚’s env. variables         rl𝑡𝑚    𝑚’s present state for RL
+dispersed [33] [34]. Among various forms of auction, second-           sl𝑡𝑚     𝑚’s present state for SL     𝑡
+                                                                                                           𝑃−𝑚     other bidders’ state at 𝑡
+                                                                         a      action, a = ( 𝛼, 𝑏)        𝑆𝑚 𝑡    complete state for RL
+price seald-bid auction maximizes welfare rather than revenue            𝜃      actor parameters            w      critic parameters
+and has limited information-sharing, hence befitting the re-
+quirements in our study. Specifically, our approach is based on     the computing site drops the service and informs ACA unit.
+Vickrey-Clarke-Groves (VCG) for second-price combinatorial          Vehicles receive feedback on bidding and execution outcome,
+auction [35]. In our case, we use simultaneous combinatorial        payment, and resource utilization (Sec.III-A).
+auction as a simplified version of VCG—each bidder bids for            The operating side does not have a priori knowledge of the
+all commodities separately and simultaneously, without having       type, priority, or resource requirement of service requests. For
+to specify its preference for any bundle [36]. Since it assumes     example, if at run-time, a site receives a previously unknown
+no correlation between commodities, the simplification befits       service, it uses an estimate of resource needs provided by
+our study of independent service requests.                          the vehicle. Over time, a site updates this estimate from
+   We conceive of a vehicle’s service request as a bid in an        repeated executions of the same service. Extension to a more
+auction. Besides the service details, a bid includes the bidding    sophisticated form of learning is left to future work.
+price and the vehicle’s estimated resource needs.                      The total service time of a request is the sum of processing,
+   2) User side: We focus on the behavior of vehicles, con-         queueing, and transmission time. Each computing site may of-
+ceived of as agents. A vehicle acts autonomously and privately:     fer all services but with different resource profiles (i.e., amount
+it shares no information with other vehicles and only very          and duration needed), depending on the site’s configuration.
+limited information with the ACA (Sec.III-A and III-D). Its         Site capacity is specified in abstract time-resource units: one
+decision objective is to maximize average utility from joining      such unit corresponds to the volume of a request served in one
+the auction. If it bids a low price and loses, it suffers costs     time unit at a server, when given one resource unit.
+including transmission delay and communication overhead for
+bidding and rebidding; if it bids a high price and wins, it has     B. Problem formulation
+reduced payoff. For lower cost or better payoff, it can decide         Table I summarizes the notation. Let 𝑀 be the set of
+to join the auction at a later time (i.e. backoff [37]). But if     vehicles (bidders) and 𝐾 the set of commodities (service types),
+backoff is too long, it has pressure to pay more to prioritize      each type with total of 𝑛𝑡𝑘 available service slots at time 𝑡
+its request. Therefore, it balances between two options: i) back    in computing sites. Bidder 𝑚 ∈ 𝑀 has at most 1 demand
+off and try later or ii) submit the bid immediately to ACA. In      for each service type 𝑘 ∈ 𝐾 at 𝑡, denoted by 𝑚 𝑡𝑘 ∈ {0, 1}.
+our approach, 1) vehicles are incentivized to balance between       It draws its actions for each service type—whether to back
+backoff and bidding through a cost factor; 2) backoff time is       off 𝛼𝑚𝑡 = {𝛼 𝑡 , · · · , 𝛼 𝑡
+                                                                                  𝑚,1          𝑚, |𝐾 |
+                                                                                                       } ∈ {0, 1} |𝐾 | , and which price
+learned from state information, not randomly chosen.                to bid b𝑡𝑚 = {𝑏 𝑡𝑚,1 , · · · , 𝑏 𝑡𝑚, |𝐾 | } ∈ R+|𝐾 | —from a strategy.
+   We study the learning algorithm in each vehicle. We use          𝑚’s utility is denoted by 𝑢 𝑚 (b𝑡𝑚 ). The bidding price 𝑏 𝑡𝑚,𝑘 is
+passive, non-learning vehicles as benchmark, to quantify the        some unknown function of 𝑚’s private valuation 𝑣 𝑚,𝑘 ∈ R+ of
+effect of learning on performance. Learning essentially sets the    the service type, 𝑏 𝑡𝑚,𝑘 = 𝑓𝑚 (𝑣 𝑚,𝑘 ). The competing bidders
+priority of a service request, this priority is used by the ACA     draw their actions from a joint distribution 𝜋−𝑚           𝑡   based on
+to order requests; it is simply constant for non-learning agents,      1                               |𝐾 |
+                                                                    (p , · · · , p ), where p ∈ R+ is the payment vector received
+                                                                                  𝑡−1         𝑡
+resulting in first-in, first-out processing order.                  at the end of time 𝑡, its element 𝑝 𝑡𝑘 is the (𝑛𝑡𝑘 + 1) th highest bid
+   3) Operating side: The ACA unit and computing sites are          for 𝑘. Bidder 𝑚 observes the new p𝑡 as feedback. The auction
+the operating side (Fig.1b). The ACA unit decides to admit          repeats for 𝑇 periods. The goal is to maximize the long-term
+or reject ordered service requests. Upon admission, it assigns                         𝑇
+                                                                    utility: U = 𝑇1
+                                                                                      Í    Í
+the request to a computing site according to a load-balancing                                 𝑢 𝑚 (b𝑡𝑚 ), 𝑇 → ∞.
+                                                                                      𝑡=1 𝑚∈𝑀
+policy. Due to information delay, execution uncertainty, system        For any 𝑘, when availability 𝑛𝑡𝑘 <
+                                                                                                                   Í 𝑡
+                                                                                                                         𝑚 𝑘 , there is more
+noise, etc., the resource utilization information at different                                                    𝑚∈𝑀
+sites is not immediately available to the ACA unit. If all                                  Í 𝑡 slots and we call it “high
+                                                                    demand than available service
+computing sites are overloaded, service requests are rejected,      contention”. When 𝑛𝑡𝑘 ≥    𝑚 𝑘 , we call it “low contention”.
+                                                                                                 𝑚∈𝑀
+and vehicles can rebid for a maximum number of times. If the        In a dynamic environment, 𝑛𝑡𝑘 depends on utilization at 𝑡 − 1
+request is admitted but cannot be executed before deadline,         and existing demand at 𝑡. Due to noise and transmission
+
+
+
+                                                                                                                                               3
+delay in a realistic environment, this information is inaccurate           long backoff time and risky bidding. In our implementation
+and outdated when it becomes available to the ACA unit for                 (Sec.IV), 𝛼 is continuous between 0 and 1 that also indicates
+admission control (Fig.1b).                                                the length of backoff time.
+   Ideally, an auction is incentive-compatible. Unfortunately,                To further align the bidder’s objective with system overall
+with budget constraint and costs, the second-price auction con-            objective (C1), we include system resource utilization 𝛽 in the
+sidered here is no longer incentive-compatible. But we still use           utility. This incentivizes bidders to minimize system utilization.
+this type of auction as we can show (in Sec.III-B and III-C) that          Hence, the complete utility definition is:
+it maximizes social welfare and optimally allocates resources.                                      ∑︁
+We also use the payment signal as additional feedback to aid                                   𝑢𝑖 =      𝑢 𝑖,𝑘 + 𝑊 · (1 − 𝛽)              (3)
+                                                                                                           𝑘 ∈𝐾
+the bidders’ learning process (Sec.III-E).                                    𝑊 is a constant that weighs the utilization objective. In
+                    III. P ROPOSED S OLUTION                               low contention, there is adequate resource to accept all bids,
+                                                                           bidding price is less relevant, and backoff decision becomes
+   To solve the problem described in Sec.II-B, we propose
+                                                                           more important.
+DRACO, a Distributed Reinforcement-learning algorithm with
+                                                                              To calculate Eq.3, the bidder needs only these feedback
+Auction mechanism for Computation Offloading. In Sec.III-A
+                                                                           signals: bidding outcome 𝑥𝑖,𝑘 , final price 𝑝 𝑖,𝑘 and system
+we define bidder’s utility function; in III-B and III-C, we
+                                                                           utilization 𝛽, addressing C2.
+prove the existence of NE, maximization of welfare and Pareto
+optimality in the static case, under both low and high con- B. Low contention
+tentions. We introduce our algorithm for dynamic environment
+                                                                       Low contention is much more common in networking and
+in Sec.III-D and III-E. Notations are in Table I. For readability,
+                                                                    presumably also in future V2X applications as abundant re-
+we drop notation for time 𝑡 in the static case.
+                                                                    sources are often available. We show that in low contention,
+A. Utility function                                                 the interaction mechanism is a potential game with NE. We
+   In this section, we first build up the utility function based on use the concept of potential functions to do so [38]:
+the payoff of classic second-price auction. Then we add costs              Definition III.1. 𝐺 (𝐼, 𝐴, 𝑢) is an exact potential game if and
+for backoff and losing the bid, incentivizing tradeoff between             only if there exists a potential function 𝜙( 𝐴) : 𝐴 → R s.t. ∀𝑖 ∈
+higher chance of success and lower communication overhead.                 𝐼, 𝑢 𝑖 (𝑏 𝑖 , 𝑏 −𝑖 ) − 𝑢 𝑖 (𝑏 𝑖0 , 𝑏 −𝑖 ) = 𝜙𝑖 (𝑏 𝑖 , 𝑏 −𝑖 ) − 𝜙𝑖 (𝑏 𝑖0 , 𝑏 −𝑖 ), 𝑏 ∈ 𝐴.
+Finally, we add the system resource utilization goal to the
+individual utility.                                                        Remark III.1. Players in a finite potential game that jointly
+   In each auction round, if a bid 𝑖 for service type 𝑘 is                 maximize a potential function end up in NE.
+admitted, its economic gain is (𝑣 𝑖,𝑘 − 𝑝 𝑖,𝑘 ). Each bidder               Proof. See [38].                                                                     
+has a given 𝑣 𝑖,𝑘 that is 1) linear to the bidder’s estimated
+resource needs for 𝑘 and 2) within the budget. The first                   Theorem III.1. Bidders with utility as Eq.3 participate in a
+condition guarantees Pareto optimality (Corollary III.2.1); the            game as described in Sec.II-B in low contention, the game is
+second avoids overbidding under rationality (Theorem III.2).               a potential game, and the outcome is an NE.
+Our study does not consider irrational or malicious agents,          Proof. In low contention, 𝑝 𝑖,𝑘 = 0, as all bids are accepted.
+e.g., whose goal is to reduce social welfare even if individual                                             Í     Í                  
+                                                                     𝑢 𝑖 is reduced to: 𝑢 𝑖 (𝛼𝑖 , 𝛼−𝑖 ) = 𝑞 𝑖,𝑘 − 𝛼𝑖,𝑘 𝑞 𝑖,𝑘 + 𝑊 1 −
+outcome may be hurt. ACA records 𝑏 𝑗,𝑘 of the highest losing                                               𝑘      𝑘
+bid 𝑗 for each 𝑘, which is also the (𝑛 𝑘 + 1)th highest bidding      Í          𝜔𝑗                                                     |𝐾 |
+                                                                        𝑗 𝛼 𝑗 · 𝐶 , where −𝑖 denotes bidders other than 𝑖. 𝜔 𝑗 ∈ R
+price. For 𝑛 𝑘 = 1 this would be the second highest price, hence     is each bid’s resource requirement, 𝐶 is system capacity. Thus,
+the name “second-price auction”. If 𝑖 is admitted, the payment       the auction is reduced to a potential game with discrete
+𝑝 𝑖,𝑘 = 𝑏 𝑗,𝑘 is signaled back to the bidder. If 𝑖 is rejected, it                                                             Í action
+                                                                     space 𝛼𝑖 ∈ R |𝐾 | , and potential function 𝜙(𝛼𝑖 , 𝛼−𝑖 ) =     𝑞 𝑗,𝑘 −
+has a constant cost of 𝑐 𝑖,𝑘 . The bidder’s utility so far:                                                                  𝑗,𝑘
+                                                                     Í                      Í          𝜔𝑗
+           u𝑖,𝑘 = 𝑥𝑖,𝑘 · (𝑣 𝑖,𝑘 − 𝑝 𝑖,𝑘 ) − (1 − 𝑥 𝑖,𝑘 ) · 𝑐 𝑖,𝑘 (1) 𝑗,𝑘 𝛼 𝑗,𝑘 𝑞 𝑗,𝑘 + 𝑊 1 − 𝑗 𝛼 𝑗 · 𝐶 , ∀𝑖, 𝑗 ∈ 𝐼, ∀𝑘 ∈ 𝐾.
+𝑥𝑖,𝑘 = 1 means bidder wins bid 𝑖 for a service slot of service          We prove in Appendix A that 𝑢 𝑖 (𝛼𝑖 , 𝛼−𝑖 ) − 𝑢 𝑖 (𝛼𝑖0, 𝛼−𝑖 ) =
+type 𝑘, which implies 𝑏 𝑖,𝑘 is among the highest 𝑛 𝑘 bids for 𝑘. 𝜙(𝛼𝑖 , 𝛼−𝑖 ) − 𝜙(𝛼𝑖0, 𝛼−𝑖 ), and hence it is a potential game,
+Ties are broken randomly.                                            and bidders maximizing their utilities 𝑢 𝑖 also maximize the
+   We add 𝛼𝑖,𝑘 ∈ {0, 1} for backoff decision: bidder submits potential function 𝜙. Since 𝛼𝑖 ∈ R |𝐾 | , it is a finite potential
+the bid if 𝛼𝑖,𝑘 = 1, otherwise, it backs off with a cost 𝑞 𝑖,𝑘 :     game. According to Remark III.1, the outcome is an NE. 
+    𝑢 𝑖,𝑘 = 𝛼𝑖,𝑘 · (u𝑖,𝑘 − 1 𝑝𝑖,𝑘 =0 · 𝑣 𝑖,𝑘 ) + (1 − 𝛼𝑖,𝑘 ) · 𝑞 𝑖,𝑘 (2)      In low contention, our computation offloading problem be-
+  Especially in high contention, more rebidding causes com-                comes a potential game. This enables us to use online learning
+munication overhead, but less rebidding reduces the chance                 algorithms such as in [39] that converge regardless of other
+of success. With 𝑐 𝑖,𝑘 , the utility incentivizes less rebidding to        bidders’ behaviors. The NE is a local maximization of the
+reduce system-wide communication overhead (C1). Together                   potential function: each bidder finds a balance between its
+with 𝑞 𝑖,𝑘 , the bidder is incentivized to trade off between               backoff cost and the incentive to reduce overall utilization.
+
+
+
+                                                                                                                                                                 4
+   𝑋𝑚𝑡−1
+         =(sl𝑡−ν+1 ,…,sl𝑡−1
+                        𝑚 ),
+                                   SL                                     𝑡 1-η
+                                                                                   Algorithm 1 FSP algorithm for bidder 𝑚
+             𝑚
+                                          Behavioral strategy            𝜓𝑚
+            𝑡−ν+1
+   𝑌𝑚𝑡−1 =(𝑎𝑚     ,…, 𝑎𝑚𝑡−1
+                            ),sl𝑡𝑚                                                                                                           𝑡−1 = 0, 𝑢 𝑡−1 = 0,
+                                                                                    1: Initialize 𝜓 𝑚 , 𝜁 𝑚 arbitrarily, 𝑡 = 1, 𝜂 = 1/𝑡, 𝜈, 𝑃−𝑚         𝑚
+                                   RL                                                  observe 𝑒 𝑡𝑚 , create rl𝑡𝑚 , sl𝑡𝑚 and add to memory
+                                                                         ζ𝑡𝑚   η    2: while true do
+                                     Actor: best response policy
+           𝑡                                                         δ              3:   Take action a𝑡𝑚 = (1 − 𝜂)𝜓 𝑚    𝑡 + 𝜂𝜁 𝑡
+          𝑆𝑚 =(rl𝑡−ν+1
+                 𝑚     ,…,rl𝑡𝑚 )                                                                                                𝑚
+                                                                                                    𝑡 , calculate 𝑢 𝑡 , observe 𝜌 𝑡+1 , e𝑡+1
+                                                                                    4:   Receive 𝑃𝑚                   𝑚             𝑚    𝑚
+                                     Critic: value func. estimator                  5:   Create and add state to RL memory: rl𝑡+1     𝑚
+                                                                         Action     6:   Create and add state to SL memory: (sl𝑡+1           𝑡
+                                                                                                                                       𝑚 , a𝑚 )
+                               𝑡
+                 rl𝑡𝑚 =(ρ𝑡𝑚 , 𝑒𝑚    𝑡−1
+                                 , 𝑃−𝑚     𝑡−1
+                                        , 𝑢𝑚   )                            𝑡
+    RL memory                                              𝑡
+                                                   reward 𝑢𝑚              𝑎𝑚        7:   Construct 𝑆 𝑡𝑚 , 𝑆 𝑡+1
+                                                                                                            𝑚   , calculate 𝜁 𝑡+1 = RL(𝑆 𝑡 , 𝑆 𝑡+1 , 𝑢 𝑡 )
+                                                                                                                              𝑚          𝑚 𝑚           𝑚
+                                                                                    8:   Calculate 𝜓 𝑚𝑡+1 = SL(sl𝑡+1 )
+                                                                                                                     𝑚
+    SL memory sl𝑡 =(ρ𝑡 , 𝑒 𝑡 ), 𝑎𝑡           Environment                            9:   𝑡 ← 𝑡 + 1, 𝜂 ← 1/𝑡
+                   𝑚     𝑚    𝑚     𝑚
+                   Figure 2: RL and SL algorithms                                  10: end while
+
+Empirical results in Sec.IV confirm that over time this results action includes backoff decision 𝛼 and bidding price 𝑏. If 𝛼 is
+in a more balanced load.                                         above a threshold, the bidder submits the bid; otherwise, the
+                                                                 bidder backs off for a duration linear to 𝛼. We predefine the
+C. High contention                                               threshold to influence bidder behavior: with a higher threshold,
+   In high contention, 𝛼 is used in a repeated auction to avoid the algorithm becomes more conservative and tends to back
+congestion and ensure better reward over time. To simplify the off more service requests. A learned threshold (e.g., through
+proofs, we consider only the time steps where 𝛼 = 1 (bidder meta-learning algorithms) is left to future work.
+joins auction). We also take a small enough 𝑊, such that the        Although FSP is only convergent in certain classes of games
+last term in Eq.3 can be omitted in high contention, to further  [40],   and in our case of a multi-player, general-sum game with
+simplify the utility function in the proof.                      infinite  strategies, it does not necessarily converge to an NE,
+                                                                 it is still an important experiment as our application belongs
+Theorem III.2. In a second-price auction, where bidders with to a very general class of games; and empirical results show
+utility as Eq.3 compete for service slots as commodities in high that by applying FSP, overall performance is greatly improved
+contention, 1) bidders’ best-response is of linear form, 2) the compared to using only RL. The FSP is described in Alg.1.
+outcome is an NE and 3) welfare is maximized.                       Input to SL includes bidder 𝑚’s service requests—
+                                                                 service    type, resource amount required, and deadline: 𝜌 𝑚             𝑡 =
+Proof. See Appendix B.                                         
+                                                                 {(𝑘 𝑖 , 𝜔𝑖,ℎ , 𝑄 𝑖 )|𝑖 ∈ 𝐼, ℎ ∈ 𝐻} (𝑚 can create multiple bids, each
+                                                                                                                          𝑡 is the set of
+   When bidders bid for service slots, the required resources an independent request for service type 𝑘 𝑖 ; 𝜌 𝑚
+are allocated. Theorem III.2 guarantees the maximization of all 𝑚’s bids at 𝑡), and current environment information visible
+welfare (total utility of bidders), but it does not guarantee to 𝑚, denoted 𝑒 𝑡𝑚 (e.g., number of bidders in the network and
+the optimality of the resource allocation, unless the following system utilization 𝛽𝑡 ). SL infers behavioral strategy 𝜓 𝑚            𝑡 . The
+                                                                           𝑡
+conditions are met: if bidders’ valuation of the commodity is input sl𝑚 = (𝜌 𝑚 , 𝑒 𝑚 ) and actual action a𝑚 are stored in SL
+                                                                                       𝑡   𝑡                        𝑡
+
+linear to its resource requirement, and all bidders have some memory to train the regression model. we use a multilayer
+access to resources (fairness).                                  perceptron in our implementation.
+                                                                    Input to RL is constructed from 𝑚’s present state rl𝑡𝑚 . rl𝑡𝑚
+Corollary III.2.1. In a second-price auction, where 𝑀 bidders                       𝑡 ; 2) 𝑒 𝑡 ; 3) previous other bidders’ state 𝑃 𝑡−1 ,
+                                                                 includes 1) 𝜌 𝑚             𝑚                                             −𝑚
+with utility as Eq.3 compete in high contention, the outcome
+                                                                 represented by the final price 𝑝 𝑘 , or 𝑃−𝑚    𝑡   = p𝑡 = {𝑝 𝑡𝑘 |𝑘 ∈ 𝐾 };
+is an optimal resource allocation, if the bidders’ valuation of
+                                                                 and 4) calculated utility 𝑢 𝑡−1   𝑚 according to Eq.3. To consider
+commodities is linear to resource requirement and all bidders
+                                                                 historical records, we take 𝜈 most current states to form the
+have a positive probability of winning.                                                                      𝜏
+                                                                 complete state input to RL: 𝑆 𝑡𝑚 = {rl𝑚       |𝜏 = 𝑡 − 𝜈 + 1, · · · , 𝑡}. RL
+Proof. See Appendix C.                                          outputs best response 𝜁 𝑚 (Fig.2). The input consists of bidder’s
+                                                                 private information and easily obtainable public information,
+   Our setup meets both conditions.                              e.g., environment data and past prices, thus addressing C2.
+D. The FSP algorithm                                                               E. The RL algorithm
+   The FSP algorithm addresses the convergence challenge of                           Authors of [41] use VCG and a learning algorithm for the
+a best-response algorithm (C3). FSP balances exploration and                       bidders to adjust their bidding price based on budget and
+exploitation by replaying its own past actions to learn an aver-                   observation of other bidders. Our approach is similar in that we
+age behavioral strategy regardless of other bidders’ strategies;                   estimate other bidders’ state 𝑃−𝑚 from payment information
+then it cautiously plays the behavioral strategy mixed with best                   and use the estimate as basis for a policy. Also, similar to their
+response [28]. The method consists of two parts: a supervised                      work, payment information is only from the seller.
+learning (SL) algorithm predicts the bidder’s own behavioral                          Our approach differs from [41] in several major points. We
+strategy 𝜓, and an RL algorithm predicts its best response                         use a continuous space for bidder states (i.e., continuous value
+𝜁 to other bidders. The bidder has 𝜂, lim 𝜂 = 0 probability                        for payments). As also mentioned in [41], a finer-grained state
+                                          𝑡→∞
+of choosing action a = 𝜁, otherwise it chooses a = 𝜓. The                          space yields better learning results. Moreover, we consider
+
+
+
+                                                                                                                                                              5
+Algorithm 2 RL algorithm for bidder 𝑚                                                                                             D+R
+                                                                                                                                          0.30
+
+
+                                                                                                                                  RIAL                         0.8
+ 1: Initialize 𝜃, 𝑤 arbitrarily. Initialize 𝜆
+ 2: while true do                                                                                                                                              0.7
+
+
+
+
+                                                                        failure rate by time
+ 3:    Input 𝑡 and 𝑆 𝑡𝑚 , 𝑆 𝑡+1
+                            𝑚 constructed from RL memory
+
+
+
+
+                                                                                                                                                 utilization
+                                                                                                                                          0.20                 0.6
+ 4:    Run critic and get 𝑉ˆ (𝑆 𝑡𝑚 , w), 𝑉ˆ (𝑆 𝑡+1
+                                               𝑚 , w)
+                                                                                                                                                               0.5
+ 5:    Calculate 𝑢¯ 𝑚 = 𝜆𝑢¯ 𝑚 and 𝛿 (utility 𝑢 is reward 𝑅)
+ 6:    Run actor and get 𝜇(𝜃), Σ(𝜃)                                                                                                                            0.4
+
+ 7:    Sample 𝜁 𝑚 𝑡+1 from 𝐹 (𝜇, Σ), update w and 𝜃
+                                                                                                                                                               0.3
+ 8: end while                                                                                  0   1   2   3      4   5   6   7       8                              7700   7800          7900   8000
+                                                                                                               step                ×103                                            step
+
+multiple commodity/service types, which is more realistic, and
+                                                                           (a) DRACO reduces the overall of- (b) DRACO learns to better utilize
+therefore has a wider range of applications. Further, we do                floading failure rate.            resource in remote computing site.
+not explicitly learn the transition probability of bidder states.              Figure 3: OFR and resource utilization, capacity=60, MP=1
+Instead, we use historical states as input and directly determine
+the bidder’s next action.                                               and edge computing site, and one remote computing site
+   We use the actor-critic algorithm [42] for RL (Alg.2). The           (extention to multiple ACA units and computing sites is left
+critic learns a state-value function 𝑉 (𝑆). Parameters of the           to future work). The edge and remote sites have different
+function are learned through a neural network that updates              resource profiles. To imitate a realistic, noisy environment,
+with w ← w + 𝛾 𝑤 𝛿∇𝑉ˆ (𝑆, w), where 𝛾 is the learning rate and          the remote site is some distance to the ACA unit, such that
+𝛿 is the temporal difference (TD) error. For a continuing task          data transmission would cause non-negligible delay in state
+with no terminal state, the average reward is used to calculate         information update. We also add a small, normally distributed
+𝛿 [42]: 𝛿 = 𝑢 − 𝑢¯ + 𝑉ˆ (𝑆 0, w) − 𝑉ˆ (𝑆, w). In our case, the reward   noise to this delay, as well as to the actual resource required
+is utility 𝑢. We use exponential moving average (with rate 𝜆)           for a service. Each vehicle is randomly and independently ini-
+of past rewards as 𝑢. ¯                                                 tialized with a budget of “high” or “low” with 50% probability.
+   The actor learns the parameters of the policy 𝜋 in a multidi-        For the operating-side load-balancing policy, we apply state-
+mensional and continuous action space. Correlated backoff and           of-the art resource-intensity-aware load-balancing (RIAL) [45]
+bidding price values are assumed to be normally distributed:            with slight modifications. The method achieves dynamic load-
+𝐹 (𝜇, Σ) = √1 exp(− 21 (x − 𝜇)𝑇 Σ−1 (x − 𝜇)). For faster calcu-         balancing among computing sites through resource pricing
+              |Σ |
+                                                                        that is correlated to the site’s load, and loads are shifted to
+lation, instead of covariance Σ, we estimate lower triangular
+                                                                        “cheaper” sites. Finally, we compare the performance of active
+matrix 𝐿 (𝐿𝐿𝑇 = Σ). Specifically, the actor model outputs the
+                                                                        agents (DRACO on the user side, RIAL on the operating side,
+mean vector 𝜇 and the elements of 𝐿. Actor’s final output 𝜁 is
+                                                                        or D+R) to passive agents (only RIAL on the operating side),
+sampled from 𝐹 through: 𝜁 = 𝜇+𝐿y, where y is an independent
+                                                                        as shown in Fig.1b.
+random variable from standard normal distribution. Update
+                                                    ln 𝐹                   We test our approach in two steps. First, we comprehensively
+function is 𝜃 ← 𝜃 + 𝛾 𝜃 𝛿∇ ln 𝜋(a|𝑆, 𝜃). We use 𝜕𝜕𝜇      = Σ(x− 𝜇)
+     𝜕 ln 𝐹    1
+                                                                        study the performance of active agents in a synthetic setup
+and 𝜕Σ = 2 (Σ(x − 𝜇) (x − 𝜇) Σ − Σ) for back-propagation.
+                                  𝑇
+                                                                        with randomized inputs and a wide range of environment
+   The objective is to find a strategy      that, given input 𝑆 𝑡𝑚 ,    parameters. Then, we choose a realistic scenario, a 4-way
+                                             0
+determines a to maximize 𝑇 1−𝑡 E[ 𝑇𝑡0 =𝑡 𝑢 𝑡𝑚 ]. To implement the
+                                     Í
+                                                                        traffic intersection with realistic mobility model for vehicles
+actor-critic RL, we use a stacked convolutional neural network          and with incoming service requests modeled after specific V2X
+(CNN) with highway [43] structure similar to the discriminator          applications, to show the generalization properties of DRACO.
+in [44] for both actor and critic models. The stacked-CNN has           We evaluate the following metrics:
+diverse filter widths to cover different lengths of history and ex-        • Offloading failure rate (OFR): Ratio of failed offloading
+tract features, and it is easily parallelizable, compared to other            requests rejected by ACA or not executed before deadline.
+sequential networks. Since state information is temporally                 • Resource utilization: Ratio of resources effectively uti-
+correlated, such a sequential network extracts features better                lized at computing sites.
+than multilayer perceptrons. The highway structure directs                 • Rebidding overhead: If a bid is rejected before deadline,
+information flow by learning the weights of direct input and                  the vehicle can bid again. More rebidding causes commu-
+performing non-linear transform of the input.                                 nication overhead, but less rebidding reduces the chance
+   In low contention, authors of [39] prove that an actor-critic              of success. We study this tradeoff, comparing the average
+[42] RL algorithm converges to NE in a potential game. In                     number of actual rebiddings per vehicle within maximum
+high contention, although we prove the existence of an NE in                  permitted-rebidding (MP).
+the static case, the convergence property of our algorithm in a
+stochastic game is not explicitly analyzed. We show it through A. Synthetic setup
+empirical results in Sec.IV.                                            In this setup, we cover a wide range of hypothetical scenar-
+                                                                     ios by varying parameters such as system capacity, service/task
+                         IV. E VALUATION                             types and number of rebidding:
+   We develop a Python discrete-event simulator, with varying           • Task types by resource needs in time-resource units: F1:
+number of vehicles of infinite lifespan, one MEC with ACA                  3 units, and F2: 30 units.
+
+
+
+                                                                                                                                                                                                    6
+                                                        D+R,MP=1                       200                                                                               5
+                                                                                                     D+R, MP=1                                                                                                                                                                                                      RIAL
+failure rate
+
+                                                        RIAL,MP=1
+
+
+
+
+                                                                            capacity
+                                                                      0.1                            RIAL, MP=1                                                                                                                                               0.8                                                   D+R
+
+
+
+
+                                                                                                                                                    rebidding overhead
+                                                                                                                                                                         4
+                                                                                       100                                                                                                                                                                    0.6
+                                                                                                                                                                         3
+
+
+
+
+                                                                                                                                                                                                                                                utilization
+                                                                      0.0
+
+
+                                                                                                                                                                         2                                                                                    0.4
+                                                        D+R,MP=5                                     D+R, MP=5
+                                                                                       100
+failure rate
+
+
+
+
+                                                        RIAL,MP=5     0.1
+
+
+
+
+                                                                            capacity
+                                                                                                     RIAL, MP=5
+                                                                                                                                                                         1                                                                                    0.2
+                                                                                        80
+
+                                                                      0.0
+                                                                                                                                                                         0                                                                                    0.0
+                                                                                        60
+                50            100         150           200                                  0.1       0.08       0.06      0.04      0.02                                   50               70   90    110    130    150     170    190                                     50 60 70 80 90 110 130 150 170 190 210 230
+                                      capacity                                                                   failure rate                                                                              capacity                                                                            capacity
+
+  (a) D+R reduces OFR by 40%, (b) D+R needs less resource for (c) Rebidding overhead vs capacity, (d) Resource utilization, MP=1. DRACO
+  achieves 1% OFR in low con- same OFR (e.g., 2% failure and MP=5. Overhead reduces by 32% on better utilizes resource by 18% in high
+  tention; RIAL OFR only reaches MP=1, 38% less resource needed). average.                        contention.
+  2%.
+Figure 4: (a): OFR vs capacity, (b): required capacity to reach OFR≤ 10%, (c): rebidding overhead, (d): utilization by capacity
+                                         budget = low                                                           budget = high
+               1.0                                                                                                                                                                           30                                                                              30                                 low price
+                                                                                              D+R                                                                                                                                                                                                               high price
+                                                                                              RIAL
+               0.8                                                                                                                                                                                                                                                           25
+
+
+
+
+                                                                                                                                                                              backoff time
+
+
+
+
+                                                                                                                                                                                                                                                              backoff time
+                                                                                                                                                                                             25
+               0.6
+                                                                                                                                                                                                                                                                             20
+CDF
+
+
+
+
+               0.4
+                                                                                                                                                                                             20                                                                              15
+               0.2
+                                                                                                                                                                                                                                                                             10
+               0.0
+                                                                                                                                                                                             15
+                0.00   0.05    0.10   0.15    0.20    0.25    0.30   0.35     0.40
+                                                                                0.00         0.05    0.10     0.15    0.20    0.25   0.30    0.35   0.40                                                                                                                      5
+                                          failure rate                                                            failure rate                                                                      long deadline              short deadline                                     50      60       70      80       90
+                                                                                                                                                                                                                    deadline                                                                    capacity
+
+
+
+Figure 5: CDF of individual OFRs (capacity=70, MP=1):                                                                                                                             (a) Capacity=50, MP=5, backoff vs.                                              (b) MP=5, long deadline, high con-
+                                                                                                                                                                                  price tradeoff: for all deadlines, ve-                                          tention: backoff time decreases with
+DRACO reduces individual OFRs.                                                                                                                                                    hicles that bid low (high) use long                                             higher capacity, but the tradeoff with
+                                                                                                                                                                                  (short) backoff.                                                                price remains.
+                 • Service types by deadline and probability: F1, 300ms:
+                                                                                                                                                                                             Figure 6: Backoff and price tradeoff
+                   18.75%; F1, 50ms: 18.75%; F2, 300ms: 6.25%; F2, 50ms:
+                   6.25%; F1-F2, 300ms: 18.75%; F1-F2, 50ms: 18.75%;                                                                                                          that DRACO significantly reduces OFR (on average 40%
+                   F2-F1, 300ms: 6.25%; F2-F1, 50ms: 18.75%.                                                                                                                  reduction), especially when MP is low. In low contention,
+                 • Service arrival rate per vehicle: randomized according to
+                                                                                                                                                                              i.e., capacity≥ 100, by efficient use of resource, D+R achieves
+                   a two-state Markov modulated Poisson process (MMPP)                                                                                                        the same level of OFR with much less resource (Fig.4b). The
+                   [46], with 𝜆high ∈ (0.48, 0.6), 𝜆low ∈ (0, 0.12) and transi-                                                                                               improvement becomes more significant as OFR decreases. In
+                   tion probabilities 𝑝 high = 𝑝 low = 0.6.                                                                                                                   particular, D+R reaches 1% OFR with much less resource
+                 • Capacity: 50-230 resource units.
+                                                                                                                                                                              compared to RIAL regardless of MP.
+                 • Maximum permitted rebidding: 1 or 5 times, respectively.
+                                                                                                                                                                                 We also observe that higher MP reduces D+R’s advantage
+                 • Vehicle count: constant at 30.
+                                                                                                                                                                              over RIAL. This result is to be expected: when more rebid-
+                 • Vehicle arrival rate: 0, always in the system; speed: 0.
+                                                                                                                                                                              ding is permitted, low OFR can be achieved by trial-and-
+                 • Data size: uniform random between 2.4-9.6kbit.
+                                                                                                                                                                              error, limiting the advantage of DRACO’s backoff strategy.
+                 • Uplink and downlink latency: 0.
+                                                                                                                                                                              However, trial-and-error comes with a cost: Fig.4c compares
+                                                                                                                                                                              the rebidding overhead used by both algorithms when MP=5.
+   Fig.3a shows a training example where D+R’s OFR is 14%                                                                                                                     In high contention, both active and passive agents leverage
+compared to RIAL’s 20% at the end of training, or a reduction                                                                                                                 on rebidding, and the difference in rebidding overhead is
+of 30%. The lines are the mean OFR of serveral simulation                                                                                                                     small. D+R’s advantage becomes more significant as capacity
+runs, and the shaded area marks the standard deviation. Fig.3b                                                                                                                increases. The box plot shows the median (line), mean (dot),
+shows where the learning is most useful. We depict the remote                                                                                                                 1st to 3rd quartiles (box), and data range (whiskers). D+R
+site’s resource utilization. Since the ACA unit’s information of                                                                                                              imposes on average 32% lower rebidding overhead.
+site utilization is delayed, with only RIAL, the site is either                                                                                                                  To validate our findings in Fig.3b, we compare resource
+over-utilized or starved, in distinctive cycles (dotted line).                                                                                                                utilization under different capacities. Fig.4d shows the remote
+When the vehicles learn with DRACO, they achieve better                                                                                                                       site’s utilization when MP=1. In high contention, the increase
+utilization (solid line).                                                                                                                                                     in utilization is up to 18%—when capacity is limited, D+R
+   Overall OFR in all parameter settings is shown in Fig.4a.                                                                                                                  achieves lower OFR through more efficient resource usage.
+Evaluation data is collected from additional evaluation runs                                                                                                                  In low contention, capacity is less critical, active and passive
+after the models are trained, with random incoming service                                                                                                                    agents result in similar utilization. Regardless of capacity level,
+requests newly generated by the MMPP. Besides requests                                                                                                                        D+R reduces the standard deviation in utilization by up to 21%.
+that are not admitted by the ACA unit, the failure rate also                                                                                                                     Fig.5 shows the cumulative probability of vehicles’ indi-
+includes requests that are admitted, but cannot be executed                                                                                                                   vidual OFRs. With DRACO, as system overall OFR reduces,
+by the operating side before deadline (reliability). We observe                                                                                                               the individual OFRs reduce accordingly: the auction does not
+that with D+R, reliability is 99% and consistently higher                                                                                                                     cause disadvantage to individual vehicles. Moreover, vehicles
+than with RIAL for all results in the paper. We also observe                                                                                                                  with lower budget improve by a greater margin: they learn to
+
+
+
+                                                                                                                                                                                                                                                                                                                             7
+                                                                           0.30                                                                                                                                                                                                  0.28
+                                                                                                                                        D+R                             30                                                                                               D+R
+                                                                                                                                                                                                                                                                                 0.26
+                                                                           0.20                                                         RIAL    0.1                                                                                                                      RIAL
+                                                                                                                                                0.09
+                                                                                                                                                                        28
+                                                                                                                                                                                                                                                                                 0.24
+                                                                                                                                                0.08
+                                                                                                                                                                        26
+
+
+
+
+                                                                                                                                                                                                                   failure rate by time
+                                                                                  failure rate by time
+ failure rate by time
+
+
+
+
+                                                                           0.1                                                                                                                                                                                                   0.22
+
+
+
+
+                                                                                                                                                        vehicle count
+                                                                                                                                                0.07
+                                                                           0.09
+                                                                           0.08                                                                                         24
+                                                                           0.07                                                                 0.06
+                                                                                                                                                                                                                                                                                 0.20
+                                                                           0.06
+                                                                           0.05                                                                 0.05
+                                                                                                                                                                        22
+                                                                           0.04                                                                                                                                                                                                  0.18
+                                                                                                                                                                        20
+                                                                           0.03                                                                 0.04
+
+                                                                                                                                                                        18                                                                                                       0.16
+                                                                           0.02
+                                                                                                                                                0.03                    16
+                                                                                                                                                                                                                                                                                 0.14
+
+                                                                           0.01                                                                                         14
+                                                                           0.01
+
+                        0   25   50   75   100    125   150   175    200                                 0   20   40          60   80    100                                 0   20   40          60   80    100                          0   20   40          60   80    100
+                                           step                     ×103                                               step              ×103                                              step             ×103                                        step              ×103
+
+
+
+(a) Training env.: low contention with abundant resource, traffic                                                                                      (b) Test env.: high contention with limited resource, traffic phase=20s,
+phase=10-40s, low vehicle speed(10km/h), low arrival rate=(1/2.2s),                                                                                    high vehicle speed(30km/h), high arrival rate(1/1s), high variation in
+low variation in vehicle count(22-30): OFR in training(left) and evalu-                                                                                vehicle count(14-30): vehicle count over time(left) and OFR(right).
+ation(right).
+                            Figure 7: Offloading failure rate (OFR) in training and test environments
+utilize backoff mechanism to overcome their disadvantage in          • Capacity: 20 in high contention, 30 in low contention.
+initial parameterization. Fig.6a shows how vehicles learn to         • Maximum permitted rebidding: 1.
+trade off between bidding price and backoff time. They are           • Vehicle count: 14-30 from simulated trace data.
+separated into two groups: a vehicle is in the “low price”           • Vehicle arrival rate: constantly at 1 every 1 or 2.2 seconds;
+group if it bids on average lower than the average bidding             speed: 10 or 30 km/h when driving.
+price of all vehicles; otherwise, it is in the “high price”          • Data size: uplink: F1: 0.4Mbit, F2: 4Mbit. Downlink: F1:
+group (here we analyze actual bidding prices instead of the            0 (negligible), F2: 0.4Mbit.
+predefined budgets). When service requests have a longer             • Latency: we take 802.11ac protocol that covers a radius
+deadline, vehicles in both price groups learn to utilize longer        of 65 meters, and assume maximum channel width of ca.
+backoff. Regardless of the service request deadline, “low price”       1.69 Gbps. We model the throughput as a function of
+vehicles always use longer backoff in their bidding decisions,         distance to the ACA unit: throughput=−26 × distance +
+compared to the “high price” group. Fig.6b demonstrates the            1690 Mbps [51]. If there are 𝑁 vehicles transmitting data
+tradeoff effect with increasing capacity. As capacity increases,       to the ACA unit, we assume that each gets 1/𝑁 of the
+backoff time decreases, but the tradeoff is present in all cases.      maximum throughput at that distance.
+   To summarize: Fig.3 and 4 demonstrate DRACO’s excellent          For training, we set the traffic light phases to 10-40s of green
+overall system performance. More importantly, Fig.5 shows for each direction, alternatively. We train our active agents with
+that system objective is aligned with individual objectives DRACO in low contention. Fig.7a-left shows convergence to
+through incentivization (C1), and Fig.6 demonstrates where OFR of 2%. Then we evaluate the trained models in the same
+our approach fundamentally differs from previous approaches: environment with newly simulated trace data from SUMO,
+differently initialized agents learn to select the most advan- our approach still reaches OFR of 4% and outperforms RIAL
+tageous strategy based on limited feedback signal (C2). The (Fig.7a-right). All simulations are repeated several times to
+capability to learn and behave accordingly makes our agents take randomness into account.
+highly flexible in a dynamic environment. Finally, Fig.3a shows     Finally, we test our trained models in a significantly different
+good convergence speed despite computation and communica- environment, changing traffic light phases, vehicle arrival rate
+tion complexity of the problem (C3).                              and speed to make the environment more volatile and dynamic,
+                                                                  and reducing capacity to create a high-contention situation.
+B. Realistic setup                                                The resulting vehicle count over time (Fig.7b-left) shows a
+   In this setup, we adopt the data patterns of segmentation much heavier and more frequent fluctuation compared to the
+and motion planning applications extracted from various self- training environment. Note that vehicle count and OFR do
+driving data projects [47] or referenced from relevant studies not vary synchronously—OFR is determined by vehicle count
+[48] [49]. We also use Simulation of Urban Mobility (SUMO) and numerous other complicating factors such as transmission,
+[50] to create a more realistic mobility model of a single queueing and processing time, past utilization, etc. Despite the
+junction with a centered traffic light; the junction is an area significant changes to the environment, D+R still outperforms
+downloaded from open street map. Assuming 802.11ac proto- RIAL, reaching low OFRs in high contention without requiring
+col, we place the ACA unit in the middle of the graph and any further training (Fig.7b-right). It shows that DRACO
+limit the edges to within 65m of the ACA. The net is with has very good generalization properties—in fact, in the more
+two lanes per street per direction, SUMO uniform-randomly volatile and dynamic environment, the superiority of active
+creates a vehicle at any one of the four edges.                   agents becomes more obvious.
+   Parameters of the setup are as follows [47]–[49]:
+                                                                                        V. R ELATED W ORK
+   • Task types: F1: 80 units, and F2: 80 units.
+   • Service types and deadline: F1: 100ms and F2: 500ms.           Centralized approaches such as [20], [21] for resource allo-
+   • Service arrival rate per vehicle: fixed at F1: every 100ms, cation, and [14], [52], [53] for offloading, are suited to core-
+      and F2: every 500ms.                                        network and data-center applications, when powerful central
+
+
+
+                                                                                                                                                                                                                                                                                        8
+                                                                                                                                              𝑊 (𝐵𝑖0 +𝐵−𝑖 )
+                                                                                    𝜙(𝛼𝑖0, 𝛼−𝑖 ) =           𝑄 𝑗 − ( 𝐴𝑖0 + 𝐴−𝑖 ) + 𝑊 −
+                                                                                                        Í
+ACA can be set up, and data can be relatively easily obtained.                                                                                    𝐶         ,   which
+                                                                                                         𝑗
+They are not the focus of our study.
+   Previous studies of decentralized systems address some                           implies 𝑢 𝑖 (𝛼𝑖 , 𝛼−𝑖 ) − 𝑢 𝑖 (𝛼𝑖0, 𝛼−𝑖 ) = −( 𝐴𝑖 − 𝐴𝑖0) − 𝑊        0
+                                                                                                                                               𝐶 (𝐵𝑖 − 𝐵𝑖 ) =
+                                                                                                        0
+                                                                                    𝜙(𝛼𝑖 , 𝛼−𝑖 ) − 𝜙(𝛼𝑖 , 𝛼−𝑖 ).                                            
+of the issues in centralized approaches. [54], [55] propose
+distributed runtime algorithm to optimize system goals, but                                                   A PPENDIX B
+disregard user preferences. [56]–[58] only consider cooperative                                      S ECOND - PRICE AUCTION
+resource-sharing or offloading. [22], [23], [59] require com-                          Under high contention, as defined in Sec.III-A, 𝑢 𝑖 is reduced
+plete information to compute the desired outcome. [60] only                         to:         ∑︁                                                 
+considers discrete actions. [19] learns with partial information,                          𝑢𝑖 =      𝑥 𝑖,𝑘 · (𝑣 𝑖,𝑘 − 𝑝 𝑖,𝑘 ) − (1 − 𝑥𝑖,𝑘 ) · 𝑐 𝑖,𝑘   (4)
+but it reduces complexity by assuming single service type and                                        𝑘 ∈𝐾
+arrival rate. Our approach also differs from [41] as we consider       We prove the theorem for |𝑀 | = 2 and |𝐾 | = 1, extension
+a multi-dimensional continuous action space with multiple          to other settings is straightforward. Our proof is an extension
+service types, and both cooperative and competitive behaviors.     from [65]. Unlike [65], we include in utility the second-price
+   Besides the previously mentioned decentralized learning         payment and cost for losing a bid. Based on [65], it can also
+algorithms [25]–[28] for a dynamic environment, independent        be extended to multiple bidders.
+                                                                       2 bidders receive continuously distributed valuations 𝑣 𝑖 ∈
+learner methods [61] are used to reduce modeling and compu-
+                                                                   [𝑙 𝑖 , 𝑚 𝑖 ], 𝑖 ∈ {1, 2} for 1 commodity, and choose their strategies
+tation complexity, but they fail to guarantee equilibrium [62],
+                                                                    𝑓1 (𝑣 1 ), 𝑓2 (𝑣 2 ) from the strategy sets 𝐹1 and 𝐹2 . The resulting
+and have overfitting problems [63]. Finally, federated learning
+                                                                   NE strategy pair is ( 𝑓1∗ , 𝑓2∗ ). Any strategy function 𝑓 (𝑣) is
+[64] is not applicable, as it provides a logically centralized
+                                                                   increasing in 𝑣, with 𝑓1 (𝑙 1 ) = 𝑎, and 𝑓1 (𝑚 1 ) = 𝑏. We assume
+learning framework.
+                                                                   users have budgets (𝐵1 , 𝐵2 ), and that they cannot bid more
+                        VI. C ONCLUSION                            than the budget. We define cost for losing the bid 𝑐 𝑖 .
+                                                                       We formulate the problem into a utility maximization prob-
+   Our algorithm learns how to best utilize backoff option lem: max 𝑢 ( 𝑓 , 𝑓 ). We say 𝑓 is a best response of bidder
+                                                                                            2 1 2                       2
+based on its initialization parameters. As a result, the algorithm          𝑓2 ∈𝑆2 ( 𝑓1 )
+                                                                                                           0          0
+achieves significant performance gains and very good gener- 2, if 𝑢 2 ( 𝑓1 , 𝑓2 ) ≥ 𝑢 2 ( 𝑓1 , 𝑓2 ), ∀ 𝑓2 ∈ 𝑆2 ( 𝑓1 ). A NE strategy pair
+                                                                        ∗    ∗
+alization properties. Our interaction mechanism aligns private ( 𝑓1 , 𝑓2 ) has the strategies as each other’s best responses.
+and system goals without sacrificing either user autonomy or Theorem B.1. Given bidder 1’s bidding strategy 𝑓1 ∈
+system-wide resource efficiency, despite the distributed design 𝐹1 , 𝑓1 (𝑙 1 ) = 𝑎 1 , 𝑓1 (𝑚 1 ) = 𝑏 1 , bidder 2’s best response has the
+with limited information-sharing.                                              𝑓 (𝑣 ) ≤ 𝑎 1                      for 𝑣 2 ∈ [𝑙 2 , 𝜃 1 ]
+                                                                             2 2
+                                                                            
+                                                                            
+   We assume there is no “malicious” agent with the goal to                 
+                                                                   form 𝑓2 (𝑣 2 ) = 𝑗 2 · 𝑣 2 + 𝑑2 for 𝑣 2 ∈ [𝜃 1 , 𝜃 2 ] , where 𝜃 1 , 𝜃 2 ∈
+reduce social welfare or attack the system. In general, agents              
+                                                                             𝑓2 (𝑣 2 ) ≥ 𝑏 1
+                                                                            
+                                                                                                                  for 𝑣 2 ∈ [𝜃 2 , 𝑚 2 ]
+with heterogeneous goals is left to future research. In V2X, all            
+devices are potential computing sites; offloading between any      [𝑙 2 , 𝑚  2 ]  and     𝑗 2 𝜃 1 + 𝑑 2 = 𝑎 1 , 𝑗 2 𝜃 2 + 𝑑2 = 𝑏 1 .
+devices should be considered. Long-term effect of decisions—                          Theorem B.1 implies that the best response of bidder 1 and
+e.g. if unused budget can be saved for the future, is also an                       2 are both of the linear form. Using the new best responses
+interesting topic. How initialization and predefined parameters                     function, we similarly extend the proof of the NE outcome
+affect agent behavior and the algorithm’s convergence property,                     and welfare maximization to suit our case. Detailed proof is
+needs to be studied in detail.                                                      provided in supplemental meterial [29].
+
+                                  A PPENDIX A                                                                           A PPENDIX C
+                         P ROOF OF POTENTIAL GAME                                                                   PARETO     OPTIMALITY
+
+Proof. We define player 𝑖’s utility as 𝑢 𝑖 (𝛼𝑖 , 𝛼−𝑖 ) =
+                                                                                 Í
+                                                                                     𝑞 𝑖,𝑘 −     Valuation of the service request is a linear function of the
+                               Í                                              𝑘 ∈𝐾          resource needed: 𝑣 1 = 𝑔1 𝜔1 + 𝑘 1 , 𝑣 2 = 𝑔2 𝜔2 + 𝑘 2 , 𝑔, 𝑘 are
+                                     𝛼 𝑗 ·𝜔 𝑗
+                                                 , where 𝜔 𝑗 ∈ R𝐾 is the resource constants, 𝜔 is amount of resource required. The allocation rule
+ Í
+       𝛼𝑖,𝑘 𝑞 𝑖,𝑘 +𝑊 1 − 𝑗 𝐶
+𝑘 ∈𝐾                                                                                          under NE is: 𝐴∗𝑣1 ,𝑣2 = 1, if 𝑗 1 𝑣 1 + 𝑑1 ≥ 𝑗 2 𝑣 2 + 𝑑2 , otherwise 2.
+requirement of each commodity, 𝐶 is the system capacity.
+                                                                             Í                Form of the condition is from best response form in appendix
+   We define potential function: 𝜙(𝛼𝑖 , 𝛼−𝑖 ) =                                      𝑞 𝑗,𝑘 −
+                                                                         𝑗 ∈𝐼 ,𝑘 ∈𝐾           Sec.B. We also assume that both bidders have at least some
+                                         Í             
+    Í
+            𝛼 𝑗,𝑘 𝑞 𝑗,𝑘 + 𝑊 1 −              𝑗 𝛼 𝑗 ·𝜔 𝑗
+                                                          .                                   access to the resources, as a form of fairness. We define the
+𝑗 ∈𝐼 ,𝑘 ∈𝐾
+                                               𝐶
+                                                                       Í                      fairness constraint: E[𝜔1 | 𝐴𝑣1,𝑣2 =1 ]/E[𝜔2 | 𝐴𝑣1,𝑣2 =2 ] = 𝛾 ∈ R>0 .
+   To simplify, we substitute with 𝑄 𝑖 =                                     𝑞 𝑖,𝑘 , 𝐴𝑖 =
+ Í                                         Í                          𝑘 ∈𝐾 Í                  Theorem C.1. The allocation 𝐴∗𝑣1 ,𝑣2 maximizes overall re-
+       𝛼𝑖,𝑘 𝑞 𝑖,𝑘 , 𝐴−𝑖 =                             𝛼 𝑗,𝑘 𝑞 𝑗,𝑘 , 𝐵𝑖 =          𝛼𝑖,𝑘 𝜔𝑖,𝑘 , source allocation 𝜔1 + 𝜔2 , subject to the fairness constraint,
+𝑘 ∈𝐾                               𝑗 ∈𝐼 , 𝑗≠𝑖,𝑘 ∈𝐾                             𝑘
+                            𝛼 𝑗,𝑘 𝜔 𝑗,𝑘 , and rewrite: 𝑢 𝑖 (𝛼𝑖 , 𝛼−𝑖 ) = 𝑄 𝑖 − 𝐴𝑖 + when the valuations are linear functions of resources. Or, the
+                  Í
+𝐵−𝑖 =
+          𝑗 ∈𝐼 , 𝑗≠𝑖,𝑘 ∈𝐾                                                                     NE of the game achieves optimal resource allocation.
+𝑊−𝑊        (𝐵     + 𝐵    )  and   𝑢   (𝛼  0 , 𝛼 ) = 𝑄 − 𝐴 0 +𝑊 − 𝑊 (𝐵 0 + 𝐵 );
+                      −𝑖                        −𝑖                                       −𝑖
+        𝐶      𝑖                    𝑖
+                                   Í 𝑖
+                                                            𝑖     𝑖         𝐶      𝑖          Proof. Find the Lagrangian multiplier 𝜆∗ that satisfies the
+hence, 𝜙(𝛼𝑖 , 𝛼−𝑖 ) =                  𝑄 𝑗 − ( 𝐴𝑖 + 𝐴−𝑖 ) + 𝑊 − 𝑊 (𝐵𝐶𝑖 +𝐵−𝑖 ) , fairness constraint with NE allocation 𝐴∗ . Define 𝑔, 𝑘 as:
+                              𝑗                                                                                                           𝑣1 ,𝑣2
+
+
+
+
+                                                                                                                                                                    9
+𝑔1 = (1 + 𝜆∗ )/ 𝑗1 , 𝑘 1 = −𝑑1 / 𝑗 1 , and 𝑔2 = (1 − 𝛾𝜆∗ )/ 𝑗 2 , 𝑘 2 = [33] R. M. Schindler et al., Pricing strategies: a marketing approach. sage,
+−𝑑2 / 𝑗2 . We rewrite the allocation: 𝐴∗𝜔1 , 𝜔2 = 1, if 𝜔1 (1+𝜆∗ ) ≥         2011.
+           ∗                                                            [34] L. Einav et al., “Auctions versus posted prices in online markets,” Journal
+𝜔2 (1−𝛾𝜆 ), otherwise 2. Rest of the proof is same as [65].                 of Political Economy, 2018.
+                                                                                     [35] W. Vickrey, “Counterspeculation, auctions, and competitive sealed ten-
+                               R EFERENCES                                                ders,” The Journal of finance, 1961.
+                                                                                     [36] M. Feldman et al., “Simultaneous auctions are (almost) efficient,” in
+ [1] A. Masmoudi et al., “A survey on radio resource allocation for v2x com-              ACM Symposium on Theory of Computing, 2013.
+     munication,” Wireless Communications and Mobile Computing, 2019.                [37] F. Cali et al., “Ieee 802.11 protocol: design and performance evaluation
+ [2] M. Hofmarcher et al., “Visual scene understanding for autonomous                     of an adaptive backoff mechanism,” IEEE JSAC, 2000.
+     driving using semantic segmentation,” in Explainable AI: Interpreting,          [38] D. Monderer and L. S. Shapley, “Potential games,” Games and economic
+     Explaining and Visualizing Deep Learning. Springer, 2019.                            behavior, 1996.
+ [3] L. Claussmann et al., “A review of motion planning for highway                  [39] S. Perkins et al., “Mixed-strategy learning with continuous action sets,”
+     autonomous driving,” IEEE Trans. on Intelligent Transp. Systems, 2019.               IEEE Trans. on Automatic Control, 2015.
+ [4] C. Badue et al., “Self-driving cars: A survey,” Expert Systems with             [40] D. S. Leslie et al., “Generalised weakened fictitious play,” Games and
+     Applications, 2020.                                                                  Economic Behavior, 2006.
+ [5] C.-s. Oh et al., “Hardware acceleration technology for deep-learning in         [41] M. Khaledi et al., “Optimal bidding in repeated wireless spectrum
+     autonomous vehicles,” in IEEE BigComp, 2019.                                         auctions with budget constraints,” in IEEE GLOBECOM, 2016.
+ [6] C. J. Bernardos et al., “European vision for the 6g network ecosystem,”         [42] R. S. Sutton and A. G. Barto, Reinforcement learning: An introduction.
+     The 5G Infrastructure Association, 2021.                                             MIT press, 2018.
+ [7] X. You et al., “Towards 6g wireless communication networks: Vision,             [43] R. K. Srivastava, K. Greff, and J. Schmidhuber, “Training very deep
+     enabling technologies, and new paradigm shifts,” Science China Infor-                networks,” in NeurIPS, 2015.
+     mation Sciences, 2021.                                                          [44] L. Yu, W. Zhang, J. Wang, and Y. Yu, “Seqgan: Sequence generative
+ [8] “C-v2x use cases: Methodology, examples and service level require-                   adversarial nets with policy gradient,” in AAAI, 2017.
+     ments,” 5GAA Automotive Association, 2019.                                      [45] H. Shen et al., “A resource usage intensity aware load balancing method
+ [9] “C-v2x use cases volume ii: Examples and service level requirements,”                for virtual machine migration in cloud datacenters,” IEEE Trans. on
+     5GAA Automotive Association, 2020.                                                   Cloud Computing, 2020.
+[10] P. Mach et al., “Mobile edge computing: A survey on architecture and            [46] K. Wang et al., “Characterizing the impact of the workload on the value
+     computation offloading,” IEEE Comm. Surveys & Tutorials, 2017.                       of dynamic resizing in data centers,” in IEEE INFOCOM, 2013.
+[11] S. Baidya et al., “Vehicular and edge computing for emerging connected          [47] M. Cordts et al., “The cityscapes dataset for semantic urban scene
+     and autonomous vehicle applications,” in ACM/IEEE DAC, 2020.                         understanding,” in CVPR, 2016.
+[12] G. Loukas et al., “Computation offloading of a vehicle’s continuous             [48] B.-k. Chen et al., “Importance-aware semantic segmentation for au-
+     intrusion detection workload for energy efficiency and performance,”                 tonomous driving system.” in IJCAI, 2017.
+     Simulation Modelling Practice and Theory, 2017.                                 [49] A. Broggi et al., “Proud-public road urban driverless test: Architecture
+[13] M. Masdari et al., “Qos-driven metaheuristic service composition                     and results,” in IEEE Intelligent Vehicles Symposium Proceedings, 2014.
+     schemes: a comprehensive overview,” Springer AI Review, 2021.                   [50] M. Behrisch et al., “Sumo–simulation of urban mobility: an overview,”
+[14] S. Choo et al., “Optimal task offloading and resource allocation in                  in SIMUL, 2011.
+     software-defined vehicular edge computing,” in IEEE ICTC, 2018.                 [51] Z. Shah et al., “Throughput comparison of ieee 802.11 ac and ieee 802.11
+[15] M. Vondra et al., “Qos-ensuring distribution of computation load among               n in an indoor environment with interference,” in IEEE ITNAC, 2015.
+     cloud-enabled small cells,” in IEEE CloudNet, 2014.                             [52] X. Lyu et al., “Multiuser joint task offloading and resource optimization
+[16] S. Shivshankar et al., “An evolutionary game theory-based approach to                in proximate clouds,” IEEE Trans. on Vehicular Technology, 2016.
+     cooperation in vanets under different network conditions,” IEEE Trans.          [53] M. Chen et al., “Task offloading for mobile edge computing in software
+     on Vehicular Technology, 2014.                                                       defined ultra-dense network,” IEEE JSAC, 2018.
+[17] F. J. Martinez et al., “Assessing the impact of a realistic radio propagation   [54] M. Blöcher et al., “Letting off steam: Distributed runtime traffic schedul-
+     model on vanet scenarios using real maps,” in NCA, 2010.                             ing for service function chaining,” in IEEE INFOCOM, 2020.
+[18] J. Feigenbaum et al., “Distributed algorithmic mechanism design,” in            [55] S. Schneider et al., “Self-learning multi-objective service coordination
+     Algorithmic Game Theory. Cambridge University Press, 2007.                           using deep reinforcement learning,” IEEE Trans. on Network and Service
+[19] L. Li et al., “Learning-based pricing for privacy-preserving job offloading          Management, 2021.
+     in mobile edge computing,” in IEEE ICASSP, 2019.                                [56] N. Kumar et al., “Bayesian coalition game as-a-service for content
+[20] T.-W. Kuo et al., “Deploying chains of virtual network functions: On                 distribution in internet of vehicles,” IEEE IoT Journal, 2014.
+     the relation between link and server usage,” IEEE/ACM Trans. on                 [57] ——, “Coalition games for spatio-temporal big data in internet of
+     Networking, 2018.                                                                    vehicles environment: a comparative analysis,” IEEE IoT Journal, 2015.
+[21] S. Agarwal et al., “Joint vnf placement and cpu allocation in 5g,” in           [58] X. Chen et al., “Efficient multi-user computation offloading for mobile-
+     IEEE INFOCOM, 2018.                                                                  edge cloud computing,” IEEE/ACM Trans. on Networking, 2015.
+[22] X. Chen, “Decentralized computation offloading game for mobile cloud            [59] Z. Chen et al., “Mechanism design with efficiency and equality consid-
+     computing,” IEEE Trans. on Parallel and Distributed Systems, 2014.                   erations,” in Intl Conference on Web and Internet Economics, 2017.
+[23] V. Cardellini et al., “A game-theoretic approach to computation offload-        [60] F. Shams et al., “Energy-efficient power control for multiple-relay
+     ing in mobile cloud computing,” Mathematical Programming, 2016.                      cooperative networks using 𝑞-learning,” IEEE Trans. on Wireless Comm.,
+[24] J. Oh et al., “A few good agents: multi-agent social learning,” in AAMAS,            2014.
+     2008.                                                                           [61] M. Tan, “Multi-agent reinforcement learning: independent vs. coopera-
+[25] Y.-H. Chang, “No regrets about no-regret,” Artificial Intelligence, 2007.            tive agents,” in ICML, 1993.
+[26] M. Weinberg et al., “Best-response multiagent learning in non-stationary        [62] Y. Yang et al., “Mean field multi-agent reinforcement learning,” in ICML,
+     environments,” in AAMAS, 2004.                                                       2018.
+[27] M. Bowling et al., “Multiagent learning using a variable learning rate,”        [63] M. Lanctot et al., “A unified game-theoretic approach to multiagent
+     Artificial Intelligence, 2002.                                                       reinforcement learning,” in NeurIPS, 2017.
+[28] J. Heinrich et al., “Fictitious self-play in extensive-form games,” in          [64] B. McMahan et al., “Communication-efficient learning of deep networks
+     ICML, 2015.                                                                          from decentralized data,” in aistats, 2017.
+[29] “Draco source code,” https://github.com/DRACOsource/draco.                      [65] J. Sun et al., “Wireless channel allocation using an auction algorithm,”
+[30] M. Whaiduzzaman et al., “A survey on vehicular cloud computing,”                     IEEE JSAC, 2006.
+     Journal of Network and Computer applications, 2014.
+[31] “Iso 20078:2019 road vehicles-extended vehicle (exve) web services,”
+     International Organization for Standardization, 2019.
+[32] “Service-based architecture in 5g: case study and deployment recom-
+     mendations,” 2019.
+
+
+
+
+                                                                                                                                                                  10
+

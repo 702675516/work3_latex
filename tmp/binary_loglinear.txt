@@ -1,0 +1,578 @@
+                                                 Binary Log-Linear Learning with Stochastic Communication Links
+                                                                              Arjun Muralidharan, Yuan Yan and Yasamin Mostofi
+
+
+                                           Abstract— In this paper, we consider distributed decision-               stochastic packet-dropping communication links on potential
+                                        making over stochastic communication links in multi-agent                   games with binary log-linear learning, where each link is
+                                        systems. We show how to extend the current literature on                    properly represented with an action-dependent probability
+                                        potential games with binary log-linear learning (which mainly
+arXiv:1412.4166v1 [cs.MA] 12 Dec 2014
+
+
+
+
+                                        focuses on ideal communication links) to consider the impact                of connectivity. By extending [9], we derive conditions on
+                                        of stochastic communication channels. More specifically, we                 the temperature (defined in Section II-B) and probabilities
+                                        derive conditions on the probability of link connectivity to                of connectivity to achieve a given target probability (in the
+                                        achieve a target probability for the set of potential maximizers            stationary distribution) for the set of potential maximizers
+                                        (in the stationary distribution). Furthermore, our toy example              (Theorems 3 and 4). In Section III-B, in a toy example, we
+                                        demonstrates a transition phenomenon for achieving any target
+                                        probability for the set of potential maximizers.                            further observe a transition behavior for achieving any target
+                                                                                                                    probability.
+                                                                I. I NTRODUCTION
+                                           Non-cooperative game theory has recently emerged as                                           II. P ROBLEM S ETUP
+                                        a powerful tool for the distributed control of multi-agent
+                                        systems [1]–[3]. By designing proper local utility functions                   In this section, we first introduce some basic concepts and
+                                        and learning algorithms that satisfy certain properties, desir-             properties of potential games. We then review the binary
+                                        able global behaviors can be achieved. Potential games [4]                  log-linear learning algorithm and the theory of resistance
+                                        are an important class of non-cooperative games and have                    trees, which we use in our subsequent analysis. Finally, we
+                                        recently received considerable attention in the literature [5].             motivate the need for considering stochastic communication
+                                        In potential games, the local utility function of the agents is             links.
+                                        aligned with a potential function in order to achieve a global
+                                        objective through local decisions.                                          A. Potential Game (see [11] for more details)
+                                           There are a number of learning algorithms that can guar-
+                                        antee the convergence to a Nash equilibrium for potential                     A game G “ tI, tAi uiPI , tUi uiPI u is defined by its three
+                                        games such as fictitious play [6] and joint strategy fictitious             components:
+                                        play [7]. However, a Nash equilibrium may be a sub-                           1) I “ t1, 2, ¨ ¨ ¨ , nu is the set of players/agents/robots;
+                                        optimum outcome and not the potential maximizer. Log-                         2) Ai is the set of all the actions (choices) that agent i has.
+                                        linear learning (first introduced in [8]), on the other hand, is a               Then, an action profile a “ pa1 , ¨ ¨ ¨ , an q P A denotes
+                                        learning mechanism that can guarantee convergence to the set                     the collection of actions of all the agents, where A “
+                                        of potential maximizers. As a result, it has been the subject of                 A1 ˆ ¨ ¨ ¨ ˆ An is the space of all action profiles;
+                                        considerable research recently [9]. Binary log-linear learning                3) Ui : A Ñ R is the utility function of agent i.
+                                        [9], [10] is a variant of log-linear learning which can further
+                                                                                                                    One of the most important concepts in game theory is that
+                                        handle constrained actions sets, i.e. scenarios where the
+                                                                                                                    of a pure Nash equilibrium, which is defined as follows.
+                                        future actions of the players are limited based on their current
+                                        action (like in robotic networks).                                             Definition 1 (Pure Nash Equilibrium): Consider a game
+                                           While considerable progress has been made for distributed                G “ tI, tAi uiPI , tUi uiPI u. An action profile aNE is said
+                                        decision making using potential games, ideal communication                  to be a pure Nash equilibrium of the game if and only if
+                                        links are often assumed. In other words, it is typically
+                                        assumed that an agent can hear from all the other agents that                   Ui paNE q ě Ui pai , aNE
+                                                                                                                                              ´i q,   @ ai P Ai and @ i P I,      (1)
+                                        will impact its utility function. In realistic communication en-
+                                                                                                                    where a´i “ pa1 , ¨ ¨ ¨ , ai´1 , ai`1 , ¨ ¨ ¨ , an q P A´i denotes
+                                        vironments with packet-dropping stochastic communication
+                                                                                                                    the action profile of all the agents except i and A´i “ A1 ˆ
+                                        links, this is simply not possible. For instance, Fig. 1 shows
+                                                                                                                    ¨ ¨ ¨ Ai´1 ˆ Ai`1 ˆ ¨ ¨ ¨ ˆ An .
+                                        an example of real channel measurements. We can see that
+                                        the channel exhibits a great degree of stochasticity due to the                 As can be seen, a game has reached a pure Nash equilib-
+                                        shadowing and multipath fading components. Thus, it is the                  rium if and only if no agent has the motivation to unilaterally
+                                        goal of this paper to bring an understanding of the impact of               change its action. In this paper, we are interested in potential
+                                                                                                                    games. Potential games can have broad applications in dis-
+                                          This work is supported in part by NSF NeTS award # 1321171.               tributed multi-robot systems since they allow each robot to
+                                          The authors are with the Department of Electrical and Computer Engi-      make local decisions while a global objective (the potential
+                                        neering, University of California Santa Barbara, Santa Barbara, CA 93106,
+                                        USA email: tarjunm, yuanyan, ymostofiu@ece.ucsb.edu.                        function) is optimized.
+   Definition 2 (Potential Games [4]): A game G “ tI,                                We next introduce the concept of an asynchronous best
+tAi uiPI , tUi uiPI u is said to be a potential game with po-                     reply process over constrained action sets, which is a process
+tential function φ : A Ñ R if                                                     where each agent locally improves its own utility function
+                                                                                  when it is its turn to alter its action.
+    Ui pa1i , a´i q ´ Ui pai , a´i q “ φpa1i , a´i q ´ φpai , a´i q,                 Definition 5: An asynchronous best reply process over
+              @ ai , a1i P Ai , @ a´i P A´i and @ i P I.   (2)                    constrained action sets is defined as follows. At each
+   As can be seen, a potential game requires a perfect                            time t ą 0, an agent i is randomly chosen (uniformly)
+alignment between the potential function and the agents’                          and allowed to alter its action. All other agents repeat
+local utility functions. It is straightforward to confirm that                    their current action, i.e. a´i ptq “ a´i pt ´ 1q. Agent i
+the action profile that maximizes the potential function is a                     then selects an action âi uniformly from its constrained
+pure Nash equilibrium. Hence, a pure Nash equilibrium is                          action set, i.e. âi „ unifpAcons     i  pai pt ´ 1qqq. It then
+guaranteed to exist in potential games.                                           plays the action which maximizes its utility function:
+                                                                                  ai ptq P ai P tâi , ai pt ´ 1qu : Ui(pai , a´i pt ´ 1qq “
+B. Binary Log-Linear Learning (see [9])
+                                                                                  max tUi papt ´ 1qq, Ui pâi , a´i pt ´ 1qqu .
+   In several scenarios, the set of possible actions that an                         The best reply process does not necessarily maximize the
+agent can take is limited by its current action. For instance,                    overall potential function of the game as it may result in
+in multi-robot systems, the next possible position of an agent                    a suboptimal Nash equilibrium. When τ “ 0, the BLLL
+is limited by its current position and velocity. Formally, we                     algorithm boils down to an asynchronous best reply process
+refer to this limited set as an agent’s constrained action set                    on the constrained action sets. A τ ą 0 then allows each
+i.e., Acons
+       i    pai q Ď Ai is agent i’s constrained action set where                  agent to occasionally select locally suboptimal moves, i.e.
+ai is its current action.                                                         it selects an action that decreases its local utility with a
+   Binary Log-linear learning (BLLL) is a variant of Log-                         non-zero probability. These occasional suboptimal moves
+linear learning (as shown in [9]) which can handle con-                           are useful as they prevent the agents from converging to a
+strained action sets. It is summarized as follows. At each                        suboptimal Nash equilibrium. The BLLL algorithm can then
+time step t, an agent i P I is chosen randomly (uniformly)                        be thought of as a perturbation of the asynchronous best reply
+and is allowed to alter its action.1 All the other agents repeat                  process, where the size of the perturbation is controlled by
+their previous actions, i.e. a´i ptq “ a´i pt ´ 1q. Agent i then                  the temperature τ . This idea is formalized in Section II-C.2.
+plays according to the following strategy:
+                                          1                                       C. Resistance Trees
+         a pt´1q                        e τ Ui papt´1qq
+       pi i        ptq “     1                   1                      ,   (3)      In this part, we briefly review the concept of resistance
+                            e τ Ui papt´1qq ` e τ Ui pâi ,a´i   pt´1qq
+                                        1                                         trees, which we will use in our subsequent sections. We refer
+                                      e τ Ui pâi ,a´i pt´1qq
+              piâi ptq “    1                   1                      ,   (4)   the readers to [13] for a detailed discussion.
+                            e τ Ui papt´1qq ` e τ Ui pâi ,a´i pt´1qq                1) Resistance Trees: Let P 0 be a stationary Markov chain
+where âi is an action that is chosen uniformly from the                          defined on a state space X. We call this the unperturbed
+                                                    a pt´1q
+constrained action set Acons i   pai pt ´ 1qq, pi i         ptq is the            process. The process P ǫ is then called a regular perturbed
+probability of repeating its previous action, pâi i ptq is the prob-             Markov process if it satisfies the following conditions:
+ability of selecting action âi , and τ ą 0 is the temperature.                     1) P ǫ is aperiodic and irreducible;
+    Moreover, the constrained action sets should possess the                        2) limǫÑ0 P ǫ px Ñ yq “ P 0 px Ñ yq, @ x, y P X, where
+following two properties:                                                              P ǫ px Ñ yq and P 0 px Ñ yq denote the transition
+    Definition 3 (Reachability): For all i P I and any action                          probabilities from state x to y of processes P ǫ and
+pair a0i , am
+            i P Ai , there exists a sequence of actions ai Ñ
+                                                                  0
+                                                                                       P 0 respectively;
+  1                m´1         m                  k       cons k´1
+ai Ñ ¨ ¨ ¨ Ñ ai          Ñ ai satisfying ai P Ai pai q,                             3) if P ǫ px Ñ yq ą 0, for some ǫ ą 0, then there
+@ k P t1, ¨ ¨ ¨ , mu.                                                                  exists some Rpx Ñ yq ě 0, such that 0 ă
+    Definition 4 (Reversibility): For all i P I and any action                         limǫÑ0 ǫ´RpxÑyq P ǫ px Ñ yq ă 8, where we refer to
+pair a0i , a1i P Ai , if a1i P Acons
+                                   i   pa0i q, then we have a0i P                      Rpx Ñ yq as the resistance of the transition from state
+   cons 1
+Ai pai q.                                                                              x to y.
+    Note that Definition 3 implies that any action profile in A                      Construct a tree T with |X| vertices, one for each state,
+can be reached in finite time steps. Definition 4 means that                      rooted at some vertex z, such that there exists a unique
+each agent can go back to its previous action.                                    directed path to z from every other vertex. The weight of
+    Theorem 1: (see [9]) Consider a potential game with                           a directed edge from vertex x to y is given by the resistance
+constrained action sets that satisfy the reachability and re-                     Rpx Ñ yq. Such a tree is called a resistance tree whose
+versibility properties. BLLL ensures that the support of the                      resistance is given by the sum of the |X| ´ 1 edges that
+stationary distribution is the set of potential maximizers, as                    compose it. Since P ǫ is aperiodic and irreducible (the first
+τ Ñ 0.                                                                            condition of the regular perturbed Markov process), there
+  1 Note that the selection does not require coordination among the nodes
+                                                                                                ř stationary
+                                                                                  exists a unique             distribution µǫ for a given ǫ.
+                                                                                  Define pz “ T PTz rx,ysPT P ǫ px Ñ yq, where rx, ys is
+                                                                                           ǫ
+                                                                                                       ś
+and can be achieved through each agent using a Poisson clock [12].
+the directed edge from vertex x to y and Tz denotes the set                       D. Stochastic Communication Links
+of all the trees that are rooted at z. Then, we have                                 Most of the current research in the area of motion plan-
+                                         pǫz                                      ning of multi-robot systems assumes over-simplified channel
+                            µǫz “ ř            ǫ ,                         (5)    models. For instance, it is common to assume perfect links
+                                       z 1 PX pz 1
+                                                                                  or links that are perfect within a certain radius. In reality,
+where µǫz denotes the probability of state z in the stationary                    however, communication links are best modelled stochasti-
+distribution.                                                                     cally. More specifically, the received channel to noise ratio
+   The stochastic potential of state z is then defined as the                     (CNR) is a multi-scale random process with three major
+minimum resistance among all the trees that are rooted at z:                      components: distance-dependent path loss, shadowing and
+              γpzq “ min
+                              ÿ
+                                    Rpx Ñ yq,              (6)                    multipath fading [14]. See Fig. 1 for a real example.
+                             T PTz
+                                     rx,ysPT
+                                                                                     In the current literature on potential games, it is assumed
+                                                                                  that each agent is connected to all the other agents that can
+   Theorem 2: (see [13]) Let P ǫ be a regular perturbed                           impact its next step utility function for all the possible actions
+Markov process of P 0 and µǫ be its unique stationary                             in its constrained set. If the wireless channel is modeled as
+distribution. Then                                                                a disk with a known radius, then this can be achieved by
+   1) limǫÑ0 µǫ “ µ0 exists,2 where µ0 is a stationary                            properly designing the constrained action set. However, in the
+       distribution of P 0 ;                                                      case of realistic communication links, this is simply not the
+   2) We have µ0x ą 0 iff γpxq ď γpyq, @ y P X, where                             case. More specifically, it is not possible for every agent to
+       µ0x denotes the probability of state x in the stationary                   truly evaluate its utility function as other agents with whom
+       distribution µ0 .                                                          it cannot communicate may be influencing it. Thus, realistic
+   Theorem 2 shows that the stochastically stable states (the                     communication links have a considerable implication for
+support of the stationary distribution µ0 ) are the states with                   distributed decision making using potential games. It is the
+the minimum stochastic potential, i.e. µ0x ą 0 if and only if                     goal of this paper to bring an understanding of their impact
+x minimizes γpxq.                                                                 on BLLL and derive sufficient conditions (on link quality
+   Informally, resistance (of a transition) is a measure of how                   and temperature) to guarantee a target probability for the set
+difficult that transition is. The greater the resistance, the more                of potential maximizers (in the stationary distribution) in the
+difficult (less likely) the transition. So the resistance of a                    presence of stochastic links.
+tree rooted at state x is a measure of how difficult it is
+for other states to transit to x. Thus, a state with minimum                                                       −30
+                                                                                                                                                     small−scale fading
+stochastic potential is a state to which it is the easiest to                                                      −35                               shadowing
+                                                                                                                                                     path loss
+get to (informally speaking) as compared to other states. We
+                                                                                            Received power (dBm)
+
+
+
+
+                                                                                                                   −40
+
+will utilize this metaphor of difficulty in Section III-B when                                                     −45
+
+explaining some of our results.                                                                                    −50
+   2) BLLL as a Regular Perturbed Markov process: BLLL                                                             −55
+algorithm induces a regular perturbed Markov process with
+                                                                                                                   −60
+the unperturbed process corresponding to the asynchronous
+                                                                                                                   −65
+best reply process defined in Section II-B [9]. The probability                                                          0.8   0.9   1        1.1
+                                                                                                                                     log10(d) (dB)
+                                                                                                                                                          1.2      1.3
+
+
+of a feasible transition a0 Ñ a1 “ pa1i , a0´i q (where agent i                   Fig. 1. Underlying dynamics of the received signal power across an indoor
+alters its action and a0 , a1 P A) is then given by                               route [15].
+                                                           1   0
+                               1                  ǫ´Ui pai ,a´i q                   III. I MPACT OF S TOCHASTIC C OMMUNICATION L INKS
+ P ǫ pa0 Ñ a1 q “                                                         ,
+                    n|Acons
+                       i    pa0i q| ǫ´Ui pa1i ,a0´i q ` ǫ´Ui pa0i ,a0´i q                    ON B INARY L OG -L INEAR L EARNING
+                                                                        (7)
+                 1
+where ǫ “ e´ τ . As shown in [9], the resistance of this                             In this section, we characterize the impact of imperfect
+transition is as follows:                                                         communication on the outcome of the BLLL algorithm. We
+                                                                                  first prove that given any arbitrarily-high probability of the
+               Rpa0 Ñ a1 q “ Vi pa0 , a1 q ´ Ui pa1 q,                     (8)    set of potential maximizers, there exist a connectivity prob-
+                                                                                  ability and temperature τ that can achieve it. We then give
+where Vi pa0 , a1 q “ maxtUi pa0 q, Ui pa1 qu.                                    an illustrative example to provide a deeper understanding of
+   Based on the theory of resistance trees, it can be shown                       our results.
+that only the action profiles that maximize the potential
+function have the minimum stochastic potential [13]. This                         A. BLLL with Stochastic Communication Links
+in turn means that the stochastically stable states of BLLL                          Consider the case where the communication graph among
+are the set of potential maximizers, as also stated in Theorem                    the agents is given by an undirected random graph Cpaq “
+1.                                                                                pI, Epaqq, where Epaq denotes the set of edges, i.e. the
+  2 The perturbations effectively select one of the stationary distributions of   communication links among the agents. Then, the probability
+P 0.                                                                              of having a link (probability of connectivity) between agents
+i and j is given by pc,j,i paq “ pc,i,j paq “ pc pai , aj q, where                           It can be seen that expressing the probability of connectivity
+we take pc,i,i paq “ 1, for all a P A and i P I.3 Note that we                               in this fashion ensures that BLLL in the presence of stochas-
+have taken the probability of connectivity (and subsequently                                 tic communication links induces a regular perturbed Markov
+the communication graph) to be action dependent to make                                      process with the unperturbed process as the asynchronous
+our analysis more general (which naturally implies a time-                                   best reply process (Definition 5).
+varying graph). For instance, when the action of an agent                                       We can further show that the equation above can be
+involves its position, then the probability of connectivity                                  expressed as shown in (9) on top of the next page, which
+becomes a function of the action profile. We assume that                                     results in the following expression for the resistance of this
+the probability of connectivity of different links are inde-                                 transition:
+pendent of each other in this paper. We further assume that
+the communication graph is drawn independently in each
+                                                                                                                  $                                  ,
+                                                                                                                  &                     ÿ            .
+iteration.                                                                                   Rc pa0 Ñ a1 q “ min Rc pa0 Ñ a1 |Ic,i q `     mi,j pa0 q ,
+   As mentioned in Section II-B, in each iteration of the                                                    Ic,i %                                  -
+                                                                                                                                       jRI       c,i
+BLLL algorithm, an agent is chosen randomly (uniformly)                                                                                                     (10)
+to alter its action. Meanwhile, a realization of the com-
+munication graph is drawn from the random graph Cpaq.
+                                                                                             where Rc pa0 Ñ a1 |Ic,i q “ Vi pa0 , a1 |Ic,i q ´ Ui pa1 |Ic,i q and
+Let Ic,i be the corresponding realization of the set of
+                                                                                             Vi pa0 , a1 |Ic,i q “ maxtUi pa0 |Ic,i q, Ui pa1 |Ic,i qu. Note that
+agents that agent i can communicate with. Theśprobability
+                                                                                             Rc pa0 Ñ a1 |Iq “ Rpa0 Ñ a1 q, where Rpa0 Ñ a1 q is the
+of realization Ic,i is given by pc,i pIc,i , aq “ jRIc,i p1 ´
+             ś                                                                               resistance in case of perfect communication (see (8)).
+pc,i,j paqq jPIc,i pc,i,j paq. Note that Ic,i “ I corresponds to
+the case where agent i can hear from all the other agents.                                      It can be seen that imperfect communication affects the
+Also, since the probability of connectivity is state-dependent,                              transition probability from a0 Ñ a1 , and as a result, affects
+pc,i pIc,i , aq is also a function of a.                                                     its resistance. This means that the stochastically stable states
+                                                                                             may change. Hence, the outcome of the game may be
+   The agent then has to assess its local utility and determine
+                                                                                             significantly different as compared to the case of perfect
+its action based on incomplete information. To represent this,
+                                                                                             communication.
+we extend the definition of the utility function Ui : A Ñ R
+such that it is well defined for all Ui pa|Ic,i q, @a P A, @Ic,i ,                              Lemma 1: Consider a potential game where the agents
+where Ui pa|Ic,i q is the evaluated local utility function of                                employ BLLL algorithm in the presence of stochastic com-
+agent i given that it only communicates with agents in Ic,i .                                munication links. Furthermore, consider constrained action
+One possibility for evaluating Ui pa|Ic,i q is that the agent                                sets that satisfy the reachability and reversibility properties.
+ignores the impact of agents not in Ic,i . Another possible                                  The states with the minimum stochastic potential are the set
+strategy is for an agent to assume the last communicated                                     of potential maximizers if we have the following,
+action for the agents it is unable to communicate with.4                                         ÿ
+   In order to evaluate the impact of the stochastic com-                                               mi,j pa0 q ě Rpa0 Ñ a1 q ´ Rc pa0 Ñ a1 |Ic,i q,     (11)
+munication links on the learning dynamics, we start with                                       jRIc,i
+a temperature-dependent probability of connectivity of the
+                            1
+form pc,i,j paq “                   , @i, j P I, @a P A, where                               for every agent i P I, all Ic,i and all a0 Ñ a1 “ pa1i , a0´i q,
+                        1`ǫmi,j paq
+mi,j paq ą 0 is a constant. Based on our assumed form,                                       where Rpa0 Ñ a1 q is the resistance for the case of perfect
+we always have pc,i,j paq ą 0.5. Note that for pc,i,j paq “                                  communication (see (8)).
+pc , @a P A, @i, j P I, pc need not have this temperature-                                         Proof: If the conditions in the lemma hold, then the
+dependent form, as we will show in our result (Theorem 4).                                   resistance of the transition from a0 to a1 “ pa1i , a0´i q, for
+The probability of the transition a0 Ñ a1 “ pa1i , a0´i q in                                 some agent i, becomes Rc pa0 Ñ a1 q “ Rpa0 Ñ a1 q.
+the presence of stochastic communication links can then be                                   Therefore, the resistances of the transitions do not change as
+characterized as follows:                                                                    compared to the case of perfect communication. The proof
+                           ÿ                                                                 of the lemma then follows immediately from Lemma 5.2 and
+       Pcǫ pa0 Ñ a1 q “       pc,i pIc,i , a0 qPcǫ pa0 Ñ a1 |Ic,i q
+                                                                                             Theorem 5.1 in [9].
+                                  Ic,i
+                          ÿ pc,i pIc,i , a0 qǫ´Ui pa1 |Ic,i q                                   Remark 1: A        good    choice     of    the    constants
+                    1                                                                        tmi,j paqui,jPI, aPA , is such that they satisfy mi,j paq ě
+        “
+          n|Acons
+             i    pa0i q| I ǫ´Ui pa1 |Ic,i q ` ǫ´Ui pa0 |Ic,i q                              maxa0 Ña1 tRpa0 Ñ a1 qu. This has the advantage that there
+                                   c,i
+                                                                                             are separate conditions for each mi,j paq and that they are
+         1       ÿ                       ǫ
+                                             ´Ui pa1 |Ic,i q` jRI
+                                                             ř
+                                                                  c,i
+                                                                      mi,j pa0 q             not dependent on how communication failures affect the
+“                                                                                        .   game.
+    n|Acons 0                ´Ui pa1 |Ic,i q          0                           0
+       i pai q| I                            ` ǫ´Ui pa |Ic,i q q jPI p1 ` ǫmi,j pa q q
+                                                                ś
+                    c,i pǫ
+                                                                                                Remark 2: Lemma 1 provides sufficient conditions to
+    3 Notation not to be confused with pǫ , which was used in (5).                           guarantee that the states with the minimum stochastic poten-
+                                         z
+    4 However, evaluating which is a better strategy becomes case dependent                  tial are still the set of potential maximizers. Equation (11)
+and is an avenue for future work.                                                            can be more explicitly expressed as a function of connectivity
+                                                                               V pa0 ,a1 |Ic,i q´Ui pa1 |Ic,i q`                        0
+                                                                                                                   ř
+                                                                                                                       jRIc,i mi,j pa       q
+                                    1          ÿ                             ǫ i
+        Pcǫ pa0 Ñ a1 q “                                                                                                                               ˘.    (9)
+                            n|Acons pa0i q| I
+                                                       `                                                                        ˘ś   `
+                               i                        ǫVi pa0 ,a1 |Ic,i q´Ui pa1 |Ic,i q ` ǫVi pa0 ,a1 |Ic,i q´Ui pa0 |Ic,i q   jPI 1 ` ǫ
+                                                                                                                                            mi,j pa0 q
+                                                 c,i
+
+
+
+
+as follows:                                                                         properties. For any given ptar ă 1, there exists a pc,th ă 1,
+      ÿ                ÿ               0                                            such that the probability of the set of potential maximizers
+          mi,j pa0 q “   logǫ pǫmi,j pa q q                                         in the stationary distribution is larger than or equal to ptar ,
+     jRIc,i              jRIc,i
+                                                                                    if pc ě pc,th , where τ “ ln ´m       , with m representing a
+                          ÿ              1 ´ pc,i,j pa0 q                                                         p 1´p
+                                                                                                                     pc q
+                                                                                                                        c
+
+                     “            logǫ                                              constant that satisfies Lemma 1.
+                                           pc,i,j pa0 q
+                         jRIc,i                                                            Proof: We construct a temperature-dependent probabil-
+                              0
+                     ě Rpa Ñ a1 q ´ Rc pa0 Ñ a1 |Ic,i q,                            ity of connectivity, as discussed in Section III-A, such that
+                                                                                    the constant m satisfies Lemma 1, in order to establish a
+                                                                  1´p      paq
+for all Ic,i and all a0 Ñ a1 . We can see that logǫ pc,i,jc,i,j
+                                                             paq                    pc,th . From Theorem 3, we know that there exists a τth ą 0,
+is an important parameter (always positive). Furthermore, if                        such that probability of convergence to the set of potential
+Rc pa0 Ñ a1 |Ic,i q ě Rpa0 Ñ a1 q, then connectivity to agent                       maximizers is larger than or equal to ptar , if 0 ă τ ď τth .
+i is not important, since the condition is always satisfied.                           Consider pc ě pc,th “         1
+                                                                                                                      ´m . Then, the temperature
+   The following theorem shows that we can find some τ ą 0                                                                     1`e τth
+                                                                                    associated with ´this probability of connectivity is τ “
+and pc,i,j paq ă 1 to guarantee that the probability of the set                                            ¯ 1´pc,th
+                                                                                                        ln
+of potential maximizers in the stationary distribution is larger                       ´m                     p
+
+                                                                                    lnp 1´p
+                                                                                              “ τth ln 1´p
+                                                                                                         c,th
+                                                                                                                  ď τth . Thus, the probability of the
+                                                                                         pc q          p pc c q
+                                                                                            c
+than or equal to some required threshold.                                           set of potential maximizers is larger than or equal to ptar , if
+   Theorem 3: Consider a potential game where the agents                            pc ě pc,th with τ “ ln ´m         .
+employ BLLL algorithm in the presence of stochastic com-                                                      p 1´p
+                                                                                                                 pc q
+                                                                                                                    c
+
+
+munication links. Furthermore, consider constrained action                             Recall that the BLLL algorithm allows perturbations from
+sets that satisfy the reachability and reversibility properties.                    the asynchronous best reply process, so as to allow agents
+For any given ptar ă 1, there exists a τth ą 0, such that the                       to intentionally choose locally sub-optimum actions with a
+probability of the set of potential maximizers in the stationary                    small probability. However, in the imperfect communica-
+distribution is larger than or equal to ptar , if 0 ă τ ď τth                       tion case, the failure of communication links also causes
+and pc,i,j paq “            1
+                                  , @a P A, @i, j P I, where                        the agents to unintentionally make sub-optimum decisions.
+                      1`ǫmi,j paq
+tmi,j paqui,jPI, aPA are constants satisfying Lemma 1.                              Given some ptar , our given sufficient conditions then aim
+      Proof: We construct temperature-dependent probabili-                          to restrict how often the unintentional mistakes can be
+ties of connectivity, as discussed in Section III-A, such that                      made. One observation in the proof of Theorem 3 is that
+the constants tmi,j paqui,jPI, aPA satisfy Lemma 1. Then, we                        in general, τth and pc,i,j paq are decreasing and increasing
+have a regular perturbed Markov process, and the states with                        functions of ptar respectively, i.e. if higher ptar is required,
+the minimum stochastic potential are still the set of potential                     then smaller temperature and better connectivity are needed.
+maximizers.                                                                         This is because when ptar is higher, then less perturbation
+   From Theorem 2, we have µ0x “ limτ Ñ0 µǫx “ 0, @x R                              from the asynchronous best reply process is allowed. Hence,
+                                                                                    the agents have to assess their local utilities more accurately,
+A˚ , where A˚ Ď A is the set of potential maximizers. Thus,
+                                                                                    which requires better connectivity.
+we know that, for any x R A˚ , there exists a τx ą 0 such
+             1´ptar
+that µǫx ď |AzA  ˚ | , if 0 ă τ ď τx . Hence, we have
+                                                                                       Theorem 3 can be easily extended to the case of Log-
+                  ÿ                  ÿ                                              Linear Learning. We skip the details for brevity.
+                         µǫa “ 1 ´      µǫa ě ptar ,
+                aPA˚                aRA˚
+                                                                                    B. An illustrative example
+if 0 ă τ ď τth “ minxRA˚ τx .
+   The following theorem shows that we can find a sufficient                          In this part, we provide an example to have a better
+lower bound on the probability of connectivity, to ensure that                      understanding on the impact of imperfect communication and
+the probability of the set of potential maximizers is larger                        the results of Theorem 3. Consider a 2-agent game where
+than or equal to some required threshold, for the special case                      the action sets of the players are given by A1 “ tT, Bu (top,
+of probabilities of connectivity which are state independent                        bottom) and A2 “ tL, Ru (left, right). The utility function
+and equal for all links, i.e., pc,i,j paq “ pc , @a P A, @i, j P I.                 Ui : A “ A1 ˆ A2 Ñ R is given by
+   Theorem 4: Consider a potential game where the agents
+                                                                                                     U1      L          R                       U2   L   R
+employ BLLL algorithm in the presence of stochastic com-
+                                                                                                      T      1          3                        T   1   2
+munication links with probabilities of connectivity that are
+                                                                                                      B      3          1                        B   4   1
+state independent and equal for all links, i.e., pc,i,j paq “
+pc , @a P A, @i, j P I. Furthermore, consider constrained                           This is a potential game with the following potential function
+action sets that satisfy the reachability and reversibility                         φ : A Ñ R:
+                                                                            U1       U2    φ                 Informally, as discussed in Section II-C, this is because the
+                                                    a1 “ pB, Rq             1        1     1                 state with the minimum stochastic potential (in this case, the
+                                                    a2 “ pT, Lq             1        1     2                 potential maximizer a4 ) is the easiest to transit to. The curve
+                                                    a3 “ pT, Rq             3        2     3                 m “ 1, i.e., pc “ 1`e1´1{τ could be thought of as a transition
+                                                    a4 “ pB, Lq             3        4     4                 curve, as curves above it can achieve any ptar , while those
+   For the case where the " two nodes cannot communicate,                                                    below it cannot. This is due to the fact that above this curve
+                             3 if a1 “ T                                                                     a4 is the only state with minimum stochastic potential, while,
+we take U1 pa|t1uq “                           and U2 pa|t2uq “
+"                            1   if a1 “ B                                                                   on this curve, the states with minimum stochastic potential
+   1 if a2 “ L                                                                                               are a4 and a3 . On the other hand, below this curve, a3 is the
+                     .
+   2 if a2 “ R                                                                                               (only) state with minimum stochastic potential. Informally,
+   We next find the stochastic potential for each action                                                     this means that the potential maximizer, a4 , becomes more
+profile, i.e. the minimum resistance of the tree rooted at                                                   difficult to transit to as compared to a3 when m ă 1. In
+each action profile, by using (6). For the case of perfect                                                   fact, for m ă 1, the probability of the potential maximizer
+communication, the (only) state with minimum stochastic                                                      a4 becomes arbitrarily small as τ Ñ 0. Note that we have
+potential is a4 . For the case of imperfect communication, we                                                plotted the y-axis only down to 0.88 for better visibility.
+consider the scenario where the probability of connectivity is                                               Also, note that a case of connectivity of 96%, for instance,
+state-independent, i.e., pc “ pc,1,2 “ pc,2,1 . Let m “ m1,2 “                                               means that the packets are dropped 4% of the time, which
+m2,1 “ logǫ 1´p     c
+                  pc . By constructing all the resistance trees                                              is a typical value for several scenarios [16].
+and minimizing (6), we find that a4 still has the minimum
+stochastic potential if and only if m “ logǫ 1´p      pc
+                                                         c
+                                                           ą 1.
+From (11) in Lemma 1, our derived sufficient condition for                                                                                                         1
+                                                                                                                                                                                                                                        logε(1−pc)/pc = 0.5
+the probability of connectivity to guarantee that a4 still has                                                                                                                                                                          log (1−p )/p = 1
+
+                                                                                                                 Probability of potential maximizer
+                                                                                                                                                                                                                                           ε       c   c
+the minimum stochastic potential can be found as m “                                                                                                  0.8                                                                               logε(1−pc)/pc = 1.2
+logǫ 1´p
+       pc ě 3.
+         c
+                                                                                                                                                                                                                                        logε(1−pc)/pc = 1.5
+                                                                                                                                                      0.6                                                                               log (1−p )/p = 3
+                                                                                                                                                                                                                                           ε       c   c
+
+
+
+
+                                       1                                                                                                              0.4
+
+                                                                                                       0.9
+                                                                                                                                                      0.2                                     Transition curve
+                                     0.98
+                                                                                                       0.8
+  Probability of connectivity (pc)
+
+
+
+
+                                                                                                       0.7                                                         0
+                                                                                                                                                     1             1.5
+                                                                                                                                                                    0                                    0.5
+                                     0.96                                                                                                      Temperature
+                                                                                                       0.6                                                4
+                                                                                                             Fig. 3. Probability of potential maximizer (a ) as a function of temperature
+                                                                                                             for different values of logǫ 1´p  c
+                                                                                                                                                 .
+                                     0.94                                                              0.5                                  pc
+
+
+                                                                                                       0.4      Fig. 3 and 4 better highlight the transition behavior. Fig.
+                                     0.92
+                                                                                                       0.3
+                                                                                                             3 shows the probability of the potential maximizer as a
+                                                  logε((1−pc)/pc) = 3                                        function of the temperature, for various values of logǫ 1´p
+                                                                                                                                                                       pc
+                                                                                                                                                                          c
+
+                                                  logε((1−pc)/pc) = 1                                  0.2                                                       1´pc
+                                      0.9                                                                    (m). The transition behavior of the curve m “ logǫ pc “ 1,
+                                                                                                       0.1   is clearly observed. Finally, Fig. 4 shows the probability of
+                                     0.88
+                                                                                                             the potential maximizer as a function of logǫ 1´pc
+                                                                                                                                                            pc for various
+                                            0.1    0.2     0.3     0.4 0.5 0.6       0.7   0.8   0.9
+                                                                   Temperature (τ)
+                                                                                                             values of temperature τ . The transition point can clearly be
+                                                                                                             seen at logǫ 1´p
+                                                                                                                            pc “ 1.
+                                                                                                                              c
+
+Fig. 2. The color map corresponds to the probability of the potential
+maximizer as a function of τ and pc . The blue line with empty circle markers
+                1
+shows pc “       ´3{τ , while the black line with filled circle markers shows
+                                          1`e
+                                        1
+pc “                                         .                                                                                                                                                1
+                                     1`e´1{τ
+                                                                                                                                                       Probablility of potential maximizer
+
+
+
+
+   By evaluating (5), we calculate the stationary distribution                                                                                                                               0.8
+for the case of imperfect communication to see how the
+                                                                                                                                                                                                                                          T=0.05
+probability of the potential maximizer (a4 ) changes as a                                                                                                                                    0.6                                          T=0.1
+function of pc and τ , as shown in Fig. 2. The blue line                                                                                                                                                                                  T=0.3
+                                                                                                                                                                                                                                          T=0.5
+with empty circle markers in the figure represents the curve                                                                                                                                 0.4
+
+pc “ 1`e1´3{τ (m “ 3), while the black line with filled circle                                                                                                                                                   Transition Point
+markers represents pc “ 1`e1´1{τ (m “ 1). It can be seen                                                                                                                                     0.2
+
+that given any ptar , the required probability of the potential
+                                                                                                                                                                                              0
+maximizer can always be achieved by choosing a fixed                                                                                                                                           0        1            2
+                                                                                                                                                                                                                     log (1−p )/p
+                                                                                                                                                                                                                                 3             4           5
+                                                                                                                                                                                                                        ε     c     c
+m ą 1 and finding some appropriate τ and pc . (Theorem                                                       Fig. 4. Probability of potential maximizer (a4 ) vs logǫ 1´p c
+                                                                                                                                                                                                                                                               for different
+3 shows a sufficient condition for this, where m ě 3).                                                       temperatures.
+                                                                                                                                                                       pc
+                        IV. C ONCLUSIONS
+   In this paper, we considered the problem of distributed
+decision-making in multi-agent systems (via potential games)
+with an emphasis on the impact of realistic communication
+links. We showed how to extend the current literature on
+potential games with binary log-linear learning to account for
+stochastic communication channels. We derived conditions
+on the probabilities of link connectivity and BLLL’s temper-
+ature to achieve a target probability for the set of potential
+maximizers. Furthermore, our toy example demonstrated a
+transition phenomenon for achieving any target probability.
+                            R EFERENCES
+ [1] Jason R Marden, Gürdal Arslan, and Jeff S Shamma. Cooperative
+     control and potential games. Systems, Man, and Cybernetics, Part B:
+     Cybernetics, IEEE Transactions on, 39(6):1393–1407, 2009.
+ [2] Minghui Zhu and Sonia Martı́nez. Distributed coverage games for
+     mobile visual sensors (ii): Reaching the set of global optima. In
+     Decision and Control, 2009 held jointly with the 2009 28th Chinese
+     Control Conference. CDC/CCC 2009. Proceedings of the 48th IEEE
+     Conference on, pages 175–180. IEEE, 2009.
+ [3] Ahmet Yasin Yazicioglu, Magnus Egerstedt, and Jeff S Shamma.
+     A game theoretic approach to distributed coverage of graphs by
+     heterogeneous mobile agents. In Estimation and Control of Networked
+     Systems, volume 4, pages 309–315, 2013.
+ [4] Dov Monderer and Lloyd S Shapley. Potential games. Games and
+     economic behavior, 14(1):124–143, 1996.
+ [5] J. R. Marden and A. Wierman. Distributed welfare games. Operations
+     Research, 61:155–168, 2013.
+ [6] Dov Monderer and Lloyd S Shapley. Fictitious play property for games
+     with identical interests. journal of economic theory, 68(1):258–265,
+     1996.
+ [7] Jason R Marden, Gürdal Arslan, and Jeff S Shamma. Joint strategy
+     fictitious play with inertia for potential games. Automatic Control,
+     IEEE Transactions on, 54(2):208–220, 2009.
+ [8] Lawrence E Blume. The statistical mechanics of strategic interaction.
+     Games and economic behavior, 5(3):387–424, 1993.
+ [9] Jason Marden and Jeff S Shamma. Revisiting log-linear learning:
+     Asynchrony, completeness and payoff-based implementation. Games
+     and Economic Behavior, 75(2):788–808, 2012.
+[10] Gürdal Arslan, Jason R Marden, and Jeff S Shamma. Autonomous
+     vehicle-target assignment: A game-theoretical formulation. Journal of
+     Dynamic Systems, Measurement, and Control, 129(5):584–596, 2007.
+[11] Drew Fudenberg and Jean Tirole. Game Theory. MA: MIT Press,
+     1991.
+[12] Stephen Boyd, Arpita Ghosh, Balaji Prabhakar, and Devavrat Shah.
+     Randomized gossip algorithms. Information Theory, IEEE Transac-
+     tions on, 52(6):2508–2530, 2006.
+[13] H Peyton Young. The evolution of conventions. Econometrica:
+     Journal of the Econometric Society, pages 57–84, 1993.
+[14] Andrea Goldsmith. Wireless communications. Cambridge university
+     press, 2005.
+[15] Mehrzad Malmircheginia and Yasamin Mostofi. On the spatial
+     predictability of communication channels. Wireless Communications,
+     IEEE Transactions on, 11(3):964–978, 2012.
+[16] Jill M Boyce and Robert D Gaglianello. Packet loss effects on MPEG
+     video sent over the public Internet. In Proceedings of the sixth ACM
+     international conference on Multimedia, pages 181–190. ACM, 1998.
+

@@ -1,0 +1,15 @@
+C:\Users\ME\PycharmProjects\work3_latex\DeviceMonitorDemo\bin\Debug\net10.0\DeviceMonitorDemo.exe
+C:\Users\ME\PycharmProjects\work3_latex\DeviceMonitorDemo\bin\Debug\net10.0\DeviceMonitorDemo.deps.json
+C:\Users\ME\PycharmProjects\work3_latex\DeviceMonitorDemo\bin\Debug\net10.0\DeviceMonitorDemo.runtimeconfig.json
+C:\Users\ME\PycharmProjects\work3_latex\DeviceMonitorDemo\bin\Debug\net10.0\DeviceMonitorDemo.dll
+C:\Users\ME\PycharmProjects\work3_latex\DeviceMonitorDemo\bin\Debug\net10.0\DeviceMonitorDemo.pdb
+C:\Users\ME\PycharmProjects\work3_latex\DeviceMonitorDemo\obj\Debug\net10.0\DeviceMonitorDemo.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\ME\PycharmProjects\work3_latex\DeviceMonitorDemo\obj\Debug\net10.0\DeviceMonitorDemo.AssemblyInfoInputs.cache
+C:\Users\ME\PycharmProjects\work3_latex\DeviceMonitorDemo\obj\Debug\net10.0\DeviceMonitorDemo.AssemblyInfo.cs
+C:\Users\ME\PycharmProjects\work3_latex\DeviceMonitorDemo\obj\Debug\net10.0\DeviceMonitorDemo.csproj.CoreCompileInputs.cache
+C:\Users\ME\PycharmProjects\work3_latex\DeviceMonitorDemo\obj\Debug\net10.0\DeviceMonitorDemo.sourcelink.json
+C:\Users\ME\PycharmProjects\work3_latex\DeviceMonitorDemo\obj\Debug\net10.0\DeviceMonitorDemo.dll
+C:\Users\ME\PycharmProjects\work3_latex\DeviceMonitorDemo\obj\Debug\net10.0\refint\DeviceMonitorDemo.dll
+C:\Users\ME\PycharmProjects\work3_latex\DeviceMonitorDemo\obj\Debug\net10.0\DeviceMonitorDemo.pdb
+C:\Users\ME\PycharmProjects\work3_latex\DeviceMonitorDemo\obj\Debug\net10.0\DeviceMonitorDemo.genruntimeconfig.cache
+C:\Users\ME\PycharmProjects\work3_latex\DeviceMonitorDemo\obj\Debug\net10.0\ref\DeviceMonitorDemo.dll

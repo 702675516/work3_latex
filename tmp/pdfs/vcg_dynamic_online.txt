@@ -1,0 +1,1699 @@
+                                                    Online Learning for Dynamic Vickrey-Clarke-Groves
+                                                          Mechanism in Unknown Environments
+
+
+                                                                                 Vincent Leon a , S. Rasoul Etesami b ,
+                                                         a
+                                                             Department of Industrial & Enterprise Systems Engineering and Coordinated Science Laboratory,
+                                                                           University of Illinois Urbana-Champaign, Urbana, IL 61801, USA
+                                               b
+                                                   Department of Industrial & Enterprise Systems Engineering, Department of Electrical & Computer Engineering,
+                                                      and Coordinated Science Laboratory, University of Illinois Urbana-Champaign, Urbana, IL 61801, USA
+arXiv:2506.19038v2 [cs.GT] 23 Oct 2025
+
+
+
+
+                                         Abstract
+
+                                         We consider the problem of online dynamic mechanism design for sequential auctions in unknown environments, where the
+                                         underlying market and, thus, the bidders’ values vary over time as interactions between the seller and the bidders progress.
+                                         We model the sequential auctions as an infinite-horizon average-reward Markov decision process (MDP). In each round, the
+                                         seller determines an allocation and sets a payment for each bidder, while each bidder receives a private reward and submits
+                                         a sealed bid to the seller. The state, which represents the underlying market, evolves according to an unknown transition
+                                         kernel and the seller’s allocation policy without episodic resets. We first extend the Vickrey-Clarke-Groves (VCG) mechanism
+                                         to sequential auctions, thereby obtaining a dynamic counterpart that preserves the desired properties: efficiency, truthfulness,
+                                         and individual rationality. We then focus on the online setting and develop a reinforcement learning algorithm for the seller
+                                         to learn the underlying MDP and implement a mechanism that closely resembles the dynamic VCG mechanism. We show
+                                         that the learned mechanism approximately satisfies efficiency, truthfulness, and individual rationality and achieves guaranteed
+                                         performance in terms of various notions of regret.
+
+
+                                         Key words: Auction theory; game theory; Markov decision processes; mechanism design; online learning; reinforcement
+                                         learning.
+
+
+
+                                         1   Introduction                                                    (VCG) mechanism [10, 21, 43], which ensures truthful-
+                                                                                                             ness and individual rationality while also identifying an
+                                         Mechanism design is an interdisciplinary subfield that              allocation outcome that maximizes social welfare.
+                                         intersects game theory, computer science, and eco-
+                                         nomics. Originating from Nobel Prize-winning economic               Many mechanisms, such as the VCG mechanism, are
+                                         theories, it is primarily concerned with developing rules           static, meaning they are designed for one-shot static auc-
+                                         and structures that influence the outcomes of strategic             tions. However, in many cases, auctions occur sequen-
+                                         interactions. A prominent application of mechanism de-              tially, and bidders participate in a series of auctions.
+                                         sign is auction theory, where it defines the rules govern-          When there are multiple rounds of auctions, and both
+                                         ing the allocation of goods among rational bidders and              the seller (mechanism designer) and bidders are allowed
+                                         the corresponding payments. An effective mechanism                  to use the historical information acquired to determine
+                                         should elicit the true values from bidders and incentivize          a static mechanism and bids in the current round, the
+                                         them to bid truthfully, as self-interested bidders may              auctions are dynamic, and such mechanisms are referred
+                                         misreport their values to the seller to achieve an out-             to as dynamic mechanisms [6]. Dynamic auctions are ap-
+                                         come that benefits them. A key milestone in mechanism               plied in a wide variety of real-world settings, such as the
+                                         design is the development of the Vickrey-Clarke-Groves              allocation of CO2 emission licenses [7, 12], online ad al-
+                                                                                                             location [3, 4, 19], dynamic pricing for ride-sharing plat-
+                                         ‹ This work was supported by the Air Force Office of Scien-         forms [9], and wireless spectrum allocation [11, 26, 30],
+                                         tific Research under award number FA9550-23-1-0107. Cor-            among others.
+                                         responding author: Vincent Leon.
+                                            Email addresses: leon18@illinois.edu (Vincent Leon),             In this paper, we study dynamic mechanism design for
+                                         etesami1@illinois.edu (S. Rasoul Etesami).                          sequential auctions in an unknown environment. The
+bidders participate in a sequence of auctions, and the            number of rounds may elapse before the algorithm be-
+number of interactions is large, possibly even unknown.           comes aware of the untruthful behavior and steers the
+The market evolves as the auction progresses accord-              trajectory out of the undesirable part. These two chal-
+ing to some unknown transition kernel, and the bidders’           lenges do not exist in the MAB and episodic MDP set-
+values change accordingly. Since the number of auctions           tings. Additionally, we also face the same challenge as
+is large and potentially unknown, each bidder aims to             the authors in [25, 27, 38]. Fictitious policies associated
+maximize her average utility as the number of auctions            with payment calculation must be evaluated throughout
+approaches infinity. The seller, on the other hand, aims          learning without being executed. Traditional RL algo-
+to implement a dynamic version of the VCG mecha-                  rithms only deal with the executed policy and do not
+nism that is efficient, truthful, and individually ratio-         offer performance guarantees for any other policy that
+nal: the dynamic mechanism encourages the bidders to              is not executed by the algorithm.
+bid truthfully, remain in the auctions indefinitely, and
+also maximizes social welfare. As a result, we model the          To tackle the challenge of non-stationarity, we divide the
+dynamic auction as an infinite-horizon average-reward             learning process into episodes of increasing length, and
+Markov decision process (MDP), where the seller is the            the allocation policy and payments are updated only at
+decision-making agent in the MDP, and each bidder has             the end of each episode. Moreover, each episode starts
+her own reward function which represents her valuation.           with a mixing phase whose length is carefully designed
+                                                                  so that the induced Markov chain approximately reaches
+The authors of [5] extend the VCG mechanism to dy-                the stationary distribution by the end of the mixing
+namic settings. However, deploying such a dynamic                 phase. To address the challenge arising from the non-
+mechanism in the real world is challenging because it             restarting property, we encourage the algorithm to ex-
+requires the seller to have full information about the            plore the MDP by choosing the allocation policy from
+transition kernel and the bidders to know their values            a subset of stochastic policies, which enables the MDP
+accurately ahead of time. This is a strong assumption,            to be sufficiently explored. This technique also naturally
+as bidders often do not know the values of goods until            addresses the third challenge, as sufficient exploration
+they receive them, and the seller may not have an ac-             ensures guaranteed evaluation of the fictitious policies
+curate estimate of the underlying dynamics in advance.            that are not executed. The main contributions of this
+Therefore, in this work, we propose an online reinforce-          paper are summarized as follows:
+ment learning (RL) algorithm for the seller to learn the
+dynamic VCG mechanism through interactions with                   ‚ We extend the static VCG mechanism to the dynamic
+the bidders, without prior information about the MDP                setting for an infinite-horizon average-reward MDP
+model.                                                              and fully characterize the seller’s allocation policy and
+                                                                    payments when the MDP is known (offline setting).
+The existing works on learning for dynamic VCG mecha-               Furthermore, we prove that the offline dynamic VCG
+nisms [25,27,38] formulate dynamic auctions as a multi-             mechanism is efficient, truthful, and individually ra-
+arm bandit (MAB) problem or an episodic MDP. In                     tional.
+both cases, the market environment resets to an initial           ‚ We design an online RL algorithm for the seller to
+state after each round or episode, and auctions restart             learn the offline dynamic VCG mechanism when the
+from that initial state. Our paper considers a more real-           MDP model is unknown. We show that, with high
+istic and sophisticated setting where the market contin-            probability, the time-averaged regret in terms of social
+ues to evolve without restarting once the auction starts.           welfare, seller’s utility, and bidders’ utility approaches
+The major challenges in designing a learning algorithm              an arbitrarily small term as the auctions proceed in-
+for the dynamic VCG mechanism in an infinite-horizon                definitely. Moreover, we show that the learned mech-
+MDP setting arise from the non-stationary and non-                  anism asymptotically converges to a dynamic mecha-
+restarting properties. First, every time the seller changes         nism that approximately satisfies efficiency, truthful-
+his allocation policy, the stationary distribution of the           ness, and individual rationality.
+underlying Markov chain changes accordingly. The seller
+must then wait a period of time until the Markov chain
+approximately reaches the new stationary distribution.            Related Works
+Implementation and evaluation of the new allocation
+policy and payments are meaningful only when the un-              While the problem of mechanism design has been ex-
+derlying Markov chain is close to its stationary distri-          tensively studied in the literature from both static and
+bution. Therefore, the seller cannot change his alloca-           dynamic points of view [5, 6, 15, 17, 20, 24, 34–36, 44, 46],
+tion policy too frequently, and the waiting time must             these works do not involve learning. In this line of re-
+be carefully designed. Second, since the market environ-          search, our work is closely related to [25], [27], and [38],
+ment does not reset, the algorithm is more susceptible            which study learning for dynamic VCG mechanisms.
+to the potential untruthful behavior of bidders. An un-
+truthful bidder may manipulate the algorithm and steer            The authors of [25] study online learning for the VCG
+the trajectory to a bad part of the MDP. A significant            mechanism in a stochastic MAB setting and propose an
+
+
+
+                                                              2
+online learning algorithm that mimics the dynamic ver-               model the sequential auction as an MDP denoted by
+sion of the VCG mechanism. However, their problem is                 MpS, A, P, tri uni“0 q. Associated with the MDP model
+set in a simpler environment, as there are no underlying             are a finite state space S, a finite action space A, a
+dynamics. In [27], the authors model dynamic auctions                transition kernel P : S ˆ A Ñ ∆pSq, and reward func-
+as an episodic MDP and design an offline RL algorithm                tions tri uni“0 . The state space S describes the relevant
+to learn the dynamic VCG mechanism from data. [38]                   market conditions that determine the evolution of the
+study an online counterpart of the model proposed in [27]            economic environment and the rewards that bidders can
+and devise an online RL algorithm that achieves an out-              receive from the seller’s allocation. A state can encode,
+come approximating the dynamic VCG mechanism that                    for example, asset prices, economic indicators, market
+would have been designed with prior knowledge of the                 features, any common public information about the
+model, in terms of various notions of regret, approxi-               items, etc. The action space A represents the set of all
+mate efficiency, individual rationality, and truthfulness.           feasible allocations that the seller can choose. Note that
+However, these works study simpler settings than ours,               we do not restrict our model to any specific type of auc-
+where their models reset and restart after each round or             tion. Instead, it can be applied to any type of auction.
+episode, and the evolution of the environment is not con-            We provide examples of different types of auction in
+tinuous throughout the entire process. Other relevant                Appendix B. For each i P rns, we let ri : S ˆ A Ñ r0, 1s
+works that study online learning from the seller’s per-              denote the reward function of bidder i, and ri ps, aq
+spective include [8, 13, 18, 22, 31, 32]. Finally, our work is       represents her private and independent value of the
+related to [2], [7], and [16], which study online learning           goods when the seller’s allocation is a P A under state
+in dynamic auctions from the bidder’s perspective, as                s P S. We let r0 : S ˆ A Ñ r0, cmax s for some constant
+well as to the works [14] and [37], which focus on rein-             cmax P R` denote the reward function of the seller. The
+forcement learning in n-player stochastic games for con-             seller’s reward function represents the commission that
+vergence to an ϵ-Nash equilibrium. We refer readers to               he earns from each auction, independent of the payment
+Appendix A for a more detailed review of related works.              collected from the bidders. Finally, the transition kernel
+                                                                     P describes the dynamics of the underlying environ-
+                                                                     ment. The state transition probability P p¨|s, aq depends
+Notation: For any positive integer n, we define rns fi               on the current state s P S and the seller’s allocation ac-
+t1, . . . , nu. R` and Z` denote the sets of nonnegative             tion a P A, and the system transitions to the next state
+real numbers and nonnegative integers, respectively. We              s1 P S with probability P ps1 |s, aq. We impose the follow-
+also define Z`` as the set of positive integers. 1n and              ing uniform ergodicity assumption on the MDP model.
+1mˆn denote the n-dimensional vector and m ˆ n ma-                   An intuition of Assumption 1 is that under any policy, a
+trix of all ones, respectively. All comparison operators             state is reachable from any other state in one step with
+between vectors and matrices are applied elementwise.                strictly positive probability uniformly bounded below.
+We use calligraphic and uppercase letters to denote finite
+sets and their cardinalities, respectively (e.g., S “ |S|,           Assumption 1 There exists some α ą 0 such that
+A “ |A|). We use O to denote the asymptotic upper                    P ps1 |s, aq ě α for all s, s1 P S and a P A.
+bound and O      r to represent O while hiding logarithmic
+factors. I¨ is the indicator function: IpAq “ 1 if A occurs,         Furthermore, let π : S Ñ DpAq denote the seller’s al-
+and IpAq “ 0 otherwise. Unless stated otherwise, in the              location policy, where πpa | sq denotes the probability
+context of MDPs, the probability and expectation are                 that the seller chooses action a P A in state s P S. Let
+taken with respect to the transition kernel P and pol-               p fi ppi qni“1 : S ˆ A Ñ Rn denote the seller’s payment
+icy π, i.e., Pp¨q “ Pp¨ | P, πq and E r¨s “ E r¨ | P, πs. For        policy, where pi ps, aq is the payment made by bidder i to
+t P Z` , we use st and at to denote the state and the                the seller when the seller chooses action a in state s. De-
+action in round t, respectively. Likewise, a superscript t           pending on whether we consider the offline or online ver-
+is added to any function to denote its realized value in             sion of the dynamic auction, the interaction between the
+round t.                                                             seller and the bidders may vary slightly. Details of these
+                                                                     protocols will be discussed later. In general, each bidder
+                                                                     submits her bids to the seller, and the seller then gen-
+2   Problem Formulation                                              erates the allocation and payment policies accordingly.
+                                                                     We note that, unlike the Markov game setting, in our
+We study sequential sealed-bid auctions with a set rns               model the seller is the sole decision maker and learner
+of n rational bidders and one seller, which is denoted               who takes actions and interacts with the environment in
+as player 0. 1 The auctions are conducted sequentially,              the MDP setting. The bidders do not interact with the
+and each bidder’s private value for the goods may                    environment directly; instead, they influence the trajec-
+change over time as the underlying market evolves. We                tory of the MDP indirectly through their interactions
+                                                                     with the seller via bidding.
+1
+  We often use he/him/his to refer to the seller and
+she/her/hers to refer to a bidder. Moreover, we refer to both        Next, before formally introducing the dynamic auction
+the bidders and the seller as players.                               protocols, we define the value functions and bench-
+
+
+
+                                                                 3
+marks used to evaluate the performance of our learning                Protocol 1 Offline Dynamic Auction
+algorithms. We adopt infinite-horizon average rewards                  1: Each bidder i P rns submits her bids bi to the seller.
+for both the value functions and the benchmarks. This                  2: The seller determines an allocation policy π and a
+choice reflects the fact that the duration each bidder                    payment policy p.
+expects to participate in the dynamic auction may be                   3: for t “ 1, 2, ¨ ¨ ¨ do
+uncertain, due to underlying dynamics that are poten-                  4:    The seller observes the state st and chooses an
+tially unknown to her. If the bidders have incentives                        allocation action at „ πp¨|st q.
+to stay in the auction indefinitely rather than drop out               5:    The seller charges pi pst , at q to each bidder i P rns.
+(as we will show later), it is reasonable to consider an               6:    The state transits to st`1 .
+infinite-horizon setting and use the notion of average
+reward. For any initial state s, stationary allocation                the seller determines an allocation policy and a payment
+policy 2 π, and bounded function r : S ˆ A Ñ R` , we                  policy at the beginning of the dynamic auction. Once
+define the expected average payoff as follows:                        the sequential auction starts, the seller will stick to the
+                         «                   ff                       same allocation and payment policies. Hence, the seller
+                           T
+                       1   ÿ           ˇ
+                                 t t ˇ 1
+                                                                      and the bidders are called offline seller and offline bid-
+        Jpπ; rq fi lim E      rps , a qˇs “ s .            (1)        ders, respectively. An offline bidder i is truthful if bi “ ri ;
+                  T Ñ8 T
+                          t“1                                         otherwise, she is untruthful. An offline dynamic mecha-
+                                                                      nism (or simply, mechanism) is a mapping that collects
+Under Assumption 1, Jpπ; rq ř exists and is independent of            bids from each bidder tbi uiPrns and maps it to a pair of
+                                n
+the initial state [1]. Let R “ j“0 rj . We define average             allocation policy and payment policy pπ, pq. The inter-
+social welfare as follows:                                            actions between the seller and the bidders in the offline
+                                                                      setting are summarized in Protocol 1.
+                      wpπq fi Jpπ; Rq.                     (2)
+                                                                      On one hand, the seller aims to design a mechanism that
+Given any bounded stationary payment policy p, we de-                 maximizes the average social welfare defined in Eq. (2)
+fine bidder i’s average utility ui pπ, pi q and seller’s aver-        without knowing bidders’ true private reward functions.
+age utility u0 pπ, pq as follows:                                     On the other hand, each rational bidder hopes to maxi-
+                                                                      mize her own average utility defined in Eq. (3) by possi-
+               ui pπ, pi q fi Jpπ; ri ´ pi q,              (3)        bly bidding untruthfully to deceive the mechanism and
+                                        ÿn                            tends to drop out when her average utility becomes neg-
+               u0 pπ, pq fi Jpπ; r0 `         pi q.        (4)        ative. An offline dynamic mechanism that achieves these
+                                          i“1                         desiderata will be presented in Section 4.
+
+                                                                      2.2   Online Dynamic Auction With Unknown MDP
+We introduce two dynamic auction protocols that de-
+scribe the interactions between the seller and the bid-               In this setting, the state space S and the action space A
+ders: an offline version when the MDP is known and an                 are the only information known to the seller and the bid-
+online version when the MDP is unknown.                               ders. Neither the seller nor the bidders know the tran-
+                                                                      sition kernel P . Moreover, we do not require that each
+2.1   Offline Dynamic Auction With Known MDP                          player i P rns Y t0u knows his/her own reward function
+                                                                      ri before the sequential auction starts. Rather, we con-
+The state space S and the action space A are public                   sider a more difficult setting: Players do not know their
+information known to the seller and the bidders. Each                 private reward functions ahead of time. In each round t,
+player i P rnsYt0u knows his/her own reward function ri               after the seller observes the state st and chooses an allo-
+before the sequential auction starts. Moreover, the seller            cation action at , each player i P rns Y t0u receives a pri-
+knows the transition kernel P . In this setting, we study             vate stochastic bandit feedback rit pst , at q, which is the
+the offline problem: Each bidder i P rns submits her bid              realized value of his/her reward function independently
+bi : S ˆ A Ñ r0, 1s (which is equivalent to an S ˆ A ma-              drawn from some fixed unknown distribution Di pst , at q
+trix) to the seller before the dynamic auction starts, and            with mean ri pst , at q, not observed by other players. The
+                                                                      players will learn about their private reward functions
+2
+                                                                      from possibly noisy data as the sequential auction con-
+   An allocation policy is called stationary if the probability       tinues. Hence, when the MDP is unknown (specifically,
+of choosing a P A at round t depends only on the current
+state s P S and is independent of the time t. Otherwise, it
+                                                                      when the transition kernel and the reward functions are
+is non-stationary. It has been shown in [1] that for infinite-        unknown), it is only meaningful to study the online prob-
+horizon average-reward MDPs, the set of stationary policies           lem: Bidders are allowed to submit bids in each round,
+is complete and dominant. Therefore, it suffices to consider          and the seller implements possibly time-varying alloca-
+only stationary allocation policies when the MDP is known             tion and payment policies and learns a dynamic mecha-
+and when the offline version is studied.                              nism through the history.
+
+
+
+                                                                  4
+We consider the following two ways in which a bidder                      Protocol 2 Online Dynamic Auction
+i P rns participates in the online dynamic auction:                        1: The bidders who participate by bids submit their
+                                                                              bids tbi u to the seller.
+‚ Participate by bids: Bidder i submits her bids bi                        2: for t “ 1, 2, ¨ ¨ ¨ do
+  (an S ˆ A matrix) before the dynamic auction starts.                     3:    The seller determines an allocation policy π t and
+  Bidders who participate by bids know their private                             a payment policy pt .
+  reward functions ahead of time and are offline (like in                  4:    The seller observes the state st and chooses an
+  the offline problem). A bidder i who participates by                           allocation action at „ π t p¨|st q.
+  bids is truthful if bi “ ri ; otherwise, she is untruthful.              5:    The seller charges pti pst , at q to each bidder i P rns.
+‚ Participate by rewards: In each round t, bidder i                        6:    Each player i P rns Y t0u receives a realized re-
+  reports her realized reward rit pst , at q to the seller (not                  ward rit pst , at q.
+  necessarily truthfully). This reported value of bidder                   7:    The bidders who participate by rewards report
+  i’s realized reward, denoted by bti , will be used as her                      their realized rewards (not necessarily truthfully)
+  bid for the next round. Bidders who participate by                             tbti u to the seller as their bids for round t ` 1.
+  rewards do not necessarily know their private reward                     8:    The state transits to st`1 .
+  functions ahead of time. A bidder i who participates
+  by rewards is truthful if bti “ rit pst , at q for all t; oth-          out. Each rational bidder aims to maximizes her average
+  erwise, she is untruthful. A bidder i adopts a station-                 utility by possibly submitting untruthful bids if she par-
+  ary bidding strategy if in round t, she reports a sam-                  ticipates by bids or reporting a false realized reward in
+  ple drawn from some fixed distribution Di1 pst , at q de-               each round if she participates by rewards. A bidder who
+  pending only on the state st and the seller’s alloca-                   participates by rewards can be more subtly manipulative
+  tion action at ; otherwise, she adopts a non-stationary                 than a bidder who participates by bids because she can
+  bidding strategy. It is obvious that a truthful bidding                 take advantage of the seller and maneuver on the trajec-
+  strategy is always stationary, whereas an untruthful                    tories that the seller relies on for learning the MDP and
+  bidder can adopt stationary or non-stationary bidding                   the online dynamic mechanism. An online learning algo-
+  strategies.                                                             rithm for the dynamic mechanism that approximately
+                                                                          achieves the desiderata will be presented in Section 5.
+We allow a mixture of bidders who participate by bids
+and by rewards. In fact, participation by bids can be                     3     Preliminaries
+treated as a special case of participation by rewards. A
+bidder i who participates by bids can participate by re-
+                                                                          In this section, we provide definitions and preliminary
+wards by reporting the same value bi ps, aq every time the
+                                                                          results on occupancy measures, which will later be used
+state-action pair ps, aq is visited. Technically, participa-
+                                                                          to develop and prove our main algorithmic results.
+tion by bids is simpler than, if not equivalent to, partici-
+pation by rewards by reporting the pst , at q-th entry of bi
+                                                                          For a unichain MDP with state space S, action space A,
+in each round for algorithm design and analysis. This is
+                                                                          and transition kernel P , the infinite-horizon occupancy
+because, once the seller knows that bidder i participates
+                                                                          measures corresponding to a given stationary policy π is
+by bids, he can eliminate the uncertainty for the estima-
+                                                                          defined through the following three notions [1], namely
+tion of bidder i’s reported reward function, which will
+                                                                          state-action-next-state frequencies q, state-action fre-
+only improve the learning performance. Therefore, in the
+                                                                          quencies ρ, and state frequencies (also called stationary
+remainder of the paper, we focus on a more challenging
+                                                                          distribution in the literature of Markov chain) ν: for all
+setting and assume that all bidders participate based on
+                                                                          s, s1 P S and a P A,
+rewards. The seller learns the mechanism and, in each
+round t, determines a pair of possibly time-varying allo-                                          T
+cation and payment policies pπ t , pt q. An online dynamic                                      1 ÿ ` t                         ˘
+                                                                              qps, a, s1 q fi lim     P s “ s, at “ a, st`1 “ s1 ,
+mechanism is a mapping that takes as input the history                                     T Ñ8 T
+                                                         t´1                                      t“1
+up to the previous round, tpsτ , aτ , r0τ , pbτi qni“1 quτ “1 , and                                                              (5)
+outputs a pair of allocation and payment policies pπ t , pt q.                                     T
+The interactions between the seller and the bidders in                                          1 ÿ ` t              ˘
+                                                                                 ρps, aq fi lim       P s “ s, at “ a ,          (6)
+the online dynamic auction, when the MDP is unknown,                                       T Ñ8 T
+                                                                                                  t“1
+are summarized in Protocol 2.                                                                       T
+                                                                                                 1 ÿ ` t     ˘
+                                                                                   νpsq fi lim         P s “s .                       (7)
+                                                                                            T Ñ8 T
+Similarly to the offline version when the MDP is known,                                            t“1
+our objective is to design a learning algorithm for the
+seller to learn the unknown MDP and implement an on-                      Intuitively, qps, a, s1 q, ρps, aq, and νpsq represent the
+line dynamic mechanism that approximately maximizes                       long-term probabilities that the state-action-next-state
+the average social welfare and incentivizes the bidders to                triplet ps, a, s1 q, the state-action pair ps, aq, and the
+report their realized rewards truthfully and not to drop                  state s are visited in the MDP with transition kernel P
+
+
+
+                                                                      5
+                                                                                                         ř                 1
+under policy π. Alternatively, they also represent the                                                        PS qps, a, s q
+                                                                                                            s1ř
+                                                                                       π q pa|sq “ ř                               .   (13)
+proportion of time the system spends in ps, a, s1 q, ps, aq,                                           a1 PA
+                                                                                                                             1 1
+                                                                                                                s1 PS qps, a , s q
+and s, respectively, when policy π is executed. The rela-
+tionship between these three notions of the occupancy
+measure is given in the following:                                       Given a transition kernel P , let ∆pP q denote the set
+                                                                         of valid occupancy measures whose induced transition
+                qps, a, s1 q “ ρps, aqP ps1 |s, aq,           (8)        kernels equal P . It is clear that ∆pP q Ď ∆. The following
+                               ÿ
+                   ρps, aq “        qps, a, s1 q,             (9)        proposition provides a characterization of ∆pP q, which
+                               s1 PS                                     is also a polytope [1, 37].
+                                ÿ
+                     νpsq “            ρps, aq,             (10)
+                               aPA
+                                                                         Proposition 3 ∆pP q is a non-empty polytope and has
+                   ρps, aq “ νpsqπpa|sq.                    (11)         the following representation:
+
+In this work, we use these three notions of occupancy                       ∆pP q “ ∆X
+                                                                            $          ˇ                             ÿ              ,
+measure interchangeably.                                                    &          ˇ qps, a, s1 q “ P ps1 |s, aq     qps, a, xq .
+                                                                                     2 ˇ
+                                                                             q P RAS
+                                                                                   `
+                                                                                       ˇ
+                                                                                       ˇ                             xPS              .
+Let ∆ denote the set of all valid occupancy measures q.                     %          ˇ @s, s1 P S, a P A                          -
+We have the following characterization for ∆ [1, 37].
+
+Proposition 1 ∆ is a non-empty polytope and has the                      Let P denote
+following representation:                                                          Ť a collection of transition kernels, and let
+                                                                         ∆pPq fi P PP ∆pP q represent the set of occupancy
+     $       ˇÿ ÿ ÿ                                            ,         measures whose induced transition kernels belong to P.
+     ’
+     ’
+             ˇ
+             ˇ                qps, a, s1 q “ 1,                /
+                                                               /         In general, ∆pPq is not necessarily a polytope or a con-
+                                                                         vex set. However, if P is carefully defined, ∆pPq will
+     ’
+     ’       ˇ sPS aPA s1 PS                                   /
+                                                               /
+     &     2 ˇ ÿ ÿ
+                                                               .
+         AS ˇ                            ÿ   ÿ
+∆ “ q P R` ˇ             qps 1
+                               , a, sq “          qps, a, s 1
+                                                              q  .       have a simple characterization and desirable properties.
+   ’         ˇ s1 PS aPA                     1 PS
+                                                               /
+                                        aPA
+   ’
+   ’                                        s
+                                                               /
+                                                               /
+   ’         ˇ                                                 /
+                                                                         The introduction of occupancy measure allows us to re-
+   %         ˇ @s P S                                          -
+                                                                         duce the task of evaluating a policy to that of evaluating
+                                                                         an occupancy measure. Similarly, it also reduces the task
+The first constraint and the non-negativity constraint                   of learning the optimal policy to that of learning the op-
+ensure that q forms a valid probability measure. The                     timal occupancy measure. Given a unichain MDP with
+second constraint, which is analogous to flow conserva-                  transition kernel P and a stationary policy π, let q P,π
+tion, ensures the stationary property. For a given func-                 and ρP,π denote the two notions of occupancy measure
+tion q : S ˆ A ˆ S Ñ r0, 1s, let ρ and ν be the functions                induced by P and π, which are defined by (5) and (6),
+induced by q using Eqs. (8)–(11). If q is a valid occu-                  respectively. With slight abuse of notation, let us define
+pancy measure, ρ and ν are also valid occupancy mea-                     rps, a, s1 q “ rps, aq for all ps, a, s1 q P S ˆ A ˆ S for any
+sures. With slight abuse of notation, we say ρ P ∆ and                   bounded reward function r : S ˆ A Ñ R` . It has been
+ν P ∆ if ρ and ν can be obtained from some q P ∆ using                   shown in [1] that under Assumption 1,
+Eqs. (8)–(11).
+                                                                                       Jpπ; rq “ xq P,π , ry “ xρP,π , ry,
+Given the transition kernel P of an MDP and policy π,
+the occupancy measures are uniquely defined through                      where Jpπ; rq is the expected average payoff defined by
+Eqs. (5)–(7). Conversely, any occupancy measure q P ∆                    Eq. (1). Therefore, finding the optimal policy π ˚ is equiv-
+can induce some transition kernel P and policy π, as                     alent to solving the following LP:
+shown in the following proposition [39].
+                                                                                              q ˚ P argmax xq, ry.
+Proposition 2 Any valid occupancy measure q P ∆ can                                                 qP∆pP q
+induce a transition kernel P q and a stationary policy π q
+defined as follows: 3 for all s, s1 P S and a P A,                       The optimal policy π ˚ can be induced from q ˚ using
+                                                                         Eq. (13).
+                                qps, a, s1 q
+          P q ps1 |s, aq “ ř                  ,             (12)
+                               xPS qps, a, xq
+                                                                         Finally, we consider a subset of the occupancy measure
+                                                                         polytope, namely shrunk polytope, as defined below [37].
+3
+  If the denominator is zero, P q p¨|s, aq is chosen to be an
+arbitrary probability measure over S, and π q p¨|sq is chosen            Definition 1 (Shrunk Polytope) For any δ P p0, 1q,
+to be an arbitrary probability measure over A.                           the shrunk polytope of all feasible occupancy measures is
+
+
+
+                                                                     6
+defined as follows:                                                       stationary allocation policies. The infinite-horizon VCG
+                                                                          mechanism is defined as follows:
+    ∆δ fi ∆X
+                                                                          Definition 2 (Infinite-horizon VCG mechanism)
+    #           ˇ                                        +
+                ˇ ÿ
+           AS 2 ˇ                                              (14)
+      q P R` ˇ          qps, a, s1 q ě δ     @s P S, a P A .              An offline dynamic mechanism is an infinite-horizon
+                ˇ s1 PS                                                   VCG mechanism if it receives the bids and outputs a pair
+                                                                          pπ ˚ , p˚ q of allocation policy and price policy that satisfy
+Moreover, for a given transition kernel P and a collection                the following equations:
+of transition kernels P, we define ∆δ pP q and ∆δ pPq in
+a similar way by replacing ∆ in Eq. (14) with ∆pP q and                              π ˚ P argmax Jpπ; Rq,                         (15)
+∆pPq, respectively.                                                                          πPΠ
+                                                                                      ˚
+                                                                                     π´i P argmax Jpπ; R´i q      @i P rns,        (16)
+                                                                                              πPΠ
+Intuitively, we obtain ∆δ from ∆ by “chopping off” the
+extreme points of the polytope, which correspond to de-
+                                                                                                     ˚
+                                                                                     p˚i ps, aq “ Jpπ´i ; R´i q ´ R´i ps, aq
+                                                                                                                                   (17)
+terministic policies. Eq. (13) and Eq. (14) imply that for                                          @i P rns, s P S, a P A.
+any q P ∆δ , π q pa|sq ě δ for all s P S and a P A, mean-
+ing that any action will be chosen with probability at                    Remark 1 The pair pπ ˚ , p˚ q can be written in terms of
+least δ in any state under any stationary distribution in                 occupancy measures as follows: 4
+∆δ . Hence, by restricting a learning algorithm to ∆δ in-
+stead of ∆, we encourage the algorithm to explore dur-                               q ˚ P argmax xq, Ry,                          (18)
+ing learning. Moreover, when the occupancy measure is                                       qP∆pP q
+restricted to ∆δ , the denominators in Eqs. (12)–(13) are                             ˚
+                                                                                     q´i P argmax xq, R´i y      @i P rns,         (19)
+essentially non-zero, implying that the induced transi-                                      qP∆pP q
+tion kernel P q is unique, which is a favorable property                                            ˚
+                                                                                     p˚i ps, aq “ xq´i , R´i y ´ R´i ps, aq
+for both the algorithm and the analysis. The following                                                                             (20)
+                                                                                                    @i P rns, s P S, a P A.
+lemma states that shrinking the polytope by a suffi-
+ciently small size δ will result in only a negligible loss in
+                                                                          Therefore, the offline infinite-horizon VCG mechanism
+the payoff. Moreover, given a desired level of payoff loss,
+                                                                          can be obtained by solving pn ` 1q LPs.
+the amount of shrinking δ can be computed efficiently .
+                                                                          In general, a bidder may not be truthful and may submit
+Proposition 4 (Lemma 4.3 of [14]) For any ϵ ą 0,
+                                                                          a bid bi ‰ ri to the seller. In this case, the seller com-
+there exists a δ P p0, 1q that can be computed in polyno-
+                                                                          putes π ˚ and p˚ using the equations above, replacing ri
+mial time such that
+                                                                          with bi . Like the classical VCG mechanism, the infinite-
+                                                                          horizon VCG mechanism satisfies the three desiderata of
+                  max xq, ry ě max xq, ry ´ ϵ.
+                qP∆δ pP q          qP∆pP q                                mechanism design: efficiency, truthfulness, and individ-
+                                                                          ual rationality. We first extend these definitions to the
+                                                                          infinite-horizon dynamic setting.
+4     Offline Infinite-Horizon VCG Mechanism
+                                                                          Definition 3 (Efficiency) An offline dynamic mecha-
+In this section, we consider offline dynamic auction when                 nism is efficient if the mechanism maximizes the average
+the MDP is known and study the offline problem defined                    social welfare w when all bidders are truthful.
+in Section 2.1. Recall that the state space S and the ac-
+tion space A are public information known to the seller                   Definition 4 (Truthfulness) An offline dynamic
+and the bidders, and each player knows his/her own pri-                   mechanism is truthful if for any bidder i P rns, regard-
+vate reward function. All bidders submit their bids to the                less of the behavior of other bidders, her average utility
+seller ahead of time. The seller determines stationary al-                ui is maximized when she is truthful, i.e., bi “ ri .
+location and payment policies using the bids submitted
+by each bidder before the dynamic auction starts, and                     Definition 5 (Individual rationality) An offline dy-
+an offline dynamic mechanism unfolds over the sequence                    namic mechanism is individually rational if for any bid-
+of auctions as the seller implements the pre-determined                   der i P rns, regardless of the behavior of other bidders,
+allocation and payment policies in each round. Suppose                    her average utility ui is nonnegative when she is truthful.
+that all bidders submit their reward functions truthfully
+as bids to the seller. We extend the classical VCG mech-                  Note that these three desiderata are closely related. A
+anism, originally developed for single-stage auctions, to                 truthful mechanism ensures that the bidders bid truth-
+our offline sequential auction modeled byřan infinite-                    fully, which in turn enables efficiency. Moreover, if the
+                                                n
+horizon average-reward MDP. Let R “ j“0 rj and
+                                                                          4
+        řn
+R´i “ j“0 rj for all i P rns. Denote by Π the set of all                    We can also replace q in Eqs. (18)–(20) with ρ to get
+            j‰i                                                           occupancy measures in S ˆ A.
+
+
+
+                                                                      7
+mechanism is individually rational, the bidders have in-          regret Reg-BIDpT q:
+centives to stay in the sequential auction and continue                                                  «               ff
+playing the dynamic game with the seller indefinitely                                                        T
+                                                                                                             ÿ
+                                                                                                ˚                    t
+rather than drop out. This justifies our use of the notion              Reg-SWpT q fi T wpπ q ´ E                R            ,
+of average reward function. The following lemma stipu-                                                    t“1
+                                                                                                              «                     ff
+lates that our infinite-horizon VCG mechanism indeed                                                              T
+                                                                                                                  ÿ
+satisfies the three desiderata defined above.                                                    ˚   ˚
+                                                                     Reg-SELLpT q fi T u0 pπ , p q ´ E                        ut0        ,
+                                                                                                                 t“1
+                                                                                                                         «                     ff
+                                                                                          n                                     n
+                                                                                                                              T ÿ
+Theorem 1 The infinite-horizon VCG mechanism is ef-                                       ÿ                                   ÿ
+ficient, truthful, and individually rational.                         Reg-BIDpT q fi T          ui pπ ˚ , p˚ q ´ E                           uti ,
+                                                                                          i“1                                 t“1 i“1
+
+The proof of Theorem 1 follows the dynamic pivot mech-            where the expectation is taken with respect to the ran-
+anism in [5] and is similar to the Markov VCG mecha-              domness of the MDP and the randomness of the algo-
+nism in [38]. For completeness, we provide the proof in           rithm itself.
+Appendix C.
+                                                                  Note that by definition, Reg-SWpT q “ Reg-SELLpT q `
+                                                                  Reg-BIDpT q. This also indicates that, given a fixed
+5   Online Learning for the Infinite-Horizon VCG                  bounded social welfare regret, the regrets of the seller
+    Mechanism with Unknown MDP                                    and the bidders are on opposite sides: a smaller regret
+                                                                  for one side results in a larger regret for the other side.
+Deriving the infinite-horizon VCG mechanism requires              This is intuitive, as the seller and the bidders have con-
+the seller to have complete information about the MDP             flicting utilities. Hence, the regrets for both sides must
+model MpS, A, P, tri uni“0 q, which, in many scenarios, is        be bounded in order to demonstrate the effectiveness of
+unrealistic. A natural question is whether the seller could       learning. In this paper, we present a version of the al-
+learn the MDP model—particularly the transition ker-              gorithm favorable to the seller that results in a smaller
+nel P and the reward functions tri uni“0 —and mimic the           seller’s regret and a slightly larger bidders’ regret. An
+mechanism through interactions with the environment               alternative version favorable to bidders is discussed in
+and the bidders. In this section, we consider the more            Section 5.4.
+challenging setting when the MDP is unknown and study
+the online dynamic auction defined in Section 2.2. Recall         Apart from the gaps with respect to the offline infinite-
+that in this setting, the only information known to the           horizon VCG mechanism benchmark, we also aim to
+seller and the bidders is the state space S and the action        understand approximately how well the learned mecha-
+space A, and they are public information. We do not re-           nism achieves the three desiderata: efficiency, truthful-
+quire that each player i P rns Y t0u knows his/her own            ness, and individual rationality. Reg-SWpT q is an appro-
+reward function ri before the sequential auction starts,          priate metric for efficiency, as it represents the subopti-
+and we allow players to learn their reward functions by           mality with respect to the maximum average social wel-
+receiving stochastic bandit feedback from the environ-            fare. In this regard, we define the following notion of
+ment The interactions between the seller and the bid-             approximate efficiency.
+ders in the online dynamic auction when the MDP is
+unknown are summarized in Protocol 2.                             Definition 6 (ϵ-Approximate efficiency) A learn-
+                                                                  ing algorithm achieves ϵ-approximate efficiency (or is
+We develop an online reinforcement learning algo-                 ϵ-approximately efficient) if limT Ñ8 T1 Reg-SWpT q ď ϵ
+rithm for the seller to learn and mimic the offline               when all bidders are truthful.
+infinite-horizon VCG mechanism defined in Section 4.
+The objective is to ensure that the learned online dy-            As for truthfulness and individual rationality, the fol-
+namic mechanism asymptotically resembles the offline              lowing two notions are defined to quantify how much the
+infinite-horizon VCG mechanism and approximately                  learned mechanism deviates from a truthful, individu-
+satisfies the desiderata—efficiency, truthfulness, and            ally rational mechanism.
+individual rationality. To evaluate the performance
+of our devised learning algorithm, we first compare               Definition 7 (Approximate truthfulness) For any
+the learned mechanism to the benchmark—the offline                bidder i P rns, let tuti uTt“1 and tũti uTt“1 denote her real-
+infinite-horizon VCG mechanism—which outputs a pair               ized utilities when she is truthful and untruthful, respec-
+pπ ˚ , p˚ q of allocation policyřand payments, asřdefined         tively. Suppose all bidders other than i adopt station-
+                                  n                n              ary bidding strategies. A learning algorithm achieves ap-
+by Eqs. (15)–(17). Let Rt “ i“0 rit , ut0 “ r0t ` i“1 pti ,
+        t      t    t
+and ui “ ri ´ pi for all i P rns. We use the following            proximate truthfulness (or is approximately truthful) if
+                                                                                 řT
+notions to evaluate the algorithm’s performance with              limT Ñ8 T1 Er t“1 pũti ´ uti qs ď 0, where the expectation
+respect to the benchmark, namely social welfare regret            is taken with respect to the randomness of the MDP and
+Reg-SWpT q, seller’s regret Reg-SELLpT q, and bidders’            of the algorithm.
+
+
+
+                                                              8
+Definition 8 (Approximate individual rational-                     Algorithm 3 Main Algorithm: IHMDP-VCG
+ity) A learning algorithm achieves approximate individ-            Input: Parameters for shrunk polytope ϵ and δ;
+ual rationality (or is approximately individually ratio-                   initial occupancy measure qpr1s “ AS          1        AS 2
+                                                                                                                           2 ¨ 1       ;
+nal) if for any bidder i P rns, regardless of the behavior                                         r1s       n
+                                řT                                         initial payments pp “ 1 ;
+of other bidders, limT Ñ8 T1 Er t“1 uti s ě 0 when she is                  initial confidence set for the transition kernel
+truthful, where the expectation is taken with respect to                   P r0s given by Eq. (24);
+the randomness of the MDP and of the algorithm.                            initial counters set to 0.
+                                                                    1: for k “ 1, 2, ¨ ¨ ¨ do
+Our online learning algorithm, called IHMDP-VCG, is pre-            2:    Compute π rks from qprks using Eq. (13).
+sented in Algorithm 3. In summary, the algorithm pro-               3:    Mixing phase:
+ceeds in episodes, and learning takes place between two             4:    for t “ τ rks , τ rks ` 1, ¨ ¨ ¨ , τ rks ` drks ´ 1 do
+consecutive episodes. We would like to emphasize that               5:        Implement allocation policy π rks and charge
+the notion of an episode in Algorithm 3 is intrinsically                      each bidder 0.
+distinct from that in episodic MDPs. In our algorithm,              6:        Collect reported rewards trit uni“1 from the
+the episode is defined for the sake of presentation and                       bidders.
+analysis. The state continues to evolve between two con-            7:    Stationary phase:
+secutive episodes, whereas in episodic MDPs, the system             8:    for t “ τ rks ` drks , ¨ ¨ ¨ , τ rks ` drks ` lrks ´ 1 do
+restarts from an initial state at the beginning of each             9:        Implement allocation policy π rks and charge
+episode. In each episode, the algorithm maintains plau-                                         rks
+                                                                              each bidder pi .
+sible sets of transition kernels and reward functions. At
+                                                                   10:        Collect reported rewards trit uni“1 from the
+the end of each episode, the algorithm updates the allo-
+                                                                              bidders.
+cation policy and payments by solving pn`1q linear pro-
+                                                                   11:    Update the counters N rks ps, a, s1 q and N rks ps, aq
+grams. We discuss the details of the algorithm in the fol-
+                                                                          for all s, s1 P S, a P A.
+lowing subsections. Note that in the rest of this section,
+                                                                   12:    Update the confidence set for transition kernel
+we do not distinguish between the bidders’ reward func-
+                                                                          P rks using Eq. (23).
+tions and their bids, as the seller does not know whether
+                                                                   13:    Update the UCB tp       rik uni“0 and LCB tq     rik uni“0 for
+they bid truthfully or not. The proofs of the lemmas pre-
+                                                                          reward functions using Eqs. (27)–(28).
+sented in this section are deferred to Appendix D.
+                                                                   14:    Update occupancy measure qprk`1s by solving the
+                                                                          LP in Eqs. (29).
+5.1     Learning in Episodes
+                                                                   15:    Update payments pprk`1s using Eq. (31) by solv-
+                                                                          ing n LPs given by Eq. (30).
+The learning process is divided into episodes of increas-
+                                                                   16:    τ rk`1s “ τ rks ` drks ` lrks .
+ing length. Each episode consists of two phases: mixing
+phase and stationary phase.
+                                                                   The length of the mixing phase drks must be carefully
+5.1.1    Mixing Phase                                              designed, as an excessively long mixing phase will re-
+                                                                   sult in a large seller’s regret and undermine the ap-
+Each episode k starts with a mixing phase that lasts drks          proximate truthfulness. Moreover, an overly short mix-
+rounds, followed by a stationary phase. Let τ rks denote           ing phase will result in non-stationarity and hence a
+the start round of episode k. In the mixing phase, the             large discrepancy between the transition distribution
+seller implements the allocation policy π rks induced by           and the stationary distribution. Let F rk´1s be the σ-
+qprks P ∆δ , which is calculated by the algorithm at the           algebra adapted to all measurable events up to the end
+end of episode pk ´1q, without charging the bidders. The           of episode pk ´ 1q. Denote by ν t and ν rks the transi-
+purpose of the mixing phase is that, after a reasonably            tion distribution at round t and the stationary distri-
+long period of time, the transition distribution becomes           bution induced by π rks in episode k, respectively. For
+sufficiently close to the stationary distribution, making it       all s P S and a P A, let ρt ps, aq “ ν t psqπ rks pa|sq and
+meaningful for the seller to implement the learned mech-           ρrks ps, aq “ ν rks psqπ rks pa|sq. We provide an expression
+anism and to learn the stationary distribution in the sta-         of drks in the following lemma, which ensures that the
+tionary phase. Given any stationary allocation policy π,           underlying Markov chain is approximately stationary
+the mixing time of the induced Markov       chain with tran-       during the stationary phase, without incurring large re-
+sition probabilities P π ps1 |sq “ aPA P ps1 |s, aqπpa|sq is
+                                   ř
+                                                                   gret or excessively compromising the truthfulness of the
+bounded above by using Assumption 1, and the differ-               learned mechanism.
+ence between the transition distribution and the station-
+ary distribution decays exponentially fast, as shown in            Lemma 2 Let drks “ log        k
+the following statement.                                                                       αS for all k P Z`` . Condi-
+                                                                               rk´1s
+                                                                   tioned on F       , for any round t in the stationary phase
+Lemma 1 It holds that for any ν, ν 1 P ∆pSq, }pν ´                 of episode k,
+                                                                              ?  it holds   that ∥E rρt s ´ ρrks ∥1 “ ∥E rν t s ´
+                                                                     rks
+ν 1 q⊺ P π }1 ď p1 ´ αSq}pν ´ ν 1 q⊺ }1 .                          ν ∥1 ď 2{ k.
+
+
+
+                                                               9
+5.1.2         Stationary Phase                                                    which is a Bernstein-like confidence radius for updating
+                                                                                  the transition kernel confidence set defined as follows:
+In the stationary phase, the seller continues to imple-
+ment the same allocation policy π rks as in the mixing                             P rks fi P rk´1s X
+                                                                                   #             ˇ                                                    +
+                                                      rks                                              1           srks ps1 |s, aq ď ϵrks ps, a, s1 q
+phase. However, in each round, the seller charges pi to                                     AS 2 ˇ P ps |s, aq ´ P
+                                                                                                 ˇ
+each bidder i P rns and receives bids from each bidder.                              P P R` ˇ                                                          ,
+                                                                                                 ˇ @s, s1 P S, a P A
+Since qprks P ∆δ (see Eq. (29)), and using Assumption 1,                                                                                            (23)
+one can show that in each round any ps, aq-pair is vis-                                                     r0s
+                                                                                  with the initial set P being the set of all feasible tran-
+ited with strictly positive probability lower bounded by
+                                                                                  sition kernels defined as follows:
+a constant (see Lemma 6 in Appendix F). As a result, if
+the stationary phase is sufficiently long, with high prob-                                  #             ˇ
+                                                                                                          ˇ
+                                                                                                                                                      +
+                                                                                                        2 ˇ ÿ
+ability, every ps, aq-pair will be visited at least once in                          r0s
+                                                                                   P fi P P R` ˇ     AS               1
+                                                                                                                  P ps |s, aq “ 1 @s P S, a P A .
+each episode. This result is non-trivial, as it ensures suf-                                              ˇ s1 PS
+ficient exploration to get an accurate estimation of the                                                                                            (24)
+MDP model and also mitigates the negative influence                               It has been shown that for all k P Z`` , the correspond-
+on seller’s learning due to bidders’ possibly untruthful                          ing set of occupancy measures ∆pP rks q associated with
+behavior. Similar ideas have been used in existing works                          P rks is a polytope that is characterized by a polynomial
+on multi-armed bandits [25] and episodic MDPs [38] to                             number of constraints in S and A [23, Appendix A.1].
+encourage exploration. Let lrks denote the length of the
+stationary phase in episode k. We have the following                              Similarly, to estimate the reward function for each player
+lemma for the sufficiency of exploration.                                         in each episode, the algorithm computes the empirical
+                                                                                  reward function and the confidence radius for each bid-
+Lemma 3 Let                                                                       der and the seller as follows: for all i P rns Y t0u, s P S
+                                                                                  and a P A,
+                            ?
+              rks     maxt4, ku logpASk{ζq
+          l         “                                    @k P Z`` .                                      řτ rk`1s ´1 t
+                              αδ                                                            rks            t“1      I tps, aqu ¨ rit ps, aq
+                                                                                          rsi ps, aq fi                                     ,       (25)
+                                                                                                               maxt1, N rks ps, aqu
+With probability at least 1 ´ Opζq, every ps, aq-pair is
+                                                                                                         d
+visited at least once in each episode.                                                                        2 logpASkn{ζq
+                                                                                         β rks ps, aq fi                         ,                  (26)
+                                                                                                           maxt1, N rks ps, aqu
+
+5.2     Confidence Sets                                                           where It tps, aqu ” I tpst , at q “ ps, aqu is the indicator
+                                                                                  function for the event that ps, aq is visited in round t. The
+                                                                                  upper confidence bound (UCB) and the lower confidence
+The algorithm maintains confidence sets for the transi-
+                                                                                  bound (LCB) for reward functions are constructed as
+tion kernel and each player’s reward function, and up-
+                                                                                  follows, respectively:
+dates these confidence sets at the end of each episode.
+With high probability, the transition kernel lies in the                                  rks
+                                                                                                         !
+                                                                                                                 rks            rks
+                                                                                                                                        )
+confidence set in each episode. Moreover, when the bid-                                 rpi ps, aq fi min ci , rsi ps, aq ` ci βi ps, aq ,          (27)
+ders are truthful, each player’s reward function also lies                                rks
+                                                                                                         !
+                                                                                                                 rks            rks
+                                                                                                                                        )
+in the confidence set with high probability. For any s, s1 P                            rqi ps, aq fi max 0, rsi ps, aq ´ ci βi ps, aq ,            (28)
+S and a P A, denote by N rks ps, aq and N rks ps, a, s1 q the
+total number of visits to ps, aq and ps, a, s1 q up to the                        where ci “ 1 for all i P rns, and c0 “ cmax , which is the
+end of episode k, respectively. The empirical transition                          upper bound of the seller’s reward r0 . Given the above
+kernel in episode k is defined as                                                 definitions, we have the following two lemmas.
+
+                                            N rks ps, a, s1 q                     Lemma 4 With probability at least 1 ´ Opζq, P P P rks
+                    Psrks ps1 |s, aq fi                        ,      (21)        for all k P Z`` .
+                                          maxt1, N rks ps, aqu
+                                                                                                                                            rks
+Furthermore, we define                                                            Lemma 5 With probability at least 1´Opζq, rqi                   ď ri ď
+                                                                                    rks
+                                                                                  rpi for all i P rns Y t0u and k P Z`` .
+                                d
+          rks           1         Psrks ps1 |s, aq logpASk{ζq                     5.3     Policy Update
+      ϵ         ps, a, s q fi 2
+                                   maxt1, N rks ps, aq ´ 1u           (22)
+                                       14 logpASk{ζq                              The algorithm updates the allocation policy and
+                               `                             ,
+                                 3 maxt1, N rks ps, aq ´ 1u                       payment vector at the end of each episode by solv-
+
+
+
+                                                                             10
+ing pn ` 1q linear programs in the space of occu-                         problem of learning the dynamic VCG mechanism more
+pancy measures. With slight abuse of notation, we                         challenging than a standard online reinforcement learn-
+             rks          rks                      2
+expand rpi and rqi from RAS           `   to RAS`     by setting          ing problem.
+  rks        1      rks             rks       1      rks
+rpi ps, a, s q “ rpi ps, aq and rqi ps, a, s q “ rqi ps, aq for
+all k P Z`` , i P rns Y t0u, s, s1 P S and a P A. Moreover,               5.4    An Alternative Version Favorable to Bidders
+let R prks “ řn rprks , R                     prks “ řnj“0 rprks ,
+                            qrks “ řn rqrks , R
+                 i“0 i               i“0 i      ´i           j            The version of the learning algorithm presented in Al-
+                                                         j‰i
+         rks      n     rks                                                                                                    rk`1s
+                                                                          gorithm 3 is favorable to the seller. The payment ppi
+                ř
+and R  q “ j“0 rq .
+         ´i             j
+                  j‰i                                                     defined by Eq. (31) is a biased estimator of p˚i . With
+                                                                                                                      rk`1s
+                                                                          high probability, p˚i is upper-bounded by ppi     for each
+To compute the allocation policy π rk`1s for implemen-                    i P rns and k P Z`` . Hence, the seller tends to over-
+tation in episode pk ` 1q, the algorithm solves the follow-               charge each bidder by a small, bounded amount in each
+ing linear program over the shrunk occupancy measure                      round of the stationary phase. Hence, this setting results
+polytope ∆δ pP rks q fi ∆δ X ∆pP rks q at the end of episode              in a smaller seller’s regret but a larger bidders’ regret.
+k:                                                                        This version of the algorithm can be adopted when the
+               qprk`1s P argmax xq, R  prks y,          (29)              algorithm designer favors the seller more than bidders.
+                            qP∆δ pP rks q
+
+and then induces the allocation policy π rk`1s from qprk`1s               Alternatively, we can devise a version of the algorithm
+using Eq. (13).                                                           favorable to bidders as follows. We can design an un-
+                                                                          derestimator of the payment for each bidder i P rns as
+As suggested by Eq. (20) in Remark 1, the payment                         follows:
+for each bidder i P rns consists of two components, and                                    rk`1s
+calculating the first component involves solving another                                  qq´i                  qrks y,
+                                                                                                   P argmax xq, R                    (32)
+                                                                                                                  ´i
+LP. Correspondingly, in the online setting, the algorithm                                           qP∆δ pP rks q
+
+solves the following LP for each bidder i P rns to compute                        rk`1s              rk`1s q rks    prks
+                                                                                 pqi      ps, aq “ xq´i , R  ´i y ´ R´i ps, aq       (33)
+the first component of her payment:
+                                                                                                     @s P S, a P A.
+                   rk`1s                prks y.
+                  qp´i     P argmax xq, R ´i                 (30)                                qrks is used in Eq. (32) and in the first
+                            qP∆δ pP rks q                                 Note that the LCB R     ´i
+                                                                          component on the right-hand side of Eq (33) whereas the
+The payment for bidder i P rns is hence                                   UCB R   prks is used in the second component on the right-
+                                                                                   ´i
+                                                                          hand side of Eq. (33). In this scenario, each bidder i P rns
+        rk`1s
+       ppi
+                           rk`1s p rks
+                          q´i , R
+                ps, aq “ xp               qrks                            tends to be slightly undercharged, resulting in a smaller
+                                   ´i y ´ R´i ps, aq         (31)         amount of payment collected by the seller. Hence, this
+                           @s P S, a P A.                                 version is favorable to bidders but undesirable for the
+                                                                          seller, and it can be adopted when the algorithm designer
+The first component on the right-hand side of Eq. (31)                    hopes to favor bidders.
+comes from Eq. (30). Note that in the second component,
+the LCB R qrks , rather than the UCB R prks , is used.                    In the next section, we present the main results of the
+           ´i                           ´i
+                                                                          version that is favorable to the seller. As for the alterna-
+Unlike conventional online learning problems, where the                   tive version favorable to bidders, our results on bounded
+learner aims to maximize a single reward function and                     regret, approximate efficiency, truthfulness, and individ-
+implements and evaluates the computed optimal pol-                        ual rationality still hold (up to an additional factor poly-
+icy that steers the trajectory toward optimizing the ob-                  nomial in the size of the MDP, but the dependency on
+jective, in our problem of learning the dynamic VCG                       the time horizon or total number of episodes does not
+mechanism, the seller must learn and evaluate pn ` 1q                     change), and the analysis is similar. Hence, the results
+policies. However, only qprk`1s is implemented, while the                 and analysis for the alternative version will be omitted
+policies tp
+             rk`1s
+           q´i uni“1 need to be evaluated without be-                     due to space limitation.
+ing implemented, based on the trajectory generated by
+qprk`1s , which may be manipulated by untruthful bid-                     6     Main Results
+ders. Therefore, to achieve approximate accuracy and
+                                  rk`1s n
+optimality of the payments tpi         ui“1 and to ensure                 In this section, we present the main result of this pa-
+that the learned mechanism is approximately truthful                      per, which provides a theoretical performance guarantee
+and individually rational, sufficient exploration during                  for our proposed learning algorithm (Algorithm 3), in
+the learning process must be ensured. As mentioned be-                    terms of various regret metrics, as well as approximate
+fore, this is achieved by choosing an occupancy measure                   efficiency, truthfulness, and individual rationality. The
+in ∆δ pP rks q rather than ∆pP rks q. This also makes the                 proof of the main results can be found in Appendix E.
+
+
+
+                                                                     11
+Theorem 2 Given any ϵ P p0, 1q, there exists a polyno-               References
+mially computable δ P p0, 1q, such that with probability
+                            8
+at least 1 ´ Opζq, for T ě αδ  logpAS{ζq, the following              [1] Eitan Altman. Constrained Markov decision processes:
+results hold:                                                            stochastic modeling. Routledge, 1999.
+                                                                     [2] Santiago Balseiro, Negin Golrezaei, Mohammad Mahdian,
+(1) Suppose that all bidders are truthful. The social wel-               Vahab Mirrokni, and Jon Schneider. Contextual bandits with
+    fare regret satisfies                                                cross-learning. In H. Wallach, H. Larochelle, A. Beygelzimer,
+                                                                         F. d'Alché-Buc, E. Fox, and R. Garnett, editors, Advances in
+                                                                         Neural Information Processing Systems, volume 32. Curran
+                          ´                                ¯
+        Reg-SWpT q ď O  r ϵT n ` α´ 43 δ ´ 13 S ´ 21 T 23 n .
+                                                                         Associates, Inc., 2019.
+                                                                     [3] Santiago R Balseiro, Omar Besbes, and Gabriel Y
+(2) Suppose that all bidders are truthful. The seller’s                  Weintraub.      Repeated auctions with budgets in ad
+    regret satisfies                                                     exchanges: Approximations and design.     Management
+                                                                         Science, 61(4):864–884, 2015.
+                       ´                                  ¯
+                     r ϵT n2 ` α´ 43 δ ´ 13 S ´ 12 T 23 n2 .         [4] Santiago R Balseiro and Yonatan Gur. Learning in repeated
+     Reg-SELLpT q ď O                                                    auctions with budgets: Regret minimization and equilibrium.
+                                                                         Management Science, 65(9):3952–3968, 2019.
+(3) Suppose that all bidders are truthful. The bidders’              [5] Dirk Bergemann and Juuso Välimäki. The dynamic pivot
+    regret satisfies                                                     mechanism. Econometrica, 78(2):771–789, 2010.
+                       ´                                  ¯          [6] Dirk Bergemann and Juuso Välimäki. Dynamic mechanism
+      Reg-BIDpT q ď Or ϵT n2 ` α´ 34 δ ´ 31 S ´ 12 T 32 n2 .             design: An introduction. Journal of Economic Literature,
+                                                                         57(2):235–274, June 2019.
+                                                                     [7] Simina Branzei, Mahsa Derakhshan, Negin Golrezaei, and
+(4) The learning algorithm is Opnϵq-approximately ef-                    Yanjun Han. Learning and collusion in multi-unit auctions.
+    ficient.                                                             In A. Oh, T. Naumann, A. Globerson, K. Saenko, M. Hardt,
+(5) The learning algorithm is approximately individu-                    and S. Levine, editors, Advances in Neural Information
+    ally rational.                                                       Processing Systems, volume 36, pages 22191–22225. Curran
+(6) The learning algorithm is approximately truthful.                    Associates, Inc., 2023.
+                                                                     [8] Yang Cai and Constantinos Daskalakis. Learning multi-item
+Remark 2 When the time horizon T is known to the                         auctions with (or without) samples. In 2017 IEEE 58th
+                                                                         Annual Symposium on Foundations of Computer Science
+seller a priori, by setting a proper value of δ so that
+                                                                         (FOCS), pages 516–527, 2017.
+ϵ ď OpT ´1{3 q, the above three notions of regret are up-
+                  r 2{3 q, which matches the upper bound             [9] M. Keith Chen. Dynamic pricing in a labor market:
+per bounded by OpT                                                       Surge pricing and flexible work on the uber platform. In
+     2{3
+OpT
+ r       q and the lower bound ΩpT 2{3 q for the MAB set-                Proceedings of the 2016 ACM Conference on Economics and
+ting [25] and the episodic MDP setting [38] up to a loga-                Computation, EC ’16, page 455, New York, NY, USA, 2016.
+rithmic factor.                                                          Association for Computing Machinery.
+                                                                     [10] Edward H. Clarke. Multipart pricing of public goods. Public
+                                                                          Choice, 11:17–33, 1971.
+7   Conclusion
+                                                                     [11] Peter Cramton. Spectrum auction design.            Review of
+                                                                          industrial organization, 42:161–190, 2013.
+In this paper, we study the problem of online learning for           [12] Peter Cramton and Suzi Kerr. Tradeable carbon permit
+dynamic mechanism design in sequential auctions within                    auctions: How and why to auction not grandfather. Energy
+an unknown environment. The problem is modeled as an                      Policy, 30(4):333–345, 2002.
+infinite-horizon average-reward MDP, where the tran-                 [13] Miroslav Dudı́k, Nika Haghtalab, Haipeng Luo, Robert E.
+sition kernel and reward functions are unknown to the                     Schapire, Vasilis Syrgkanis, and Jennifer Wortman Vaughan.
+seller. We first extend the static VCG mechanism to the                   Oracle-efficient online learning and auction design. J. ACM,
+dynamic setting and obtain a dynamic VCG mechanism                        67(5), September 2020.
+that preserves efficiency, truthfulness, and individual ra-          [14] S. Rasoul Etesami. Learning stationary Nash equilibrium
+tionality. We then design an online learning algorithm                    policies in n-player stochastic games with independent chains.
+for the seller to learn the dynamic VCG mechanism. The                    SIAM Journal on Control and Optimization, 62(2):799–825,
+                                                                          2024.
+algorithm guarantees performance in terms of three no-
+                                                                     [15] Eric J. Friedman and David C. Parkes. Pricing wifi at
+tions of regret, upper bounded by OpϵT r     ` T 2{3 q, and
+                                                                          starbucks: issues in online mechanism design. In Proceedings
+approximately satisfies efficiency, truthfulness, and indi-               of the 4th ACM Conference on Electronic Commerce, EC
+vidual rationality with high probability. Some interest-                  ’03, page 240–241, New York, NY, USA, 2003. Association
+ing directions for future work include relaxing Assump-                   for Computing Machinery.
+tion 1 and studying more general unichain or weakly                  [16] Rigel Galgana and Negin Golrezaei. Learning in repeated
+communicating MDPs. Another promising extension is                        multiunit pay-as-bid auctions. Manufacturing & Service
+to develop a learning-based mechanism that is robust to                   Operations Management, 27(1):200–229, 2025.
+bidders who use some learning dynamics, such as online               [17] Jérémie Gallien. Dynamic mechanism design for online
+gradient descent, to adaptively learn the mechanism.                      commerce. Operations Research, 54(2):291–310, 2006.
+
+
+
+
+                                                                12
+[18] Negin Golrezaei, Patrick Jaillet, and Jason Cheuk                        Shamir, editors, 29th Annual Conference on Learning Theory,
+     Nam Liang. Incentive-aware contextual pricing with non-                  volume 49 of Proceedings of Machine Learning Research,
+     parametric market noise. In Francisco Ruiz, Jennifer Dy,                 pages 1298–1318, Columbia University, New York, New York,
+     and Jan-Willem van de Meent, editors, Proceedings of The                 USA, 23–26 Jun 2016. PMLR.
+     26th International Conference on Artificial Intelligence and         [33] Asuman Ozdaglar, Muhammed O Sayin, and Kaiqing Zhang.
+     Statistics, volume 206 of Proceedings of Machine Learning                 Independent learning in stochastic games. In International
+     Research, pages 9331–9361. PMLR, 25–27 Apr 2023.                          Congress of Mathematicians, page 5340–5373, 2021.
+[19] Negin Golrezaei, Adel Javanmard, and Vahab Mirrokni.
+                                                                          [34] David C Parkes and Satinder Singh.         An mdp-based
+     Dynamic incentive-aware learning: Robust pricing in
+                                                                               approach to online mechanism design. In S. Thrun, L. Saul,
+     contextual auctions.     In H. Wallach, H. Larochelle,
+                                                                               and B. Schölkopf, editors, Advances in Neural Information
+     A. Beygelzimer, F. d'Alché-Buc, E. Fox, and R. Garnett,
+                                                                               Processing Systems, volume 16. MIT Press, 2003.
+     editors, Advances in Neural Information Processing Systems,
+     volume 32. Curran Associates, Inc., 2019.                            [35] David C Parkes, Dimah Yanovsky, and Satinder Singh.
+                                                                               Approximately efficient online mechanism design. In L. Saul,
+[20] Negin Golrezaei and Hamid Nazerzadeh. Auctions with
+                                                                               Y. Weiss, and L. Bottou, editors, Advances in Neural
+     dynamic costly information acquisition. Operations Research,
+                                                                               Information Processing Systems, volume 17. MIT Press,
+     65(1):130–144, 2017.
+                                                                               2004.
+[21] Theodore Groves.        Efficient Collective Choice when
+     Compensation is Possible. The Review of Economic Studies,            [36] Alessandro Pavan, Ilya Segal, and Juuso Toikka. Dynamic
+     46(2):227–241, 04 1979.                                                   mechanism design: A myersonian approach. Econometrica,
+                                                                               82(2):601–653, 2014.
+[22] Yanjun Han, Tsachy Weissman, and Zhengyuan Zhou.
+     Optimal no-regret learning in repeated first-price auctions.         [37] Tiancheng Qin and S. Rasoul Etesami. Learning ϵ-Nash
+     Operations Research, 73(1):209–238, 2025.                                 equilibrium stationary policies in stochastic games with
+                                                                               unknown independent chains using online mirror descent.
+[23] Chi Jin, Tiancheng Jin, Haipeng Luo, Suvrit Sra, and                      In Alessandro Abate, Mark Cannon, Kostas Margellos,
+     Tiancheng Yu.      Learning adversarial Markov decision                   and Antonis Papachristodoulou, editors, Proceedings of the
+     processes with bandit feedback and unknown transition. In                 6th Annual Learning for Dynamics & Control Conference,
+     Hal Daumé III and Aarti Singh, editors, Proceedings of the               volume 242 of Proceedings of Machine Learning Research,
+     37th International Conference on Machine Learning, volume                 pages 784–795. PMLR, 15–17 Jul 2024.
+     119 of Proceedings of Machine Learning Research, pages
+     4860–4869. PMLR, 13–18 Jul 2020.                                     [38] Shuang Qiu, Boxiang Lyu, Qinglin Meng, Zhaoran Wang,
+                                                                               Zhuoran Yang, and Michael I. Jordan. Learning dynamic
+[24] Sham M. Kakade, Ilan Lobel, and Hamid Nazerzadeh.
+                                                                               mechanisms in unknown environments: A reinforcement
+     Optimal dynamic mechanism design and the virtual-pivot
+                                                                               learning approach. Journal of Machine Learning Research,
+     mechanism. Operations Research, 61(4):837–854, 2013.
+                                                                               25(397):1–73, 2024.
+[25] Kirthevasan Kandasamy, Joseph E. Gonzalez, Michael I.
+                                                                          [39] Aviv Rosenberg and Y. Mansour. Online convex optimization
+     Jordan, and Ion Stoica. Vcg mechanism design with unknown
+                                                                               in adversarial Markov decision processes. In International
+     agent values under stochastic bandit feedback. Journal of
+                                                                               Conference on Machine Learning, pages 5478–5486. PMLR,
+     Machine Learning Research, 24(53):1–45, 2023.
+                                                                               2019.
+[26] Mehrdad Khaledi and Alhussein A. Abouzeid. Dynamic
+                                                                          [40] Muhammed O. Sayin, Francesca Parise, and Asuman
+     spectrum sharing auction with time-evolving channel
+                                                                               Ozdaglar. Fictitious play in zero-sum stochastic games.
+     qualities. IEEE Transactions on Wireless Communications,
+                                                                               SIAM Journal on Control and Optimization, 60(4):2095–
+     14(11):5900–5912, 2015.
+                                                                               2114, 2022.
+[27] Boxiang Lyu, Zhaoran Wang, Mladen Kolar, and Zhuoran
+     Yang. Pessimism meets VCG: Learning dynamic mechanism                [41] Yi Tian, Yuanhao Wang, Tiancheng Yu, and Suvrit Sra.
+     design via offline reinforcement learning. In Kamalika                    Online learning in unknown markov games. In Marina
+     Chaudhuri, Stefanie Jegelka, Le Song, Csaba Szepesvari,                   Meila and Tong Zhang, editors, Proceedings of the 38th
+     Gang Niu, and Sivan Sabato, editors, Proceedings of the 39th              International Conference on Machine Learning, volume 139
+     International Conference on Machine Learning, volume 162                  of Proceedings of Machine Learning Research, pages 10279–
+     of Proceedings of Machine Learning Research, pages 14601–                 10288. PMLR, 18–24 Jul 2021.
+     14638. PMLR, 17–23 Jul 2022.                                         [42] Muhammad Aneeq uz Zaman, Kaiqing Zhang, Erik Miehling,
+[28] Andreas Maurer and Massimiliano Pontil.         Empirical                 and Tamer Bas, ar. Reinforcement learning in non-stationary
+     bernstein bounds and sample variance penalization. In The                 discrete-time linear-quadratic mean-field games. In 2020 59th
+     22nd Annual Conference on Learning Theory (COLT 2009),                    IEEE Conference on Decision and Control (CDC), pages
+     Montreal, Canada, 2009.                                                   2278–2284, 2020.
+[29] Emily Meigs, Francesca Parise, and Asuman Ozdaglar.                  [43] William Vickrey.       Counterspeculation, auctions, and
+     Learning in repeated stochastic network aggregative games.                competitive sealed tenders. The Journal of Finance, 16(1):8–
+     In 2019 IEEE 58th Conference on Decision and Control                      37, 1961.
+     (CDC), pages 6918–6923, 2019.                                        [44] Rakesh V. Vohra. Dynamic mechanism design. Surveys in
+[30] Paul Milgrom. Discovering Prices: Auction Design in                       Operations Research and Management Science, 17(1):60–68,
+     Markets with Complex Constraints. Columbia University                     2012.
+     Press, New York Chichester, West Sussex, 2017.                       [45] Kaiqing Zhang, Zhuoran Yang, and Tamer Başar. Multi-
+[31] Mehryar Mohri and Andres Munoz Medina. Learning                           agent reinforcement learning: A selective overview of theories
+     algorithms for second-price auctions with reserve. Journal of             and algorithms. Handbook of reinforcement learning and
+     Machine Learning Research, 17(74):1–25, 2016.                             control, pages 321–384, 2021.
+[32] Jamie Morgenstern and Tim Roughgarden. Learning simple               [46] Tao Zhang and Quanyan Zhu. On incentive compatibility in
+     auctions. In Vitaly Feldman, Alexander Rakhlin, and Ohad                  dynamic mechanism design with exit option in a markovian
+
+
+
+
+                                                                     13
+     environment. Dynamic Games and Applications, 12(2):701–             with independent chains and show that the algorithm
+     745, 2022.                                                          converge to a set of ϵ-Nash equilibrium in a weak sense.
+[47] Yulai Zhao, Yuandong Tian, Jason Lee, and Simon Du.                 We refer the readers to [33, 45] for a broader review of
+     Provably efficient policy optimization for two-player zero-         the literature in this line of research.
+     sum markov games. In Gustau Camps-Valls, Francisco
+     J. R. Ruiz, and Isabel Valera, editors, Proceedings of The
+     25th International Conference on Artificial Intelligence and        B   Examples of Different Types of Auction
+     Statistics, volume 151 of Proceedings of Machine Learning
+     Research, pages 2736–2761. PMLR, 28–30 Mar 2022.
+                                                                         Example 1 (Single-item auctions) The seller allo-
+                                                                         cates one item to one bidder or to nobody. The action
+A    Other Related Works
+                                                                         space can be described as A “ t0, e1 , ¨ ¨ ¨ , en u where 0
+                                                                         is the all-zero vector, and ei is an n-dimensional vector
+Dynamic Mechanism Design                                                 with the i-th entry being 1 and the remaining entries be-
+                                                                         ing 0. An action ei represents allocating the item to bid-
+There are extensive works on dynamic mechanism de-                       der i, and the action 0 represents not allocating the item
+sign. Our work is closely related to [5] where the au-                   to anyone.
+thors study a variant of MDP-based dynamic setting
+and generalize the static VCG mechanism to an infinite-                  Example 2 (Multi-unit auctions) The seller dis-
+horizon discounted-reward MDP. They propose a dy-                        tributes m identical items to n bidders. The action
+namic pivot mechanism that is efficient, ex post truthful                                                                   řn space
+                                                                         can be described as A “ tpa1 , ¨ ¨ ¨ , an q P Zn` | i“1 ai ď
+and individual rational. Earlier works that study MDP-                   mu. An action a P A is an n-dimensional non-negative
+based dynamic mechanisms include [15, 34, 35] where                      integral vector where the i-th entry ai denotes the number
+self-interested bidders arrive and depart over a finite                  of items allocated to bidder i.
+time horizon and may misreport their types upon ar-
+rival. [36] generalize the Myerson mechanism to a dy-
+                                                                         Example 3 (Combinatorial auctions) The seller
+namic environment and characterizes perfect Bayesian
+                                                                         distributes m heterogeneous items to n bidders. The ac-
+equilibrium-implementable allocation rules in Marko-
+                                                                         tion space can be described as A “ t0, 1, ¨ ¨ ¨ , num . An
+vian settings. A more recent work on dynamic mecha-
+                                                                         action a P A is an m-dimensional integral vector where
+nism design in Markovian setting is [46] where each bid-
+                                                                         the j-th entry aj denotes the index of the bidder to whom
+der observes her private state, chooses a reporting strat-
+                                                                         the j-th item is assigned (if aj “ 0, the j-th item is not
+egy and decides whether to stop immediately or to con-
+                                                                         assigned to anyone).
+tinue. Apart from the Markovian setting, [17] studies
+dynamic mechanism design for selling multiple identi-
+cal items to potential buyers that arrive over time. [24]                C   Proof of Theorem 1
+study settings where agents have evolving private infor-
+mation and designs an optimal virtual-pivot mechanism
+                                                                         Efficiency. When all bidders are truthful, efficiency
+that satisfies ex post truthfulness and individual ratio-
+                                                                         is achieved, since the mechanism chooses the allocation
+nality. [20] study dynamic auctions from a different per-
+                                                                         policy that maximizes the average social welfare Jpπ; Rq,
+spective where bidders are allowed to acquire additional
+                                                                         as shown in Eq. (15).
+information and refine their values at an additional cost.
+We refer the readers to the surveys [6, 44] for more ex-
+isting works on this topic.
+                                                                         Individual Rationality. Fix an arbitrary bidder i P
+Reinforcement Learning in Stochastic Games                               rns. When i is truthful, her average utility ui is given by
+                                                                         the following equation:
+Our work is also related to the area of reinforcement
+learning in stochastic games for convergence to Nash                                ui “ Jpπ ˚ ; ri ´ p˚i q
+equilibrium. Although in our setting, the problem is                                   “ Jpπ ˚ ; R ´ Jpπ´i  ˚
+                                                                                                               ; R´i qq
+modeled as a single-agent MDP and reinforcement learn-                                       ˚               ˚
+                                                                                       “ Jpπ ; Rq ´ Jpπ´i ; R´i q
+ing, the seller’s allocation policy and payments are in-
+fluenced by the bidding strategy of the bidders. There-                                “ max Jpπ; Rq ´ max Jpπ; R´i q
+                                                                                          πPΠ             πPΠ
+fore, our work has a flavor of multi-player games. Most                                ě 0.
+existing works focus on two-player zero-sum stochastic
+games [40, 41, 47]. To tackle the problem of learning in
+                                                                         The last inequality holds because R ě R´i ě 0.
+multi-player stochastic games, [42] study reinforcement
+learning in mean-field games, and [29] study online learn-
+ing in aggregative games. These are the games with spe-
+cial structures. In [14,37], the authors focus on decentral-             Truthfulness. Fix an arbitrary bidder i P rns. When
+ized reinforcement learning in n-player stochastic games                 i is truthful, from the proof for individual rationality,
+
+
+
+                                                                    14
+her average utility ui is given by the following equation:                 D.2   Proof of Lemma 2
+
+                                       ˚
+                 ui “ max Jpπ; Rq ´ Jpπ´i ; R´i q.                                                           rks
+                        πPΠ
+                                                                           PROOF. Denote by ν τ the one-step transition dis-
+                                                                           tribution at the first round of episode k. Conditioning on
+When i is untruthful, she reports bi to the seller. The                                                         rks     rks  rks
+                                                                           F rk´1s , we have E rpν t q⊺ s “ pν τ q⊺ pP π qt´τ . More-
+allocation policy π 1 and the price policy for her p1i chosen                                                                    rks
+by the mechanism are given by the following equations:                     over, due to stationarity, it holds that pν rks q⊺ P π “
+                                                                           pν rks q⊺ . Therefore, by applying Lemma 1 iteratively, we
+                    π 1 P argmax Jpπ; bi ` R´i q,                          have
+                             πPΠ                                                      “ ‰                           rks  rks
+                    p1i “ Jpπ´i
+                             ˚
+                                ; R´i q ´ R´i .                                 ∥E ν t ´ ν rks ∥1 ď p1 ´ αSqt´τ ∥ν τ ´ ν rks ∥1
+                                                                                                     (a)                 rks
+                                                                                                     ď 2p1 ´ αSqd
+Hence, bidder i’s utility ũi when she is untruthful is as                                                             log k
+follows:                                                                                             “ 2p1 ´ αSq αS
+                                                                                                     (b)                       log k
+
+                    ũi “ Jpπ 1 ; ri ´ p1i q                                                         À 2p1 ´ αSq´ 2 logp1´αSq
+                        “ Jpπ 1 ; R ´ Jpπ´i  ˚
+                                                ; R´i qq                                                2
+                                                                                                     “? ,
+                              1               ˚
+                        “ Jpπ ; Rq ´ Jpπ´i ; R´i q.                                                      k
+
+                                                                           where inequality (a) is due to the fact that round t is
+Therefore,                                                                                                                            rks
+                                                                           in the stationary phase of episode k and that }ν τ ´
+                                                                           ν rks }1 ď 2, and inequality (b) is from the result that
+               ũi ´ ui “ Jpπ 1 ; Rq ´ max Jpπ; Rq ď 0.                    for x « 0, ´ logp1 ´ xq « x. To complete the proof, let
+                                         πPΠ
+                                                                           ρ “ ρt , ρ1 “ ρrks , ν “ ν t , ν 1 “ ν rks , and π “ π rks . We
+                                                                           have
+D     Proof of Lemmas in Section 5                                                               ÿ
+                                                                                    }ρ ´ ρ1 }1 “   |ρps, aq ´ ρ1 ps, aq|
+                                                                                                 sPS
+D.1       Proof of Lemma 1                                                                       aPA
+                                                                                                 ÿ
+                                                                                             “             |νpsqπpa|sq ´ ν 1 psqπpa|sq|
+                                                                                                 sPS
+                                                                                                 aPA
+                                                                                                 ÿ
+PROOF. First, it holds that                                                                  “             |νpsq ´ ν 1 psq|πpa|sq
+                                                                                                 sPS
+                    ÿ                              ÿ                                             aPA
+      π    1                  1
+    P ps |sq “            P ps |s, aqπpa|sq ě α         πpa|sq “ α.                              ÿ
+                                                                                             “         |νpsq ´ ν 1 psq|
+                    aPA                           aPA
+                                                                                                 sPS
+                                                                                             “ }ν ´ ν 1 }1 .
+Hence, each element of P π is lower bounded by α, i.e.,
+                                     1
+P π ě α1SˆS . Define matrix Qπ fi 1´αS   pP π ´ α1SˆS q.
+It can be verified that Qπ is a row-stochastic matrix,
+                                                                           D.3   Proof of Lemma 3
+i.e., Qπ ě 0, and the sum of each row of Qπ equals one.
+Therefore,
+                                                                           PROOF. Define the event E t fi tpst , at q ‰ ps, aqu.
+ }pν ´ ν 1 q⊺ P π }1 “ }pν ´ ν 1 q⊺ pα1SˆS ` p1 ´ αSqQπ q}1                Then,
+                       (a)
+                        “ p1 ´ αSq}pν ´ ν 1 q⊺ Qπ }1
+                                                                                     P pps, aq is not visited in episode kq
+                       (b)                                                             ´ rks rks                             ¯
+                                           π ⊺             1                                                    rks  rks rks
+                        ď p1 ´ αSq}pQ q }1 }ν ´ ν }1                               ď P E τ `d X ¨ ¨ ¨ X E τ `d `l ´1
+                       (c)
+                        “ p1 ´ αSq}pν ´ ν 1 q⊺ }1 ,                               (a)            rks
+                                                                                   ď p1 ´ αδql
+                                                                                                            ?
+                                                                                                 maxt4,      ku logpASk{ζq
+where equality (a) is due to the fact that pν ´ν 1 q⊺ 1SˆS “                       “ p1 ´ αδq                 αδ
+
+0, inequality (b) is obtained by using the definition of ma-                      (b)                2 logpASk{ζq
+                                                                                                 ´
+trix norms induced by vector norms, and equality (c) is                            À p1 ´ αδq         logp1´αδq
+
+obtained by using the result that for a column-stochastic                              ζ
+                                         řS                                        ď       ,
+matrix pQπ q⊺ , }pQπ q⊺ }1 “ max1ďjďS i“1 |Qπij | “ 1.                               ASk 2
+
+
+                                                                      15
+where inequality (a) is obtained by using Lemma 7, and                    Social Welfare Regret and Approximate Efficiency
+inequality (b) is from the result that for x « 0, ´ logp1´
+xq « x. Finally, taking a union bound over all s P S,                     Using occupancy measure, we can write expected social
+a P A and k P Z`` gives the result.                                       welfare regret as follows:
+                                                                                                                   T
+                                                                                                                   ÿ           “ ‰
+D.4    Proof of Lemma 4                                                                   Reg-SWpT q “                  xρ˚ ´ E ρt , Ry,
+                                                                                                                   t“1
+
+PROOF. The confidence radius ϵrks ps, a, s1 q follows a                   where the expectation is taken with respect to the ran-
+sample-dependent empirical Bernstein bound in [28].                       domness of the MDP and of the algorithm. Suppose
+Lemma 4 is a result of Theorem 4 in [28] and follows                      that all bidders are truthful. In each round of the mix-
+the proof in [23, Appendix B].                                            ing phase, the regret incurred is at most pn ` cmax q ď
+                                                                          pcmax ` 1qn. Therefore, the regret incurred in all mix-
+                                                                                                                         řK
+For k “ 0, the statement trivially holds. For k P Z`` ,                   ing phases up to T is trivially bounded by c0 n k“1 drks ,
+applying Theorem 4 in [28] and taking a union bound                       where c0 “ cmax ` 1, and K denotes the number of
+over all k P Z`` , s, s1 P S, and a P A, it holds that with               episodes up to T .
+probability at least 1 ´ 2π 2 ζ{3, all k P Z`` , s, s1 P S,
+and a P A,                                                                Next, we bound the regret incurred in the stationary
+      ˇ                               ˇ                                   phase. Fix an arbitrary round t P rT s in the stationary
+      ˇP ps1 |s, aq ´ Psrks ps1 |s, aqˇ
+      ˇ                               ˇ                                   phase of episode k P rKs. The regret incurred in round
+     d                                                                    t is decomposed as follows:
+         2Psrks ps1 |s, aqp1 ´ Psrks ps1 |s, aqq log pS 2 Ak 2 {ζq
+  ď                                                                                   “ ‰
+                                                                               xρ˚ ´ E ρt , Ry “ xρ˚ ´ ρ˚δ , Ry ` xρ˚δ ´ ρrks , Ry
+                        maxt1, N rks ps, aq ´ 1u                                                               “ ‰
+                      ` 2 2 ˘
+               7 log S Ak {ζ                                                                      ` xρrks ´ E ρt , Ry,
+      `
+         3 maxt1, N rks ps, aq ´ 1u                                       where ρ˚δ P argmaxρP∆δ pP q xρ, Ry. By Proposition 4, the
+        d
+          Psrks ps1 |s, aq log pSAk{ζq                                    first term on the right-hand side is bounded as xρ˚ ´
+  ď2                                                                      ρ˚δ , Ry ď c0 nϵ. Conditioned on F rk´1s , by using Lemma
+           maxt1, N rks ps, aq ´ 1u
+                                                                                                           rks        t
+                14 log pSAk{ζq                                                                     ? as xρ ´E rρ s , Ry ď
+                                                                          2, the last term is bounded                          }ρrks ´
+      `                                                                         t                                            rk´1s
+                                                                          E rρ s }1 }R}8 ď 2c0 n{ k. Conditioning on F             , to
+         3 maxt1, N rks ps, aq ´ 1u
+                                                                          bound the second term, we further decompose it as fol-
+  “ ϵrks ps, a, s1 q.                                                     lows:
+
+                                                                                  xρ˚δ ´ ρrks , Ry
+D.5    Proof of Lemma 5                                                                 ˚        prk´1s y
+                                                                                “    xρ δ,R ´ R
+                                                                                     looooooooomooooooooon
+                                                                                                                                             prk´1s y
+                                                                                                                              xρ˚δ ´ ρprks , R
+                                                                                                                            ` loooooooooomoooooooooon
+                                                                                        ď 0 when Lemma 5 holds                   ď 0 by Eq. (29)
+PROOF. This is a direct application of Azuma–Hoeffding                                          rks        rks                       prk´1s ´ Ry
+                                                                                                                  prk´1s y ` xρrks , R
+inequality and union bound.                                                                ρ
+                                                                                        ` xp          ´ρ         ,R
+                                                                              w.h.p.
+                                                                                                         prk´1s ´ R}8 .
+                                                                                       ρrks ´ ρrks }1 ` }R
+                                                                                ď c0 n}p
+E     Proof of Theorem 2
+                                                                          The first term is upper bounded by using Lemma 9, and
+                                                                          the second term is upper bounded by using Lemma 3,
+We first define some notations that will be used through-                 Lemma 5, and Eqs. (25)–(26). Putting everything to-
+out the section. For all s P S and a P A, let ρt ps, aq fi                gether, we obtain the following upper bound of social
+P ppst , at q “ ps, aqq, and note that ρt is a valid but not              welfare regret:
+stationary distribution over S ˆ A. Let π rks denote the
+policy induced by qprks , and let q rks denote the occu-                       Reg-SWpT q
+pancy measure defined by π rks and the true transition                          T
+kernel P . Furthermore, let ρrks , ρprks , and ρ˚ be the oc-
+                                                                                ÿ         “ ‰
+                                                                             “    xρ˚ ´ E ρt , Ry
+cupancy measures in S ˆ A induced by q rks , qprks , and                            t“1
+q ˚ , respectively. Throughout the proof, we use ρ and q                                  K                       K
+                                                                           w.h.p.
+interchangeably to represent an occupancy measure or a
+                                                                                          ÿ                       ÿ
+                                                                             ď c0 n             drks ` c0 n             lrks ¨
+distribution. Let F rk´1s be the σ-algebra adapted to all                                 k“1                     k“1
+measurable events up to the end of episode pk ´ 1q and                              ˜                                             c                     ¸
+F “ tF rks ukPZ` be the filtration. The proof is divided                                  2                                           logpASkn{ζq
+                                                                                              ρrks ´ ρrks }1 ` 4
+                                                                                     ϵ ` ? ` }p                                                             .
+into five parts as follows.                                                                k                                               k
+
+
+
+                                                                     16
+By using Lemma 2 and Lemma 3 for drks and lrks , using            can be upper-bounded as follows:
+Lemma 9 to bound }p   ρrks ´ ρrks }1 , and using Lemma 10
+for K, the regret is thus bounded as follows:                          “                  ‰ w.h.p.
+                                                                      E u0 pπ ˚ , p˚ q´ut0 ď pn ´ 1q loooooomoooooon
+                                                                                                     xρrks ´ρ˚ , Ry
+                                                                                                              ď 0 by Eq. (18)
+         Reg-SWpT q
+                                                                                                        n
+   w.h.p.          c0                 c1
+                                                                                                        ÿ             rks
+    ď c0 nT ϵ `       nK log K `          nK logpAKS{ζq                                             `       xρ˚´i ´ ρp´i , R´i y
+                   αS                 αδ                                                                i“1
+                c2          3                                                                                 “ ‰
+          `
+              2
+                 ? nK log 2 pAKS{ζq                                                                 ` c1 n2 }E ρt ´ ρrks }1 .
+            α δ S
+             c3 ?
+          ` 2 n K logpAKS{ζq                                                                                           rks
+                                                                  For each i P rns, the inner product xρ˚´i ´ ρp´i , R´i y has
+            α δ
+            c4         3                                          a form similar to the social welfare regret and can there-
+          `     nK log 2 pAKSn{ζq
+            αδ                                                    fore be bounded in exactly the same way as was done
+                                               3
+                         4   1     1   2
+     ď c0 nT ϵ ` c5 α´ 3 δ ´ 3 S ´ 2 T 3 n log 2 pAST n{ζq        for the social welfare regret. The last term on the right-
+                       5   2   1                                  hand side, c1 n2 }E rρt s ´ ρrks }1 , can be bounded using
+            ` c6 α´ 3 δ ´ 3 T 3 n logpAST {ζq                     Lemma 2. Therefore, with probability at least 1 ´ Opζq,
+                                                                  Reg-SELLpT q ď c2 n ¨ Reg-SWpT q with c2 being an abso-
+where c0 up to c6 are absolute constants. Therefore, with         lute constant, which implies limT Ñ8 T1 Reg-SELLpT q “
+probability at least 1 ´ Opζq, limT Ñ8 T1 Reg-SWpT q “            Opn2 ϵq.
+Opnϵq, implying that Algorithm 3 is Opnϵq-approximately
+efficient.                                                        Bidders’ Regret
+
+                                                                  Suppose all bidders are truthful. Fix an arbitrary bidder
+Seller’s Regret                                                   i P rns. Her regret incurred in each round is at most 1, so
+                                                                  her regret incurred in the mixing phase is upper bounded
+                                                                       1
+                                                                  by αS  K log K. Next we bound her regret incurred in the
+By applying ř Lemma   11, weD have u0 pπ ˚ , p˚ q “ ´pn ´         stationary phase. Fix an arbitrary round t P rT s in the
+     ˚          n @ ˚
+1q xρ , Ry ` i“1 ρ´i , R´i . By using a similar argu-             stationary phase of episode k P rKs. By following the
+ment as in social welfare regret, the seller’s regret in-
+                                         c0                       same steps, conditioning on F rk´1s , we can lower bound
+curred in the mixing phase is at most αS     nK log K. To
+                                                                  i’s expected utility in round t as follows:
+bound his regret incurred in the stationary phase, fix
+an arbitrary round t P rT s in the stationary phase of                “ ‰         “ ‰
+                                                                    E uti “ xE ρt , ri y
+episode k P rKs. Conditioned on F rk´1s , the seller’s ex-                        ´                     “ t ‰ rk´1s ¯
+                                                                                     rks p rk´1s
+pected utility in round t is lower bounded as follows:                         ´ xp ρ´i , R´i    y ´ xE  ρ ,R q
+                                                                                                                ´i y
+                                                                          (a) “ ‰          rks
+ “ ‰      “ ‰          n
+                       ÿ   rks p rk´1s
+                                                                          ě xE ρt , Ry ´ xp
+                                                                                          ρ´i , R´i y
+E ut0 “ xE ρt , r0 y `    ρ´i , R
+                         xp       ´i   y                                 w.h.p.
+                               i“1                                                ´ c1 n max β rk´1s ps, aq
+                 n
+                 ÿ                                                                       ps,aq
+                       “ ‰ rk´1s
+             ´       xE ρt , R
+                             q
+                               ´i y                                       (b) “ ‰          rks
+                 i“1                                                      ě xE ρt , Ry ´ xρ´i , R´i y
+                       n ´                                                                                            rks       rks
+      (a)                                                                         ´ c1 n max β rk´1s ps, aq ´ c2 n}p
+                                                                                                                   ρ´i ´ ρ´i }1 ,
+                       ÿ                               ¯
+          “ ‰                rks            “ ‰
+      ě xE ρt , r0 y `      ρ´i , R´i y ´ xE ρt , R´i y
+                           xp                                                            ps,aq
+    w.h.p.
+                               i“1
+                              n
+     (b)           “ ‰        ÿ   rks                             where inequality (a) is the result of Lemma 5, and in-
+      “ ´ pn ´ 1qxE ρt , Ry `    ρ´i , R´i y
+                                xp                                equality (b) is the result of Hölder’s inequality with c1
+                                         i“1
+                                     n
+                                                                  and c2 being absolute constants. Denote by H the last
+      (c)                            ÿ     rks                    two terms on the right-hand side of the last expression,
+      ě ´ pn ´ 1qxρrks , Ry `             ρ´i , R´i y
+                                         xp
+                                                                  which can be bounded by using Lemma 9 and Eq. (26).
+                                     i“1
+                       “ ‰                                        Therefore, bidder i’s regret incurred in round t is upper
+             ´ c1 n2 }E ρt ´ ρrks }1 ,                            bounded as follows:
+                                                                              “                     ‰
+where inequality (a) is the result of Lemma 5 that                           E ui pπ ˚ , p˚ q ´ uti
+                                                                                                            “ ‰
+qrk´1s ď R´i ď R
+R                 prk´1s with high probability, equality                 “ xρ˚ , Ry ´ xρ˚´i , R´i y ´ E uti
+  ´i               ´i
+(b) is due to Lemma 11, and inequality (c) is the result               w.h.p.         “ ‰               rks
+                                                                         ď xρ˚ ´ E ρt , Ry ` looooooooomooooooooon
+                                                                                                      xρ´i ´ ρ˚´i , R´i y ´H.
+of Hölder’s inequality with c1 being an absolute con-
+stant. Therefore, the seller’s regret incurred in round t                                               ď 0 by Eq. (19)
+
+
+
+
+                                                             17
+The first term xρ˚ ´ E rρt s , Ry is exactly the social wel-                    Approximate Truthfulness
+fare regret incurred in round t. Therefore, with proba-
+bility at least 1 ´ Opζq, Reg-BIDpT q ď c3 n ¨ Reg-SWpT q                       Fix an arbitrary bidder i P rns. We consider two cases:
+with c3 being an absolute constant, which implies that                          when i is truthful, and when i is untruthful. We do not
+limT Ñ8 T1 Reg-BIDpT q “ Opn2 ϵq.                                               require that other bidders are truthful. Yet, we assume
+                                                                                that all other bidders adopt stationary bidding strate-
+Approximate Individual Rationality                                              gies, and we fix their bidding strategies in the two cases.
+                                                                                Denote by ũti the utility of bidder i in round t when
+                                                                                she is untruthful. Similarly, we put “„” above a symbol
+Fix an arbitrary bidder i P rns. Suppose that bidder i is                       to denote its counterpart when i is untruthful. In each
+truthful. In this part, we do not require that other bid-                       round of the mixing phase, ũti ´ uti ď 1. Hence, the total
+ders are truthful or adopt stationary bidding strategies.                       loss by bidding truthfully incurred in the mixing phase
+With slight abuse of notation, we still use rjt to denote                       is trivially bounded by αS1
+                                                                                                            K log K.
+the reported reward of bidder j P rnsztiu in round t, and
+  rks     rks                                                                   Next, we bound the loss by being truthful incurred in the
+rpj and rqj to denote constructed UCB and LCB at the
+end of episode k.                                                               stationary phase. Fix a round t P rT s in the stationary
+                                                                                phase of episode k P rKs. When i is truthful, conditioned
+Since bidder i is charged 0 in the mixing phase, her utility                    on F rk´1s and from the proof for approximate individual
+is nonnegative in the mixing phase. Therefore, we only                          rationality, her expected utility obtained in round t is
+need to lower bound her utility obtained in the station-                        lowered bounded as follows:
+ary phase. Fix an arbitrary round t P rT s in the station-                        “ ‰ (a) rks rk´1s       rks p rk´1s
+ary phase of episode k P rKs. Conditioned on F rk´1s ,                           E uti ě xp
+                                                                                          ρ ,Rp          ρ´i , R
+                                                                                                    y ´ xp      ´i    y
+                                                                                        w.h.p.
+her expected utility in round t is bounded as follows:
+                                                                                                 ´ c1 n max β rk´1s ps, aq
+   “ ‰      “ ‰                                                                                         ps,aq
+  E uti “ xE ρt , ri y                                                                                  ´                     “ ‰           ¯
+            ´
+               rks p rk´1s        “ t ‰ rk´1s ¯                                                  ´ c2 n }p ρrks ´ ρrks }1 ` }E ρt ´ ρrks }1
+              ρ´i , R
+           ´ xp        ´i  y ´ xE  ρ ,R q
+                                          ´i y
+                                                                                          (b)                    rks p rk´1s
+         (a)  “ ‰ rk´1s       rks p rk´1s
+                                                                                                    prk´1s y ´ xp
+                                                                                             ρrks , R
+                                                                                          ě xp                  ρ´i , R̃´i   y
+          ě xE ρt , R
+                    p        ρ´i , R
+                        y ´ xp      ´i    y                                             w.h.p.
+        w.h.p.
+                                                                                                 ´ c3 n max β rk´1s ps, aq
+                 ´ c1 n max β rks ps, aq                                                                ps,aq
+                        ps,aq                                                                           ´                     “ ‰           ¯
+          (b)                                                                                    ´ c2 n }p ρrks ´ ρrks }1 ` }E ρt ´ ρrks }1
+                                        rks   rk´1s
+                    prk´1s y ´ xp
+             ρrks , R
+          ě xp                  ρ´i , R
+                                      p
+                                        ´i            y
+                 ´ c1 n max β   rk´1s
+                                    ps, aq                                      where inequality (a) is directly obtained from the proof
+                        ps,aq
+                        ´                                  ¯                    for approximate individual rationality, inequality (b) is
+                 ´ c2 n }p
+                                              “ ‰
+                           ρrks ´ ρrks }1 ` }E ρt ´ ρrks }1 ,                   the result of Lemma 5 and Eqs. (27)–(28) that with high
+                                                                                probability, R                                prk´1s , and
+                                                                                              prk´1s ´2cmax nβ rk´1s ď R´i ď R̃
+                                                                                               ´i                              ´i
+                                                                                c1 to c3 are absolute constants. Denote by G the last two
+where inequality (a) is the result of Lemma 5, and in-
+                                                                                terms involving c2 and c3 on the right-hand side of the
+equality (b) is the result of Hölder’s inequality, with c1
+                                                                                last expression.
+and c2 being absolute constants. The first two terms are
+lower bounded by 0 by the following inequality:
+                                                                                When i is untruthful, the MDP follows a different tra-
+                                                                                jectory, and as a result, the confidence sets for transi-
+                        rks p rk´1s
+          prk´1s y ´ xp
+   ρrks , R
+  xp                   ρ´i , R ´i   y                                           tion kernel and reward functions are different. This dif-
+                      rk´1s                               rk´1s                 ference can be bounded by a small term since sufficient
+“     max      xq, Rp       y´       max             xq, R
+                                                         p
+                                                           ´i     y ě 0,
+   qP∆δ pP rk´1s q                 qP∆δ pP rk´1s q                              exploration is achieved, according to Lemma 3. When i
+                                                                                is untruthful, conditioning on F rk´1s , by following the
+                                            prk´1s ě 0.
+                                   prk´1s ě R                                   same steps, we can upper bound her expected utility in
+where the inequality holds because R          ´i                                round t as follows:
+The last two terms involving c1 and c2 are bounded
+in exactly the same way as we did earlier for regret.                             “ ‰ w.h.p.                             prk´1s y
+                                                                                                    prk´1s y ´ xρ̃prks , R̃
+By following the same procedure as we did to bound                               E ũti ď xρ̃prks , R̃             ´i      ´i
+                                                                                                     ´                              ¯
+              ”ř have ıthat with probability at least
+the regrets, we                                                                                                               “ ‰
+                                                                                             ` c4 n }ρ̃ ´ ρ̃ }1 ` }E ρ̃t ´ ρ̃rks }1
+                                                                                                       prks     rks
+                 T
+1 ´ Opζq, E          uti ě ´OpTr 2{3 q, and therefore,
+             ”ř t“1 ı                                                                   w.h.p.                             prk´1s y
+                                                                                                      prk´1s y ´ xρ̃prks , R̃
+               T                                                                          ď xρ̃prks , R
+limT Ñ8 T1 E   t“1 ui
+                     t
+                         ě 0. Therefore, the learning                                                  ´             ´i      ´i
+                                                                                                                                “ ‰  ¯
+algorithm achieves approximate individual rationality.                                       ` c4 n }ρ̃p ´ ρ̃ }1 ` }E ρ̃t ´ ρ̃rks }1
+                                                                                                          rks     rks
+
+
+
+
+                                                                           18
+                                                                                          `                                          ˘
+                ` c5 n max β rk´1s ps, aq                                holds that P pst , at q “ ps, aq|pst´1 , at´1 q “ ps1 , a1 q “
+                         ps,aq
+                                                                         π rks pa|sqP ps|s1 , a1 q ě αδ, independent of the history up
+where c4 and c5 are absolute constants. Denote by H                      to t ´ 2 by Markovian property. Taking the expectation
+the last two terms involving c4 and c5 on the right-hand                 of pst´1 , at´1 q gives P ppst , at q “ ps, aqq ě αδ, regardless
+side of the last expression. Therefore,                                  of the history up to t ´ 1.
+
+     “          ‰ w.h.p.                                                 Lemma 7 Let Assumption 1 hold. If qprks P ∆δ for all
+    E ũti ´ uti ď xρ̃prks ´ ρprks , R
+                                     prk´1s y                            k P Z`` , then for all t P Z` and t ě 2, for all s P S and
+                             rks    rks p rk´1s                          a P A, and for any l P Z` , it holds that regardless of the
+                            ρ ´ ρ̃p , R̃
+                         ` xp    ´i     ´i      y ´ G ` H.
+                                                ´i                       history up to t ´ 1,
+                                            prk´1s y ď 0 or
+Note that we cannot claim xρ̃prks ´ ρprks , R
+                                                                           `                                                   ˘
+                                                                         P pst , at q ‰ ps, aq, ¨ ¨ ¨ , pst`l , at`l q ‰ ps, aq ď p1´αδql`1 .
+  rks     rks    rk´1s
+ ρ´i ´ ρ̃p´i , R̃´i y ď 0 by optimality like what we did
+xp             p
+for bounding the regrets. This is because ρ̃prks is not
+                                          rks                            PROOF. We prove the lemma using induction. When
+necessarily in ∆δ pP rk´1s q, and ρp´i is not necessarily in             l “ 0, the statement is essentially Lemma 6. Suppose the
+∆δ pP̃ rk´1s q either, since they are from two different tra-            statement holds for some l P Z` . Let F t`l fi σppsτ , aτ q :
+jectories. However, we can bound them by a small posi-                   τ ď t ` lq be the σ-algebra generated by the stochas-
+tive term as follows. Denote by π̃ rks the policy induced by             tic process tpsτ , aτ quτ ďt`l . By Lemma 6, we see that
+ρ̃prks , and let ρ̃1rks be the occupancy measure defined by              for` all s P S, a P A and ˘H P F t`l , it holds that
+P and π̃ rks . According to Lemma 4, ρ̃1rks P ∆δ pP rk´1s q              P pst`l`1 , at`l`1 q ‰ ps, aq|H ď 1 ´ αδ. Define event
+with high probability. Thus, it holds that                               E τ fi tpsτ , aτ q ‰ ps, aqu. We can see that E t X ¨ ¨ ¨ X
+                                                                         E t`l P F t`l . Therefore,
+                         prk´1s y ď xρ̃1rks ´ ρprks , R
+       xρ̃prks ´ ρprks , R                            prk´1s
+                                    loooooooooooomoooooooooooony             `                    ˘       `                       ˘
+                                                                          P E t X ¨ ¨ ¨ X E t`l`1 “ P E t`l`1 |E t X ¨ ¨ ¨ X E t`l ¨
+                                      ď 0 w.h.p. by Eq. (29)                                                ` t              ˘
+                                                                                                         P E X ¨ ¨ ¨ X E t`l
+                                      ` c6 n}ρ̃prks ´ ρ̃1rks }1 ,
+                                                                                                            ď p1 ´ αδq ¨ p1 ´ αδql`1
+with c6 being absolute constant, which can be further                                                       “ p1 ´ αδql`2 .
+bounded by using Lemma 9. Similarly, with high prob-
+           rks   rks p rk´1s          rks 1rks
+          ρ ´ ρ̃p , R̃
+ability, xp
+          ´i     ´i   ´i     y ď c n}p
+                                  6  ρ ´ ρ } , where
+                                       ´i    ´i 1                        Lemma 8 For any P 1 P P r0s , where P r0s is defined by
+ 1rks                                                                    Eq. (24) as follows:
+ρ´i is the occupancy measure defined by P and the allo-
+                           rks
+cation policy induced by ρp´i . This term can be bounded                                #              ˇ
+                                                                                                       ˇ ÿ
+                                                                                                                                              +
+by using Lemma 9.                                                        P   r0s
+                                                                                   fi       P P RAS
+                                                                                                    2 ˇ
+                                                                                                                    1
+                                                                                                                 P ps |s, aq “ 1 @s P S, a P A ,
+                                                                                                 `    ˇ
+                                                                                                       ˇ s1 PS
+Putting everything together and following the same
+                                      ”ř we have that
+steps as we did for bounding the regrets,                   ı            and any policy π : S Ñ ∆pAq, it holds that
+                                          T       t     t
+with probability at least 1 ´ Opζq, E          pũi ´ u i q   ď
+                                  ”ř t“1                                                          1
+                                                                             ∥ρP,π ´ ρP ,π ∥1
+                                                      ı
+ r 2{3 q. Therefore, limT Ñ8 1 E      T      t      t
+OpT                            T      t“1 pũi ´ ui q ď 0,
+                                                                                 1 ÿ P 1 ,π           ÿ ˇ                                ˇ
+                                                                                                           ˇP ps1 |s, aq ´ P 1 ps1 |s, aqˇ .
+which implies that the learned mechanism is approxi-                          ď        ρ      ps, aq
+mately truthful.                                                                αS sPS               s1 PS
+                                                                                            aPA
+
+F    Auxiliary Lemmas and Proofs
+                                                                                                                                         1
+                                                                         PROOF. For simplicity, let ρ “ ρP,π , ρ1 “ ρP ,π , ν “
+                                                     rks                                       1
+Lemma 6 Let Assumption 1 hold. If qp P ∆δ for all                        ν P,π , and ν 1 “ ν P ,π . By using Lemma   2, we have ∥ρ ´
+k P Z`` , then for all t P Z` and t ě 2 and for all s P S
+                                                                                                               ř
+                                                                         ρ1 ∥1 “ ∥ν ´ ν 1 ∥ř            1
+                                                                                            1 . Let P ps |sq “
+                                                                                                                         1
+                                                                                                                 aPA P ps |s, aqπpa|sq
+and a P A, it holds that regardless of the history up to                 and P 1 ps1 |sq “ aPA P 1 ps1 |s, aqπpa|sq for all s, s1 P S.
+t ´ 1,           `                  ˘                                    We have
+               P pst , at q “ ps, aq ě αδ.
+                                                                         ∥ν ´ ν 1 ∥1 “ ∥ν ⊺ P ´ pν 1 q⊺ P 1 ∥1
+PROOF. Fix an arbitrary round t in episode k.                                        “ ∥ν ⊺ P ´ pν 1 q⊺ P ` pν 1 q⊺ P ´ pν 1 q⊺ P 1 ∥1
+If qprks P ∆δ , by using Eq. (13), it holds that for                                 ď ∥ν ⊺ P ´ pν 1 q⊺ P ∥1 ` ∥pν 1 q⊺ P ´ pν 1 q⊺ P 1 ∥1
+any s P S and a P A, π rks pa|sq ě δ. If we condi-                                          (a)
+tion on pst´1 , at´1 q, for any s1 P S and a1 P A, it                                        ď p1 ´ αSq∥ν ´ ν 1 ∥1 ` ∥pν 1 q⊺ P ´ pν 1 q⊺ P 1 ∥1 ,
+
+
+
+                                                                    19
+                                                                                                  ¸
+where (a) is obtained by using Lemma 1. Therefore,                                  5S logpASk{ζq
+                                                                                  `
+                                                                                    maxt1, k ´ 1u
+        ∥ν ´ ν 1 ∥1                                                               d
+         1                                                                     4     logpASk{ζq     10 logpASk{ζq
+      ď    ∥pν 1 q⊺ P ´ pν 1 q⊺ P 1 ∥1                                       “ ?                  `
+        αS        ˇ                                       ˇ                   α S maxt1, k ´ 1u     α maxt1, k ´ 1u
+                                                                                  d
+         1 ÿ ˇˇ ÿ 1 `                                   ˘ ˇ
+                                                                               6    logpASk{ζq 20 logpASk{ζq
+                       ν psq P ps1 |sq ´ P 1 ps1 |sq ˇ
+                                                          ˇ
+      “           ˇ                                                          ď ?                `              ,
+        αS s1 PS sPS
+                  ˇ                                       ˇ                   α S    maxt1, ku    α maxt1, ku
+                 ˇ
+         1 ÿ ˇˇ ÿ 1
+      “          ˇ    ν psq¨                                               where inequality (a) is due to Cauchy–Schwarz inequal-
+        αS s1 PS ˇsPS
+            ˜                                                  ¸ˇ          ity.
+                 ÿ                                               ˇ
+                                     1           1 1
+                     πpa|sqpP ps |s, aq ´ P ps |s, aqq ˇ
+                                                                 ˇ
+                                                                 ˇ         Lemma 10 Let T P Z`` and T ě 4 logpAS{ζq{αδ. De-
+                aPA                                                        note by K the total number of episodes up to round T . It
+         1  ÿ      ÿ            ÿ                                                          P        2 T
+      ď               ν 1 psq      πpa|sq¨                                 holds that K ď 23 pαδT q 3 .
+        αS s1 PS sPS           aPA
+            ˇ                                 ˇ
+            ˇP ps1 |s, aq ´ P 1 ps1 |s, aqˇ
+         1 ÿ 1               ÿ ˇ                                ˇ          PROOF. It holds that
+      “           ρ ps, aq        ˇP ps1 |s, aq ´ P 1 ps1 |s, aqˇ .
+        αS sPS              s1 PS                                                              K ´
+                                                                                               ÿ             ¯  K
+                                                                                                                ÿ
+               aPA                                                                       T ě      drks ` lrks ě   lrks
+                                                                                               k“1                          k“1
+Lemma 9 With probability at least 1 ´ Opζq, for all k P                                           K
+Z`` , it holds that                                                                           1 ÿ?       2   3
+                                                                                            ě        kě     K2.
+                                                                                              αδ k“1    3αδ
+                                d
+  rks        rks          6         logpASk{ζq 20 logpASk{ζq
+∥p
+ ρ      ´ρ         ∥1 ď   ?                    `             .             Lemma 11 Given the offline infinite-horizon VCG
+                          α S        maxt1, ku   α maxt1, ku               mechanism that outputs pπ ˚ , p˚ q, the seller’s utility can
+                                                                           be written as follows:
+                                                                                                                                n
+PROOF. When Lemmas 3 and 4 hold, for any k P Z`` ,                              u0 pπ ˚ , p˚ q “ ´pn ´ 1qxρ˚ , Ry `
+                                                                                                                                ÿ
+                                                                                                                                    xρ˚´i , R´i y.
+by applying Lemma 8, we have
+                                                                                                                                i“1
+
+
+   ∥pρrks ´ ρrks ∥1
+     1 ÿ rks           ÿ ˇˇ                            ˇ                   PROOF.
+            ρp ps, aq      ˇP ps1 |s, aq ´ Ppps1 |s, aqˇ
+                                                       ˇ
+  ď
+    αS sPS             1
+                      s PS                                                                                  n
+                                                                                                            ÿ
+          aPA
+                                                                            u0 pπ ˚ , p˚ q “ Jpπ ˚ ; r0 `         p˚i q
+     2 ÿ rks          ÿ
+  ď        ρp ps, aq       ϵrks ps, a, s1 q                                                                 i“1
+    αS sPS           s1 PS
+                                                                                                        n
+                                                                                                        ÿ
+          aPA                                                                            “ xρ˚ , r0 `         p˚i y
+                                ˜ d
+                                                                                                        i“1
+       2 ÿ rks          ÿ        Psrks ps1 |s, aq logpASk{ζq                                             n                 n
+  “          ρp ps, aq       2                                                                          ÿ                  ÿ
+      αS sPS           s1 PS
+                                  maxt1, N rks ps, aq ´ 1u                               “ xρ˚ , r0 ´         R´i y `            xρ˚´i , R´i y
+       aPA                                                                                              i“1                i“1
+                                        ¸
+                                                                                                        n                             n
+                 14 logpASk{ζq                                                                          ÿ                             ÿ
+        `                                                                                “ xρ˚ , R ´         pR´i ` ri qy `               xρ˚´i , R´i y
+           3 maxt1, N rks ps, aq ´ 1u
+                                                                                                        i“1                           i“1
+                            ˜ d                                                                                           n
+     2 ÿ rks                     Psrks ps1 |s, aq logpASk{ζq
+                                                                                                                          ÿ
+                                                                                         “ ´pn ´ 1qxρ˚ , Ry `                 xρ˚´i , R´i y.
+                       ÿ
+  ď        ρp ps, aq         2
+    αS sPS            s1 PS
+                                        maxt1, k ´ 1u                                                                     i“1
+       aPA
+                              ¸
+            14 logpASk{ζq
+        `
+           3 maxt1, k ´ 1u
+                      ˜ d
+ (a) 2 ÿ                     S logpASk{ζq
+             rks
+ ď         ρp ps, aq 2
+    αS sPS                   maxt1, k ´ 1u
+          aPA
+
+
+
+
+                                                                      20
+
